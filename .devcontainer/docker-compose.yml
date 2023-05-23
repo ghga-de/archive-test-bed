@@ -1,0 +1,305 @@
+version: '3'
+
+services:
+  app:
+    container_name: file_stack
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+      args:
+        # [Choice] Python version: 3, 3.8, 3.7, 3.6
+        VARIANT: 3.9
+        # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
+        USER_UID: 1000
+        USER_GID: 1000
+
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+    init: true
+    privileged: true
+
+    volumes:
+      - ..:/workspace:cached
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    user: vscode
+
+    environment:
+      GHGA_CONNECTOR_DOWNLOAD_API: http://dcs_rest:8080
+      GHGA_CONNECTOR_UPLOAD_API: http://ucs_rest:8080
+      GHGA_CONNECTOR_PART_SIZE: 8589934592
+      TB_PUBKEY_PATH: "example_data/key.pub"
+      TB_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      TB_FILE_METADATA_EVENT_TOPIC: metadata
+      TB_FILE_METADATA_EVENT_TYPE: file_metadata_upserts
+      TB_S3_ENDPOINT_URL: http://localstack:4566
+      TB_S3_ACCESS_KEY_ID: testbed-key
+      TB_S3_SECRET_ACCESS_KEY: testbed-secret
+      TB_INBOX_BUCKET: inbox
+      TB_OBJECT_ID: testbed-event-object
+      TB_SERVICE_INSTANCE_ID: testbed-app-1
+      TB_KAFKA_SERVERS: '["kafka:9092"]'
+      TB_SERVICE_NAME: testbed_kafka
+
+  ekss:
+    image: ghga/encryption-key-store-service:0.0.0-23-8055b62-main
+    depends_on:
+      - vault
+    environment:
+      EKSS_HOST: 0.0.0.0
+      EKSS_PORT: 80
+      EKSS_DEBUG_VAULT: "true"
+      EKSS_VAULT_HOST: vault
+      EKSS_VAULT_PORT: 8200
+      EKSS_VAULT_ROLE_ID: 9f03d595-c964-441c-a68e-2e1534f2bb56
+      EKSS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
+      EKSS_SERVER_PRIVATE_KEY: G8oJdJ0zEEGD/ZKqhBdJSLKHM1/MO8XqUNSYpL0xyv0=
+      EKSS_SERVER_PUBLIC_KEY: qx5g31H7rdsq7sgkew9ElkLIXvBje4RxDVcAHcJD8XY=
+  irs:
+    image: ghga/interrogation-room-service:0.0.0-20-428e6a8-main
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+    environment:
+      IRS_S3_ENDPOINT_URL: http://localstack:4566
+      IRS_S3_ACCESS_KEY_ID: testbed-key
+      IRS_S3_SECRET_ACCESS_KEY: testbed-secret
+      IRS_SERVICE_INSTANCE_ID: testbed-irs-1
+      IRS_KAFKA_SERVERS: '["kafka:9092"]'
+      IRS_INBOX_BUCKET: inbox
+      IRS_STAGING_BUCKET: staging
+      IRS_EKS_URL: http://ekss/secrets
+      IRS_INTERROGATION_TOPIC: file_interrogation
+      IRS_INTERROGATION_SUCCESS_TYPE: file_validation_success
+      IRS_INTERROGATION_FAILURE_TYPE: file_validation_failure
+      IRS_UPLOAD_RECEIVED_EVENT_TOPIC: file_uploads
+      IRS_UPLOAD_RECEIVED_EVENT_TYPE: file_upload_received
+
+  mongo_db:
+    image: mongo:latest
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: testbed_user
+      MONGO_INITDB_ROOT_PASSWORD: testbed_key
+    ports:
+      - 44441:27017
+
+  ucs_consumer:
+    image: ghga/upload-controller-service:0.3.0-19-ge22e965-main
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongo_db:
+        condition: service_started
+    environment:
+      UCS_FILE_METADATA_EVENT_TOPIC: metadata
+      UCS_FILE_METADATA_EVENT_TYPE: file_metadata_upserts
+      UCS_UPLOAD_ACCEPTED_EVENT_TOPIC: internal_file_registry
+      UCS_UPLOAD_ACCEPTED_EVENT_TYPE: file_registered
+      UCS_UPLOAD_RECEIVED_EVENT_TOPIC: file_uploads
+      UCS_UPLOAD_RECEIVED_EVENT_TYPE: file_upload_received
+      UCS_UPLOAD_REJECTED_EVENT_TOPIC: file_interrogation
+      UCS_UPLOAD_REJECTED_EVENT_TYPE: file_validation_failure
+      UCS_SERVICE_INSTANCE_ID: ucs-consumer-1
+      UCS_KAFKA_SERVERS: '["kafka:9092"]'
+      UCS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      UCS_DB_NAME: ucs
+      UCS_S3_ENDPOINT_URL: http://localstack:4566
+      UCS_S3_ACCESS_KEY_ID: testbed-key
+      UCS_S3_SECRET_ACCESS_KEY: testbed-secret
+    command: "consume-events"
+
+  ucs_rest:
+    image: ghga/upload-controller-service:0.3.0-19-ge22e965-main
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongo_db:
+        condition: service_started
+      ucs_consumer:
+        condition: service_started
+    environment:
+      UCS_HOST: 0.0.0.0
+      UCS_FILE_METADATA_EVENT_TOPIC: metadata
+      UCS_FILE_METADATA_EVENT_TYPE: file_metadata_upserts
+      UCS_UPLOAD_ACCEPTED_EVENT_TOPIC: internal_file_registry
+      UCS_UPLOAD_ACCEPTED_EVENT_TYPE: file_registered
+      UCS_UPLOAD_RECEIVED_EVENT_TOPIC: file_uploads
+      UCS_UPLOAD_RECEIVED_EVENT_TYPE: file_upload_received
+      UCS_UPLOAD_REJECTED_EVENT_TOPIC: file_interrogation
+      UCS_UPLOAD_REJECTED_EVENT_TYPE: file_validation_failure
+      UCS_SERVICE_INSTANCE_ID: ucs-rest-1
+      UCS_KAFKA_SERVERS: '["kafka:9092"]'
+      UCS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      UCS_DB_NAME: ucs
+      UCS_S3_ENDPOINT_URL: http://localstack:4566
+      UCS_S3_ACCESS_KEY_ID: testbed-key
+      UCS_S3_SECRET_ACCESS_KEY: testbed-secret
+    command: "run-rest"
+
+  dcs_consumer:
+    image: ghga/download-controller-service:0.4.0-17-gd050908-main
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongo_db:
+        condition: service_started
+    environment:
+      DCS_DOWNLOAD_SERVED_EVENT_TOPIC: file_downloads
+      DCS_DOWNLOAD_SERVED_EVENT_TYPE: download_served
+      DCS_FILE_REGISTERED_EVENT_TOPIC: file_downloads
+      DCS_FILE_REGISTERED_EVENT_TYPE: file_registered
+      DCS_FILES_TO_REGISTER_TOPIC: internal_file_registry
+      DCS_FILES_TO_REGISTER_TYPE: file_registered
+      DCS_UNSTAGED_DOWNLOAD_EVENT_TOPIC: file_downloads
+      DCS_UNSTAGED_DOWNLOAD_EVENT_TYPE: unstaged_download_requested
+      DCS_SERVICE_INSTANCE_ID: dcs-consumer-1
+      DCS_KAFKA_SERVERS: '["kafka:9092"]'
+      DCS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      DCS_DB_NAME: dcs
+      DCS_OUTBOX_BUCKET: outbox
+      DCS_DRS_SERVER_URI: drs://localhost:8080/
+      DCS_S3_ENDPOINT_URL: http://localstack:4566
+      DCS_S3_ACCESS_KEY_ID: testbed-key
+      DCS_S3_SECRET_ACCESS_KEY: testbed-secret
+      DCS_EKSS_BASE_URL: http://ekss
+      DCS_PRESIGNED_URL_EXPIRES_AFTER: 30
+    command: "consume-events"
+
+  dcs_rest:
+    image: ghga/download-controller-service:0.4.0-17-gd050908-main
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongo_db:
+        condition: service_started
+      dcs_consumer:
+        condition: service_started
+    environment:
+      DCS_HOST: 0.0.0.0
+      DCS_DOWNLOAD_SERVED_EVENT_TOPIC: file_downloads
+      DCS_DOWNLOAD_SERVED_EVENT_TYPE: download_served
+      DCS_FILE_REGISTERED_EVENT_TOPIC: file_downloads
+      DCS_FILE_REGISTERED_EVENT_TYPE: file_registered
+      DCS_FILES_TO_REGISTER_TOPIC: internal_file_registry
+      DCS_FILES_TO_REGISTER_TYPE: file_registered
+      DCS_UNSTAGED_DOWNLOAD_EVENT_TOPIC: file_downloads
+      DCS_UNSTAGED_DOWNLOAD_EVENT_TYPE: unstaged_download_requested
+      DCS_SERVICE_INSTANCE_ID: dcs-rest-1
+      DCS_KAFKA_SERVERS: '["kafka:9092"]'
+      DCS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      DCS_DB_NAME: dcs
+      DCS_OUTBOX_BUCKET: outbox
+      DCS_DRS_SERVER_URI: drs://localhost:8080/
+      DCS_S3_ENDPOINT_URL: http://localstack:4566
+      DCS_S3_ACCESS_KEY_ID: testbed-key
+      DCS_S3_SECRET_ACCESS_KEY: testbed-secret
+      DCS_EKSS_BASE_URL: http://ekss
+      DCS_PRESIGNED_URL_EXPIRES_AFTER: 30
+    command: "run-rest"
+  ifrs:
+    image: ghga/internal-file-registry-service:0.3.0-21-g98eef83-main
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongo_db:
+        condition: service_started
+    environment:
+      IFRS_FILE_REGISTERED_EVENT_TOPIC: internal_file_registry
+      IFRS_FILE_REGISTERED_EVENT_TYPE: file_registered
+      IFRS_FILE_STAGED_EVENT_TOPIC: internal_file_registry
+      IFRS_FILE_STAGED_EVENT_TYPE: file_staged_for_download
+      IFRS_FILES_TO_REGISTER_TOPIC: file_interrogation
+      IFRS_FILES_TO_REGISTER_TYPE: file_validation_success
+      IFRS_FILES_TO_STAGE_TOPIC: file_downloads
+      IFRS_FILES_TO_STAGE_TYPE: unstaged_download_requested
+      IFRS_OUTBOX_BUCKET: outbox
+      IFRS_INBOX_BUCKET: inbox
+      IFRS_STAGING_BUCKET: staging
+      IFRS_PERMANENT_BUCKET: permanent
+      IFRS_SERVICE_INSTANCE_ID: ifrs-1
+      IFRS_KAFKA_SERVERS: '["kafka:9092"]'
+      IFRS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      IFRS_DB_NAME: ifrs
+      IFRS_S3_ENDPOINT_URL: http://localstack:4566
+      IFRS_S3_ACCESS_KEY_ID: testbed-key
+      IFRS_S3_SECRET_ACCESS_KEY: testbed-secret
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    restart: always
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "9092" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 100s
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_INTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    ports:
+      - 9092:9092
+
+  localstack:
+    image: localstack/localstack:latest
+    environment:
+      SERVICES: s3
+      DEFAULT_REGION: eu-west-1
+      AWS_DEFAULT_REGION: eu-west-1
+      # accessible at localhost
+      HOSTNAME_EXTERNAL: localhost
+      AWS_ACCESS_KEY_ID: testbed-key
+      AWS_SECRET_ACCESS_KEY: testbed-secret
+      USE_SSL: "false"
+      DATA_DIR: /var/lib/localstack/data
+      DEBUG: 1
+    volumes:
+      - type: volume
+        source: s3_fs
+        target: /var/lib/localstack
+        volume:
+          nocopy: true
+      - ./init-scripts/localstack:/docker-entrypoint-initaws.d
+  vault:
+    image: hashicorp/vault:1.12
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_ADDR: "http://0.0.0.0:8200"
+      VAULT_DEV_ROOT_TOKEN_ID: dev-token
+    cap_add:
+      - IPC_LOCK
+
+  vault_init:
+    image: hashicorp/vault:1.12
+    depends_on:
+      - vault
+    environment:
+      VAULT_ADDR: "http://vault:8200"
+    volumes:
+      - ./init-scripts/vault:/docker-entrypoint.d
+    entrypoint: ./docker-entrypoint.d/setup.sh
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+volumes:
+  s3_fs: {}
