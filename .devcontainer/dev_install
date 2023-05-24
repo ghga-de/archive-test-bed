@@ -6,8 +6,10 @@ cd /workspace
 # upgrade pip
 python -m pip install --upgrade pip
 
-# install with all extras in editable mode
+# install all requirements for running the tests
 pip install --upgrade -r requirements.txt
+# install all requirements for development of the test bed
+pip install --upgrade -r requirements-dev.txt
 
 # install pre-commit hooks to git
 pre-commit install
