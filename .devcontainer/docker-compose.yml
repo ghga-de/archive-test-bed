@@ -2,7 +2,7 @@ version: '3'
 
 services:
   app:
-    container_name: file_stack
+    container_name: archive-test-bed
     build:
       context: .
       dockerfile: ./Dockerfile

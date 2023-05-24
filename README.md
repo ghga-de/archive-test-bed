@@ -43,13 +43,13 @@ Then open this repository in vscode and run the command
 This will give you a full-fledged, pre-configured development environment including:
 - infrastructural dependencies (databases, etc.)
 - all relevant vscode extensions pre-installed
-- pre-configured linting and auto-formating
+- pre-configured linting and auto-formatting
 - a pre-configured debugger
 - automatic license-header insertion
 
 If you prefer not to use vscode, you could get a similar setup (without the editor specific features)
 by running the following commands:
-``` bash
+```bash
 # Execute in the repo's root dir:
 cd ./.devcontainer
 
