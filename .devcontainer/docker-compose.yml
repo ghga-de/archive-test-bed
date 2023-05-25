@@ -30,21 +30,28 @@ services:
     user: vscode
 
     environment:
+      # GHGA connector
       GHGA_CONNECTOR_DOWNLOAD_API: http://dcs_rest:8080
       GHGA_CONNECTOR_UPLOAD_API: http://ucs_rest:8080
       GHGA_CONNECTOR_PART_SIZE: 8589934592
-      TB_PUBKEY_PATH: "example_data/key.pub"
+      # Kafka
+      TB_SERVICE_NAME: testbed_kafka
+      TB_SERVICE_INSTANCE_ID: testbed-app-1
+      TB_KAFKA_SERVERS: '["kafka:9092"]'
+      # MongoDb
       TB_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
-      TB_FILE_METADATA_EVENT_TOPIC: metadata
-      TB_FILE_METADATA_EVENT_TYPE: file_metadata_upserts
+      # S3
       TB_S3_ENDPOINT_URL: http://localstack:4566
       TB_S3_ACCESS_KEY_ID: testbed-key
       TB_S3_SECRET_ACCESS_KEY: testbed-secret
+      # file services
+      TB_FILE_METADATA_EVENT_TOPIC: metadata
+      TB_FILE_METADATA_EVENT_TYPE: file_metadata_upserts
+      # bucket names
       TB_INBOX_BUCKET: inbox
-      TB_OBJECT_ID: testbed-event-object
-      TB_SERVICE_INSTANCE_ID: testbed-app-1
-      TB_KAFKA_SERVERS: '["kafka:9092"]'
-      TB_SERVICE_NAME: testbed_kafka
+      TB_OUTBOX_BUCKET: outbox
+      TB_STAGING_BUCKET: staging
+      TB_PERMANENT_BUCKET: permanent
 
   ekss:
     image: ghga/encryption-key-store-service:0.0.0-23-8055b62-main

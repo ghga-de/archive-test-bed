@@ -25,7 +25,7 @@ import crypt4gh.header
 import crypt4gh.keys
 import crypt4gh.lib
 
-from src.commons import DATA_DIR, FILE_SIZE
+from src.config import Config
 
 
 class NamedBinaryIO(ABC, BinaryIO):
@@ -52,9 +52,9 @@ def big_temp_file(size: int) -> Generator[NamedBinaryIO, None, None]:
         yield cast(NamedBinaryIO, temp_file)
 
 
-def generate_file():
+def generate_file(config: Config):
     """Generate encrypted test file, return both unencrypted and encrypted data as bytes"""
-    with big_temp_file(size=FILE_SIZE) as random_data:
+    with big_temp_file(size=config.file_size) as random_data:
         random_data.seek(0)
         data = random_data.read()
         checksum = hashlib.sha256(data).hexdigest()
@@ -62,7 +62,7 @@ def generate_file():
         with NamedTemporaryFile() as encrypted_file:
             random_data.seek(0)
             private_key = crypt4gh.keys.get_private_key(
-                filepath=DATA_DIR / "key.sec", callback=lambda: None
+                filepath=config.data_dir / "key.sec", callback=lambda: None
             )
             pub_key = base64.b64decode("qx5g31H7rdsq7sgkew9ElkLIXvBje4RxDVcAHcJD8XY=")
             encryption_keys = [(0, private_key, pub_key)]

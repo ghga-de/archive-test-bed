@@ -13,4 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Fixtures that are used in both integration and unit tests"""
+"""Fixtures for the inter service integration tests"""
+
+from pytest import fixture
+
+from src.config import Config
+
+
+@fixture(name="config")
+def fixture_config() -> Config:
+    """Get the testbed configuration."""
+    return Config()  # pyright: ignore
