@@ -22,34 +22,40 @@ import pytest
 from ghga_connector.cli import config as connector_config
 from ghga_connector.core.api_calls import get_file_metadata, get_upload_info
 from ghga_event_schemas import pydantic_ as event_schemas
-from hexkit.providers.akafka.testutils import (
-    EventRecorder,
-    ExpectedEvent,
-    check_recorded_events,
-)
+from hexkit.providers.akafka.testutils import ExpectedEvent, check_recorded_events
 
 from src.config import Config
 from src.download_path import decrypt_file, download_file
 from src.upload_path import delegate_paths
-from tests.fixtures import fixture_config  # noqa: F401 # pylint: disable=unused-import
+from tests.fixtures import (  # noqa: F401 # pylint: disable=unused-import
+    JointFixture,
+    config_fixture,
+    joint_fixture,
+    kafka_fixture,
+    mongodb_fixture,
+    s3_fixture,
+)
 
 
 @pytest.mark.asyncio
-async def test_full_path(tmp_path: Path, config: Config):
+async def test_full_path(tmp_path: Path, fixtures: JointFixture):
     """Test up- and download path"""
     unencrypted_id, encrypted_id, unencrypted_data, checksum = await delegate_paths(
-        config
+        fixtures=fixtures
     )
 
     await check_upload_path(unencrypted_id=unencrypted_id, encrypted_id=encrypted_id)
     await check_download_path(
-        encrypted_id=encrypted_id, checksum=checksum, output_dir=tmp_path, config=config
+        encrypted_id=encrypted_id,
+        checksum=checksum,
+        output_dir=tmp_path,
+        fixtures=fixtures,
     )
     decrypt_and_check(
         encrypted_id=encrypted_id,
         content=unencrypted_data,
         tmp_dir=tmp_path,
-        config=config,
+        config=fixtures.config,
     )
 
 
@@ -71,16 +77,21 @@ async def check_upload_status(*, file_id: str, expected_status: str):
 
 
 async def check_download_path(
-    *, encrypted_id: str, checksum: str, output_dir: Path, config: Config
+    *,
+    encrypted_id: str,
+    checksum: str,
+    output_dir: Path,
+    fixtures: JointFixture,
 ):
     """Check correct state for download path"""
 
     # record download_served event
-    event_recorder = EventRecorder(
-        kafka_servers=config.kafka_servers, topic="file_downloads"
-    )
-    async with event_recorder:
-        download_file(file_id=encrypted_id, output_dir=output_dir, config=config)
+    async with fixtures.kafka.record_events(
+        in_topic="file_downloads"
+    ) as event_recorder:
+        download_file(
+            file_id=encrypted_id, output_dir=output_dir, config=fixtures.config
+        )
 
     # construct expected event
     payload = event_schemas.FileDownloadServed(

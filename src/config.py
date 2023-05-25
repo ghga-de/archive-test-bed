@@ -47,7 +47,9 @@ class Config(
     kafka_servers: list[str] = ["kafka:9092"]
 
     # MongoDb config
-    db_connection_str: str = "mongodb://testbed_user:testbed_key@mongo_db"
+    db_connection_str: SecretStr = SecretStr(
+        "mongodb://testbed_user:testbed_key@mongo_db"
+    )
     db_name: str = "test-db"
 
     # S3 config
