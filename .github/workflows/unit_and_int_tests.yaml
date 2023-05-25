@@ -18,13 +18,12 @@ jobs:
         run: |
           docker exec \
             --workdir /workspace \
-            file_stack \
-            sudo pip install -r requirements.txt \
-            sudo pip install -r requirements-dev.txt
+            archive-test-bed \
+            sudo pip install -r requirements.txt
 
       - name: Run pytest
         run: |
           docker exec \
             --workdir /workspace \
-            file_stack \
+            archive-test-bed \
             pytest
