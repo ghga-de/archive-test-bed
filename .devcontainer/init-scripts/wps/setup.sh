@@ -31,7 +31,7 @@ EOF
 
 python vault.py >vault.env
 
-# source vault.env
+source vault.env
 
 wps consume-events &
 wps run-rest
