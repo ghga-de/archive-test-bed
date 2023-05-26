@@ -63,7 +63,7 @@ async def check_upload_path(*, unencrypted_id: str, encrypted_id: str):
     """Check correct state for upload path"""
     await check_upload_status(file_id=unencrypted_id, expected_status="rejected")
     # <= 180 did not work in actions, so let's currently keep it this way
-    time.sleep(240)
+    time.sleep(300)
     await check_upload_status(file_id=encrypted_id, expected_status="accepted")
 
 
