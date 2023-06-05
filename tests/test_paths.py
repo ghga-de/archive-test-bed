@@ -30,6 +30,7 @@ from src.upload_path import delegate_paths
 from tests.fixtures import (  # noqa: F401 # pylint: disable=unused-import
     JointFixture,
     config_fixture,
+    file_fixture,
     joint_fixture,
     kafka_fixture,
     mongodb_fixture,
@@ -38,7 +39,7 @@ from tests.fixtures import (  # noqa: F401 # pylint: disable=unused-import
 
 
 @pytest.mark.asyncio
-async def test_full_path(tmp_path: Path, fixtures: JointFixture):
+async def test_full_path(tmp_path: Path, fixtures: JointFixture, cleanup_fixture):
     """Test up- and download path"""
     unencrypted_id, encrypted_id, unencrypted_data, checksum = await delegate_paths(
         fixtures=fixtures

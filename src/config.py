@@ -39,6 +39,7 @@ class Config(
     test_dir = base_dir / "test_data"
 
     # constants used in testing
+    part_size: int = 1024
     file_size: int = 20 * 1024**2
 
     # Kafka config
@@ -51,6 +52,7 @@ class Config(
         "mongodb://testbed_user:testbed_key@mongo_db"
     )
     db_name: str = "test-db"
+    service_db_names: list[str] = ["ucs", "dcs", "ifrs"]
 
     # S3 config
     s3_endpoint_url: str = "http://localstack:4566"
