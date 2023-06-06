@@ -33,7 +33,7 @@ def drop_mongo_collections(db_connection_str: SecretStr, db_name: str):
     """Drop all mongodb collections in given database"""
 
     # Initialize new a MongoDB connection
-    client = MongoClient(str(db_connection_str.get_secret_value()))
+    client: MongoClient = MongoClient(str(db_connection_str.get_secret_value()))
 
     try:
         # Access the target database
