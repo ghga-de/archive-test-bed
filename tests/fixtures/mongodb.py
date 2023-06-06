@@ -43,6 +43,11 @@ def drop_mongo_collections(db_connection_str: SecretStr, db_name: str):
         for collection_name in collection_names:
             db.drop_collection(collection_name)
 
+    except Exception as error:
+        print(
+            f"An error occurred while dropping collections of mongo db {db_name}: {str(error)}"
+        )
+
     finally:
         # Close the MongoDB client
         client.close()
