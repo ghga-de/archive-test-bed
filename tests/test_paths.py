@@ -30,7 +30,6 @@ from src.upload_path import delegate_paths
 from tests.fixtures import (  # noqa: F401 # pylint: disable=unused-import
     JointFixture,
     config_fixture,
-    file_fixture,
     joint_fixture,
     kafka_fixture,
     mongodb_fixture,

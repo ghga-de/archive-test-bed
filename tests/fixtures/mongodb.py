@@ -22,6 +22,7 @@ from hexkit.providers.mongodb.provider import MongoDbDaoFactory
 from hexkit.providers.mongodb.testutils import MongoDbFixture
 from pydantic import SecretStr
 from pymongo import MongoClient
+from pymongo.errors import ExecutionTimeout, OperationFailure
 from pytest import fixture
 
 from src.config import Config
@@ -32,8 +33,8 @@ __all__ = ["mongodb_fixture"]
 def drop_mongo_collections(db_connection_str: SecretStr, db_name: str):
     """Drop all mongodb collections in given database"""
 
-    # Initialize new a MongoDB connection
-    client: MongoClient = MongoClient(str(db_connection_str.get_secret_value()))
+    # Initialize new MongoDB connection
+    client = MongoClient(str(db_connection_str.get_secret_value()))  # type: MongoClient
 
     try:
         # Access the target database
@@ -43,7 +44,7 @@ def drop_mongo_collections(db_connection_str: SecretStr, db_name: str):
         for collection_name in collection_names:
             db.drop_collection(collection_name)
 
-    except Exception as error:
+    except (ExecutionTimeout, OperationFailure) as error:
         print(
             f"An error occurred while dropping collections of mongo db {db_name}: {str(error)}"
         )
