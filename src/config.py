@@ -39,7 +39,6 @@ class Config(
     test_dir = base_dir / "test_data"
 
     # constants used in testing
-    part_size: int = 1024
     file_size: int = 20 * 1024**2
 
     # Kafka config
