@@ -254,8 +254,6 @@ services:
     environment:
       AUTH_SERVICE_INCLUDE_APIS: '["claims"]'
       AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongo_db
-    volumes:
-      - ./init-scripts/crs/setup.sh:/service/setup.sh
 
   wps:
     image: ghga/work-package-service:0.1.2
