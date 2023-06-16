@@ -244,19 +244,27 @@ services:
       IFRS_S3_ACCESS_KEY_ID: testbed-key
       IFRS_S3_SECRET_ACCESS_KEY: testbed-secret
 
+  crs:
+    image: ghga/auth-service:0.4.2
+    restart: unless-stopped
+    depends_on:
+      mongo_db:
+        condition: service_started
+    env_file: crs.env
+    environment:
+      AUTH_SERVICE_INCLUDE_APIS: '["claims"]'
+      AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongo_db
+
   wps:
-    image: ghga/work-package-service:0.1.0
+    image: ghga/work-package-service:0.1.2
     restart: unless-stopped
     depends_on:
       kafka:
         condition: service_healthy
       mongo_db:
         condition: service_started
-      auth_km_jobs:
-        condition: service_completed_successfully
+    env_file: wps.env
     environment:
-      VAULT_ADDR: "http://vault:8200"
-      VAULT_DEV_ROOT_TOKEN_ID: dev-token
       WPS_SERVICE_INSTANCE_ID: testbed-app-1
       WPS_KAFKA_SERVERS: '["kafka:9092"]'
       WPS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
@@ -264,26 +272,25 @@ services:
       WPS_DATASET_OVERVIEW_EVENT_TYPE: metadata_dataset_overview
       WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
       WPS_DB_NAME: wps
-    volumes:
-      - ./init-scripts/wps/setup.sh:/service/setup.sh
-    entrypoint: /service/setup.sh
 
-  crs:
-    image: ghga/auth-service:0.4.1
+  ars:
+    image: ghga/access-request-service:0.1.1
     restart: unless-stopped
     depends_on:
+      kafka:
+        condition: service_healthy
       mongo_db:
         condition: service_started
-      auth_km_jobs:
-        condition: service_completed_successfully
+    env_file: ars.env
     environment:
-      VAULT_ADDR: "http://vault:8200"
-      VAULT_DEV_ROOT_TOKEN_ID: dev-token
-      AUTH_ADAPTER_INCLUDE_APIS: '["claims"]'
-      AUTH_ADAPTER_DB_URL: mongodb://testbed_user:testbed_key@mongo_db
-    volumes:
-      - ./init-scripts/crs/setup.sh:/service/setup.sh
-    entrypoint: /service/setup.sh
+      ARS_SERVICE_INSTANCE_ID: testbed-app-1
+      ARS_KAFKA_SERVERS: '["kafka:9092"]'
+      ARS_NOTIFICATION_EVENT_TOPIC: notifications
+      ARS_NOTIFICATION_EVENT_TYPE: notification
+      ARS_DATA_STEWARD_EMAIL: "helpdesk@ghga.de"
+      ARS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      ARS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
+      ARS_DB_NAME: ars
 
   kafka:
     image: confluentinc/cp-kafka:7.3.0
@@ -345,13 +352,6 @@ services:
     volumes:
       - ./init-scripts/vault:/docker-entrypoint.d
     entrypoint: ./docker-entrypoint.d/setup.sh
-
-  auth_km_jobs:
-    image: ghga/auth-km-jobs:0.0.0-28-55942da-main
-    depends_on:
-      - vault
-    environment:
-      VAULT_ADDR: "http://vault:8200"
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.0
