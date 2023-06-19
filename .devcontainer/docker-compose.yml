@@ -245,13 +245,14 @@ services:
       IFRS_S3_SECRET_ACCESS_KEY: testbed-secret
 
   crs:
-    image: ghga/auth-service:0.4.2
+    image: ghga/auth-service:0.5.0
     restart: unless-stopped
     depends_on:
       mongo_db:
         condition: service_started
     env_file: crs.env
     environment:
+      AUTH_SERVICE: 0.0.0.0
       AUTH_SERVICE_INCLUDE_APIS: '["claims"]'
       AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongo_db
 
@@ -265,7 +266,8 @@ services:
         condition: service_started
     env_file: wps.env
     environment:
-      WPS_SERVICE_INSTANCE_ID: testbed-app-1
+      WPS_HOST: 0.0.0.0
+      WPS_SERVICE_INSTANCE_ID: wps-rest-1
       WPS_KAFKA_SERVERS: '["kafka:9092"]'
       WPS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
       WPS_DATASET_OVERVIEW_EVENT_TOPIC: metadata
@@ -283,7 +285,8 @@ services:
         condition: service_started
     env_file: ars.env
     environment:
-      ARS_SERVICE_INSTANCE_ID: testbed-app-1
+      ARS_HOST: 0.0.0.0
+      ARS_SERVICE_INSTANCE_ID: ars-rest-1
       ARS_KAFKA_SERVERS: '["kafka:9092"]'
       ARS_NOTIFICATION_EVENT_TOPIC: notifications
       ARS_NOTIFICATION_EVENT_TYPE: notification
