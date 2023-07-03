@@ -34,7 +34,6 @@ services:
       GHGA_CONNECTOR_DOWNLOAD_API: http://dcs_rest:8080
       GHGA_CONNECTOR_PART_SIZE: 8589934592
       GHGA_CONNECTOR_WPS_API_URL: http://wps:8080
-      GHGA_CONNECTOR_SERVER_PUBKEY: sV0BCrOBRYvwez3FqqAngZipU5zMyTvoWMfkrn+yEj0= #FIXME
 
       # Kafka
       TB_SERVICE_NAME: testbed_kafka
