@@ -77,3 +77,9 @@ class Config(
     permanent_bucket: str = "permanent"
 
     object_id: str = "testbed-event-object"
+
+    # file ingest
+    fis_api_url: str = "http://fis:8080"
+    fis_token: SecretStr = SecretStr("file-ingest-auth-token")
+    fis_private_key: str = "file-ingest-private-key"
+    fis_public_key: str = "file-ingest-public-key"

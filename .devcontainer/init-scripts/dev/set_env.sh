@@ -21,21 +21,26 @@ echo "Creating testing keys..."
 
 KEYS=jwk.env
 
-if ! docker run --rm ghga/auth-km-jobs:main generate-test-keys > $KEYS ||
-  ! grep -q "AUTH_KEY_PUB=" $KEYS; then
+if ! docker run --rm ghga/auth-km-jobs:main generate-test-keys --num-jwk 2 > $KEYS ||
+  ! grep -q "JWK_1_PUB=" $KEYS; then
 
   echo "Error: Testing keys could not be created."
   exit 1
 
 fi
 
-sed -n "s/^AUTH_KEY_PUB=/AUTH_SERVICE_AUTH_KEY=/p" $KEYS > crs.env
+sed -n "s/^JWK_1_PUB=/AUTH_SERVICE_AUTH_KEY=/p" $KEYS > crs.env
 
-sed -n "s/^AUTH_KEY_PUB=/ARS_AUTH_KEY=/p" $KEYS > ars.env
+sed -n "s/^JWK_1_PUB=/ARS_AUTH_KEY=/p" $KEYS > ars.env
 
-sed -n "s/^AUTH_KEY_PUB=/WPS_AUTH_KEY=/p" $KEYS > wps.env
-sed -n "s/^WPS_KEY_PRIV=/WPS_WORK_PACKAGE_SIGNING_KEY=/p" $KEYS >> wps.env
+sed -n "s/^JWK_1_PUB=/WPS_AUTH_KEY=/p" $KEYS > wps.env
+sed -n "s/^JWK_2_PRIV=/WPS_WORK_PACKAGE_SIGNING_KEY=/p" $KEYS >> wps.env
 
-sed -n "s/^AUTH_KEY_PUB=/DCS_AUTH_KEY=/p" $KEYS > dcs.env
+sed -n "s/^JWK_1_PUB=/DCS_AUTH_KEY=/p" $KEYS > dcs.env
+
+awk -F'=' '/TOKEN_HASH=/ { print "FIS_TOKEN_HASHES=[\""$2"\"]"}' $KEYS > fis.env
+sed -n "s/^C4GH_PRIV=/FIS_PRIVATE_KEY=/p" $KEYS >> fis.env
+
+sed -n "s/^C4GH_PUB=/GHGA_CONNECTOR_SERVER_PUBKEY=/p" $KEYS > tb.env
 
 echo "Environments with testing keys have been created."
