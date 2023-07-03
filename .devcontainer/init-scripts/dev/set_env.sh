@@ -36,4 +36,6 @@ sed -n "s/^AUTH_KEY_PUB=/ARS_AUTH_KEY=/p" $KEYS > ars.env
 sed -n "s/^AUTH_KEY_PUB=/WPS_AUTH_KEY=/p" $KEYS > wps.env
 sed -n "s/^WPS_KEY_PRIV=/WPS_WORK_PACKAGE_SIGNING_KEY=/p" $KEYS >> wps.env
 
+sed -n "s/^AUTH_KEY_PUB=/DCS_AUTH_KEY=/p" $KEYS > dcs.env
+
 echo "Environments with testing keys have been created."
