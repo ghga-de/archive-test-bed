@@ -51,13 +51,14 @@ class Config(
         "mongodb://testbed_user:testbed_key@mongo_db"
     )
     db_name: str = "test-db"
-    service_db_names: list[str] = ["ucs", "dcs", "ifrs"]
+    service_db_names: list[str] = ["ars", "dcs", "ifrs"]
     service_kafka_topics: list[str] = [
         "file_downloads",
         "file_interrogation",
         "file_uploads",
         "internal_file_registry",
         "metadata",
+        "notifications",
     ]
 
     # S3 config
