@@ -51,7 +51,8 @@ class Config(
         "mongodb://testbed_user:testbed_key@mongo_db"
     )
     db_name: str = "test-db"
-    service_db_names: list[str] = ["ucs", "dcs", "ifrs"]
+    # databases that shall be dropped after running the tests
+    service_db_names: list[str] = ["ars", "auth", "dcs", "ucs", "wps"]
     service_kafka_topics: list[str] = [
         "file_downloads",
         "file_interrogation",
