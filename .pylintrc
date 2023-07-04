@@ -76,6 +76,10 @@ disable=
 
       unnecessary-ellipsis, # often used for interfaces/protocols
 
+      redefined-outer-name, # fixture names are used as arguments
+
+      missing-function-docstring, # feature and function name are enough
+
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
 # multiple time (only on the command line, not in the configuration file where

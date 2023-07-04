@@ -21,6 +21,7 @@ from typing import AsyncGenerator
 from hexkit.providers.akafka.provider import KafkaEventPublisher
 from hexkit.providers.akafka.testutils import KafkaFixture
 from kafka import KafkaAdminClient
+from kafka.errors import UnknownTopicOrPartitionError
 from pytest_asyncio import fixture as async_fixture
 
 from src.config import Config
@@ -45,7 +46,10 @@ async def kafka_fixture(config: Config) -> AsyncGenerator[KafkaFixture, None]:
 
     # Delete all topics used by services. This process deletes the messages as
     # the topics will be recreated by the default config.
-    delete_topics(
-        kafka_servers=config.kafka_servers,
-        topics_to_be_deleted=config.service_kafka_topics,
-    )
+    try:
+        delete_topics(
+            kafka_servers=config.kafka_servers,
+            topics_to_be_deleted=config.service_kafka_topics,
+        )
+    except UnknownTopicOrPartitionError:
+        pass

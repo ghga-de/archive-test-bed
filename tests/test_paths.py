@@ -61,7 +61,7 @@ async def test_ars(fixtures: JointFixture):
     }
     url = "http://ars:8080/access-requests"
 
-    response = httpx.post(url, data=data)
+    response = httpx.post(url, json=data)
     assert response.status_code == 403
 
     async with fixtures.kafka.record_events(in_topic="notifications") as event_recorder:
