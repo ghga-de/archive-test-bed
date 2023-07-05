@@ -16,12 +16,17 @@
 
 """Fixture for testing code that uses the FileObject provider."""
 
+import json
+import os
+import tempfile
+from pathlib import Path
 from typing import Generator
 
 from hexkit.providers.s3.testutils import FileObject, temp_file_object
 from pytest import fixture
 
 from src.config import Config
+from tests.fixtures.metadata import SubmissionConfig
 
 __all__ = ["file_fixture", "FileObject"]
 
@@ -36,3 +41,35 @@ def file_fixture(config: Config) -> Generator[FileObject, None, None]:
         size=config.file_size,
     ) as temp_file:
         yield temp_file
+
+
+@fixture(name="batch_file_fixture")
+def batch_create_file_fixture(
+    config: Config, submission_config: SubmissionConfig
+) -> Generator[list, None, None]:
+    """Batch file fixture that provides temporary files according to metadata."""
+
+    temp_dir = tempfile.gettempdir()
+
+    metadata = json.loads(submission_config.metadata_path.read_text())
+    study_files = metadata["study_files"]
+
+    created_files = []
+
+    for study_file in study_files:
+        file_path = os.path.join(temp_dir, study_file["name"])
+        with open(file_path, "w", encoding="utf-8") as file:
+            file.write(" " * config.file_size)
+
+        basename = os.path.basename(file_path)
+        file_object = FileObject(
+            file_path=Path(file_path),
+            bucket_id=config.staging_bucket,
+            object_id=basename.split(".")[0],
+        )
+        created_files.append(file_object)
+
+    yield created_files
+
+    for file_object in created_files:
+        os.remove(file_object.file_path)

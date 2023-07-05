@@ -15,12 +15,13 @@
 
 """A test dummy just to make the CI pass."""
 
-import json
 from datetime import timedelta
-from pathlib import Path
 
 import httpx
+import nest_asyncio
 import pytest
+from ghga_datasteward_kit.cli.metadata import submit, transform
+from ghga_datasteward_kit.file_ingest import IngestConfig, file_ingest
 from ghga_service_commons.utils.utc_dates import now_as_utc
 
 from src.utils import data_steward_upload_file
@@ -32,9 +33,15 @@ from tests.fixtures import (  # noqa: F401 # pylint: disable=unused-import
     kafka_fixture,
     mongodb_fixture,
     s3_fixture,
+    submission_workdir,
 )
 from tests.fixtures.file import (  # noqa: F401 # pylint: disable=unused-import
+    batch_create_file_fixture,
     file_fixture,
+)
+from tests.fixtures.metadata import (  # noqa: F401 # pylint: disable=unused-import
+    SubmissionConfig,
+    submission_config_fixture,
 )
 
 
@@ -75,21 +82,75 @@ async def test_ars(fixtures: JointFixture):
     )
 
 
-@pytest.mark.asyncio
-async def test_data_steward_kit_upload(
-    tmp_path: Path, fixtures: JointFixture, temp_file_fixture
+def test_upload_submission(
+    workdir,
+    fixtures: JointFixture,
+    submission_config: SubmissionConfig,
 ):
-    """Test file upload via ghga_datasteward_kit with configured file object"""
+    """Test submission via DSKit with configured file object,
+       expected to run through without errors
 
-    temp_file = temp_file_fixture
-    metadata_file_path = await data_steward_upload_file(
-        temp_file=temp_file, config=fixtures.config, test_dir=tmp_path
+    This test case is not async at the moment because in submit workflow
+    asyncio.run() is called by metldata dependency.
+    """
+
+    submit(
+        submission_title="Test Submission",
+        submission_description="Test Submission Description",
+        metadata_path=submission_config.metadata_path,
+        config_path=submission_config.metadata_config_path,
     )
 
-    assert metadata_file_path.exists()
+    assert (workdir / submission_config.submission_store).exists()
 
-    file_uuid = json.loads(metadata_file_path.read_text()).get("File UUID")
-
-    assert await fixtures.s3.storage.does_object_exist(
-        bucket_id=fixtures.config.staging_bucket, object_id=file_uuid
+    transform(
+        config_path=submission_config.metadata_config_path,
     )
+
+
+@pytest.mark.asyncio
+async def test_upload_file_ingest(
+    workdir,
+    fixtures: JointFixture,
+    batch_file_fixture,
+    submission_config: SubmissionConfig,
+):
+    nest_asyncio.apply()
+    # FIXME workaround for submit workflow trying to call asyncio.run()
+    # within an already running event loop (asyncio-based test case)
+
+    file_objects = batch_file_fixture
+    file_metadata_dir = workdir / "file_uploads"
+    file_metadata_dir.mkdir()
+
+    submit(
+        submission_title="Test Submission",
+        submission_description="Test Submission Description",
+        metadata_path=submission_config.metadata_path,
+        config_path=submission_config.metadata_config_path,
+    )
+
+    # transform(
+    #     config_path=submission_config.metadata_config_path,
+    # )
+
+    ingest_config = IngestConfig(
+        file_ingest_url=fixtures.config.file_ingest_url,
+        file_ingest_pubkey=fixtures.config.file_ingest_pubkey,
+        input_dir=file_metadata_dir,
+        submission_store_dir=workdir / submission_config.submission_store,
+    )
+
+    for file_object in file_objects:
+        metadata_file_path = await data_steward_upload_file(
+            file_object=file_object,
+            config=fixtures.config,
+            file_metadata_dir=file_metadata_dir,
+        )
+        assert metadata_file_path.exists()
+
+        file_ingest(
+            in_path=metadata_file_path,
+            token=fixtures.auth.read_token(),
+            config=ingest_config,
+        )

@@ -70,6 +70,14 @@ class TokenGenerator:
                     return jwk.JWK.from_json(line.split("=", 1)[1].rstrip().strip("'"))
         raise RuntimeError("Cannot read signing key for authentication")
 
+    def read_token(self) -> str:
+        """Read the simple token from a local env file."""
+        with open(KEY_FILE, encoding="ascii") as key_file:
+            for line in key_file:
+                if line.startswith("TOKEN="):
+                    return line.split("=", 1)[1].rstrip()
+        raise RuntimeError("Cannot read signing key for authentication")
+
 
 @fixture
 def auth_fixture() -> Generator[TokenGenerator, None, None]:

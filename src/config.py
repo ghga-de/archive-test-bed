@@ -51,7 +51,7 @@ class Config(
         "mongodb://testbed_user:testbed_key@mongo_db"
     )
     db_name: str = "test-db"
-    service_db_names: list[str] = ["ars", "dcs", "ifrs"]
+    service_db_names: list[str] = ["wpa", "ars", "dcs", "ifrs"]
     service_kafka_topics: list[str] = [
         "downloads",
         "internal_registrations",
@@ -79,7 +79,5 @@ class Config(
     object_id: str = "testbed-event-object"
 
     # file ingest
-    fis_api_url: str = "http://fis:8080"
-    fis_token: SecretStr = SecretStr("file-ingest-auth-token")
-    fis_private_key: str = "file-ingest-private-key"
-    fis_public_key: str = "file-ingest-public-key"
+    file_ingest_url: str = "http://fis:8080/ingest"
+    file_ingest_pubkey: str

@@ -54,7 +54,7 @@ services:
       TB_STAGING_BUCKET: staging
       TB_PERMANENT_BUCKET: permanent
       # file ingest
-      TB_FIS_API_URL: http://fis:8080
+      TB_FILE_INGEST_URL: http://fis:8080/ingest
 
   ekss:
     image: ghga/encryption-key-store-service:0.3.5

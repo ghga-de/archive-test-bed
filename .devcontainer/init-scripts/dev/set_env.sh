@@ -42,5 +42,6 @@ awk -F'=' '/TOKEN_HASH=/ { print "FIS_TOKEN_HASHES=[\""$2"\"]"}' $KEYS > fis.env
 sed -n "s/^C4GH_PRIV=/FIS_PRIVATE_KEY=/p" $KEYS >> fis.env
 
 sed -n "s/^C4GH_PUB=/GHGA_CONNECTOR_SERVER_PUBKEY=/p" $KEYS > tb.env
+sed -n "s/^C4GH_PUB=/TB_FILE_INGEST_PUBKEY=/p" $KEYS > tb.env
 
 echo "Environments with testing keys have been created."

@@ -25,22 +25,22 @@ from src.config import Config
 
 
 async def data_steward_upload_file(
-    temp_file: FileObject, config: Config, test_dir: Path
+    file_object: FileObject, config: Config, file_metadata_dir: Path
 ) -> Path:
-    """Populate the storage with configured file object, return metadata file path"""
+    """Call DSKit s3_upload command to upload temp_file to configured bucket"""
     await s3_upload(
-        input_path=temp_file.file_path,
-        alias=temp_file.object_id,
+        input_path=file_object.file_path,
+        alias=file_object.object_id,
         config=S3Config(
             **{
                 "s3_endpoint_url": config.s3_endpoint_url,
                 "s3_access_key_id": config.s3_access_key_id,
                 "s3_secret_access_key": config.s3_secret_access_key,
-                "bucket_id": temp_file.bucket_id,
+                "bucket_id": file_object.bucket_id,
                 "part_size": 1024,
-                "output_dir": test_dir,
+                "output_dir": file_metadata_dir,
             }
         ),
     )
 
-    return test_dir / f"{temp_file.object_id}.json"
+    return file_metadata_dir / f"{file_object.object_id}.json"

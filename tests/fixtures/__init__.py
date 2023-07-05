@@ -15,13 +15,18 @@
 
 """Fixtures for the inter service integration tests"""
 
+import os
+import shutil
+from pathlib import Path
 from typing import NamedTuple
 
+from pyparsing import Generator
 from pytest import fixture
 
 from src.config import Config
 from tests.fixtures.akafka import KafkaFixture, kafka_fixture
 from tests.fixtures.auth import TokenGenerator, auth_fixture
+from tests.fixtures.metadata import SubmissionConfig
 from tests.fixtures.mongodb import MongoDbFixture, mongodb_fixture
 from tests.fixtures.s3 import S3Fixture, s3_fixture
 
@@ -32,6 +37,7 @@ __all__ = [
     "mongodb_fixture",
     "s3_fixture",
     "joint_fixture",
+    "workdir",
 ]
 
 
@@ -65,3 +71,21 @@ def joint_fixture(
     return JointFixture(
         config, kafka_fixture, mongodb_fixture, s3_fixture, auth_fixture
     )
+
+
+@fixture(name="workdir")
+def submission_workdir(
+    tmp_path: Path, submission_config: SubmissionConfig
+) -> Generator[Path, None, None]:
+    """Prepare a work directory for"""
+    tmp_path.joinpath(submission_config.event_store).mkdir()
+    tmp_path.joinpath(submission_config.submission_store).mkdir()
+    tmp_path.joinpath(submission_config.accession_store).touch()
+    shutil.copyfile(
+        submission_config.metadata_model_path,
+        tmp_path / submission_config.metadata_model_filename,
+    )
+    cwd = os.getcwd()
+    os.chdir(tmp_path)
+    yield tmp_path
+    os.chdir(cwd)
