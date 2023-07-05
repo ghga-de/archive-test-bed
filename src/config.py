@@ -51,7 +51,7 @@ class Config(
         "mongodb://testbed_user:testbed_key@mongo_db"
     )
     db_name: str = "test-db"
-    service_db_names: list[str] = ["wpa", "ars", "dcs", "ifrs"]
+    service_db_names: list[str] = ["wps", "ars", "dcs", "ifrs"]
     service_kafka_topics: list[str] = [
         "downloads",
         "internal_registrations",
