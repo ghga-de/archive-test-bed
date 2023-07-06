@@ -15,16 +15,16 @@
 
 """A test dummy just to make the CI pass."""
 
+import subprocess  # nosec B404
+import time
 from datetime import timedelta
 
 import httpx
-import nest_asyncio
 import pytest
-from ghga_datasteward_kit.cli.metadata import submit, transform
 from ghga_datasteward_kit.file_ingest import IngestConfig, file_ingest
 from ghga_service_commons.utils.utc_dates import now_as_utc
 
-from src.utils import data_steward_upload_file
+from src.utils import data_steward_upload_file, get_file_metadata_from_service
 from tests.fixtures import (  # noqa: F401 # pylint: disable=unused-import
     JointFixture,
     auth_fixture,
@@ -82,9 +82,9 @@ async def test_ars(fixtures: JointFixture):
     )
 
 
+@pytest.mark.asyncio
 def test_upload_submission(
     workdir,
-    fixtures: JointFixture,
     submission_config: SubmissionConfig,
 ):
     """Test submission via DSKit with configured file object,
@@ -94,18 +94,45 @@ def test_upload_submission(
     asyncio.run() is called by metldata dependency.
     """
 
-    submit(
-        submission_title="Test Submission",
-        submission_description="Test Submission Description",
-        metadata_path=submission_config.metadata_path,
-        config_path=submission_config.metadata_config_path,
+    completed_submit = subprocess.run(  # nosec B607, B603
+        [
+            "ghga-datasteward-kit",
+            "metadata",
+            "submit",
+            "--submission-title",
+            "Test Submission",
+            "--submission-description",
+            "Test Submission Description",
+            "--metadata-path",
+            submission_config.metadata_path,
+            "--config-path",
+            submission_config.metadata_config_path,
+        ],
+        capture_output=True,
+        check=True,
+        timeout=10 * 60,
     )
+
+    assert not completed_submit.stdout
+    assert b"ERROR" not in completed_submit.stderr
 
     assert (workdir / submission_config.submission_store).exists()
 
-    transform(
-        config_path=submission_config.metadata_config_path,
+    completed_transform = subprocess.run(  # nosec B607, B603
+        [
+            "ghga-datasteward-kit",
+            "metadata",
+            "transform",
+            "--config-path",
+            submission_config.metadata_config_path,
+        ],
+        capture_output=True,
+        check=True,
+        timeout=10 * 60,
     )
+
+    assert not completed_transform.stdout
+    assert b"ERROR" not in completed_transform.stderr
 
 
 @pytest.mark.asyncio
@@ -115,42 +142,73 @@ async def test_upload_file_ingest(
     batch_file_fixture,
     submission_config: SubmissionConfig,
 ):
-    nest_asyncio.apply()
-    # FIXME workaround for submit workflow trying to call asyncio.run()
-    # within an already running event loop (asyncio-based test case)
-
     file_objects = batch_file_fixture
-    file_metadata_dir = workdir / "file_uploads"
+    file_metadata_dir = workdir / "file_metadata"
     file_metadata_dir.mkdir()
 
-    submit(
-        submission_title="Test Submission",
-        submission_description="Test Submission Description",
-        metadata_path=submission_config.metadata_path,
-        config_path=submission_config.metadata_config_path,
+    completed_submit = subprocess.run(  # nosec B607, B603
+        [
+            "ghga-datasteward-kit",
+            "metadata",
+            "submit",
+            "--submission-title",
+            "Test Submission",
+            "--submission-description",
+            "Test Submission Description",
+            "--metadata-path",
+            submission_config.metadata_path,
+            "--config-path",
+            submission_config.metadata_config_path,
+        ],
+        capture_output=True,
+        check=True,
+        timeout=10 * 60,
     )
 
-    # transform(
-    #     config_path=submission_config.metadata_config_path,
-    # )
+    assert not completed_submit.stdout
+    assert b"ERROR" not in completed_submit.stderr
+
+    assert (workdir / submission_config.submission_store).exists()
 
     ingest_config = IngestConfig(
         file_ingest_url=fixtures.config.file_ingest_url,
         file_ingest_pubkey=fixtures.config.file_ingest_pubkey,
         input_dir=file_metadata_dir,
         submission_store_dir=workdir / submission_config.submission_store,
+        map_files_fields=submission_config.metadata_file_fields,
     )
 
     for file_object in file_objects:
-        metadata_file_path = await data_steward_upload_file(
+        completed_upload = data_steward_upload_file(
             file_object=file_object,
             config=fixtures.config,
             file_metadata_dir=file_metadata_dir,
         )
+
+        assert not completed_upload.stdout
+        assert b"ERROR" not in completed_upload.stderr
+
+        metadata_file_path = file_metadata_dir / f"{file_object.object_id}.json"
         assert metadata_file_path.exists()
 
         file_ingest(
             in_path=metadata_file_path,
             token=fixtures.auth.read_token(),
             config=ingest_config,
+        )
+
+        # Wait for file copy and check IFRS database for metadata
+        # also object storage for file
+        time.sleep(10)
+        db_metadata = get_file_metadata_from_service(
+            ingest_config=ingest_config,
+            db_connection_str=fixtures.config.db_connection_str,
+            file_object=file_object,
+            db_name="ifrs",
+            collection_name="file_metadata",
+        )
+
+        assert db_metadata
+        assert await fixtures.s3.storage.does_object_exist(
+            bucket_id="permanent", object_id=db_metadata["object_id"]
         )

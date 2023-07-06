@@ -33,6 +33,12 @@ class SubmissionConfig(BaseSettings):
     submission_store: str = "submission_store"
     accession_store: str = "accession_store"
     metadata_model_filename: str = "metadata_model.yaml"
+    metadata_file_fields: list = [
+        "analysis_process_output_files",
+        "sample_files",
+        "sequencing_process_files",
+        "study_files",
+    ]
 
 
 @fixture(name="submission_config")  # pyright: ignore

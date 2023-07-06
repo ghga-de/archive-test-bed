@@ -28,7 +28,21 @@ from pytest import fixture
 from src.config import Config
 from tests.fixtures.metadata import SubmissionConfig
 
-__all__ = ["file_fixture", "FileObject"]
+__all__ = ["file_fixture", "FileObject", "batch_create_file_fixture"]
+
+
+def create_named_file(target_dir: str, config: Config, name: str) -> FileObject:
+    """Create a file with given parameters"""
+    file_path = os.path.join(target_dir, name)
+    with open(file_path, "w", encoding="utf-8") as file:
+        file.write(" " * config.file_size)
+
+    file_object = FileObject(
+        file_path=Path(file_path),
+        bucket_id=config.staging_bucket,
+        object_id=name.split(".")[0],
+    )
+    return file_object
 
 
 @fixture(name="temp_file_fixture")
@@ -50,24 +64,18 @@ def batch_create_file_fixture(
     """Batch file fixture that provides temporary files according to metadata."""
 
     temp_dir = tempfile.gettempdir()
-
     metadata = json.loads(submission_config.metadata_path.read_text())
-    study_files = metadata["study_files"]
 
     created_files = []
+    for file_field in submission_config.metadata_file_fields:
+        files = metadata[file_field]
 
-    for study_file in study_files:
-        file_path = os.path.join(temp_dir, study_file["name"])
-        with open(file_path, "w", encoding="utf-8") as file:
-            file.write(" " * config.file_size)
+        for _file in files:
+            file_object = create_named_file(
+                target_dir=temp_dir, config=config, name=_file["name"]
+            )
 
-        basename = os.path.basename(file_path)
-        file_object = FileObject(
-            file_path=Path(file_path),
-            bucket_id=config.staging_bucket,
-            object_id=basename.split(".")[0],
-        )
-        created_files.append(file_object)
+            created_files.append(file_object)
 
     yield created_files
 
