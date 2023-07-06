@@ -67,7 +67,7 @@ def data_steward_upload_file(
             "--input-path",
             str(file_object.file_path),
             "--config-path",
-            upload_config_path.name,
+            upload_config_path,
         ],
         capture_output=True,
         check=True,
