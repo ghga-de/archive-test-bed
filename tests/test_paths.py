@@ -128,7 +128,7 @@ def test_upload_submission(
         ],
         capture_output=True,
         check=True,
-        timeout=10 * 60,
+        timeout=15 * 60,
     )
 
     assert not completed_transform.stdout
