@@ -1,3 +1,4 @@
+@download
 Feature: Access Request
   As a user, I can ask for access request to a given dataset.
 

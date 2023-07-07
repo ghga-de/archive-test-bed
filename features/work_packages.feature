@@ -1,3 +1,4 @@
+@download
 Feature: Work Packages
   As a user, I can create a work package for downloading a file
   and a download token corresponding ot that work package.
