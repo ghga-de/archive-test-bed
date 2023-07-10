@@ -21,6 +21,7 @@ from pytest import fixture
 
 from src.config import Config
 from tests.fixtures.auth import TokenGenerator, auth_fixture
+from tests.fixtures.c4gh import C4GHKeyPair, c4gh_fixture
 from tests.fixtures.kafka import KafkaFixture, kafka_fixture
 from tests.fixtures.mongo import MongoFixture, mongo_fixture
 from tests.fixtures.s3 import S3Fixture, s3_fixture
@@ -28,6 +29,7 @@ from tests.fixtures.s3 import S3Fixture, s3_fixture
 __all__ = [
     "auth_fixture",
     "config_fixture",
+    "c4gh_fixture",
     "kafka_fixture",
     "mongo_fixture",
     "s3_fixture",
@@ -39,6 +41,7 @@ class JointFixture(NamedTuple):
     """Collection of fixtures returned by `joint_fixture`."""
 
     config: Config
+    c4gh: C4GHKeyPair
     kafka: KafkaFixture
     mongo: MongoFixture
     s3: S3Fixture
@@ -53,8 +56,9 @@ def config_fixture() -> Config:
 
 # pylint: disable=redefined-outer-name
 @fixture(name="fixtures")
-def joint_fixture(
+def joint_fixture(  # pylint: disable=too-many-arguments
     config: Config,
+    c4gh: C4GHKeyPair,
     kafka: KafkaFixture,
     mongo: MongoFixture,
     s3: S3Fixture,
@@ -62,4 +66,4 @@ def joint_fixture(
 ) -> JointFixture:
     """A fixture that collects all fixtures for integration testing."""
 
-    return JointFixture(config, kafka, mongo, s3, auth)
+    return JointFixture(config, c4gh, kafka, mongo, s3, auth)

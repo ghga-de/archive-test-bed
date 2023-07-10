@@ -32,6 +32,7 @@ from tests.fixtures import (  # noqa: F401; pylint: disable=unused-import
     JointFixture,
     MongoFixture,
     auth_fixture,
+    c4gh_fixture,
     config_fixture,
     joint_fixture,
     kafka_fixture,

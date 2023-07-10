@@ -62,9 +62,8 @@ def announce_dataset(publish_dataset, fixtures: JointFixture):
 @when("the list of datasets is queried", target_fixture="response")
 def query_datasets(login: LoginFixture):
     user_id = login.user["_id"]
-    return httpx.get(
-        f"{WPS_URL}/users/{user_id}/datasets", headers=login.headers, timeout=TIMEOUT
-    )
+    url = f"{WPS_URL}/users/{user_id}/datasets"
+    return httpx.get(url, headers=login.headers, timeout=TIMEOUT)
 
 
 @then(parse("the test dataset is in the response list"))
@@ -84,3 +83,30 @@ def check_dataset_in_list(response: httpx.Response):
             ],
         }
     ]
+
+
+@when("a work package for the test dataset is created", target_fixture="response")
+def create_work_package(login: LoginFixture, fixtures: JointFixture):
+    data = {
+        "dataset_id": DATASET_OVERVIEW_EVENT.accession,
+        "type": "download",
+        "file_ids": None,
+        "user_public_crypt4gh_key": fixtures.c4gh.public,
+    }
+    url = f"{WPS_URL}/work-packages"
+    response = httpx.post(url, headers=login.headers, json=data, timeout=TIMEOUT)
+    return response
+
+
+@then("the response contains a work package access token")
+def check_work_package_access_token(fixtures: JointFixture, response: httpx.Response):
+    data = response.json()
+    assert set(data) == {"id", "token"}
+    id_, token = data["id"], data["token"]
+    assert 20 <= len(id_) < 40 and 80 < len(token) < 120
+    id_and_token = f"{id_}:{token}"
+    # store the download token in the database
+    # (this simulates the user storing the token by copying it to the clipboard)
+    fixtures.mongo.replace_document(
+        "tb", "values", {"_id": "download-token", "value": id_and_token}
+    )
