@@ -53,6 +53,7 @@
 				"ms-python.isort",
 				"ms-python.vscode-pylance",
 				"ms-toolsai.jupyter",
+				"vtenentes.bdd",
 				"njpwerner.autodocstring",
 				"redhat.vscode-yaml",
 				"42crunch.vscode-openapi",

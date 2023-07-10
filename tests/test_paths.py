@@ -36,7 +36,7 @@ from tests.fixtures import (  # noqa: F401 # pylint: disable=unused-import
     config_fixture,
     joint_fixture,
     kafka_fixture,
-    mongodb_fixture,
+    mongo_fixture,
     s3_fixture,
 )
 

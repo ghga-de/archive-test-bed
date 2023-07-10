@@ -20,16 +20,16 @@ from typing import NamedTuple
 from pytest import fixture
 
 from src.config import Config
-from tests.fixtures.akafka import KafkaFixture, kafka_fixture
 from tests.fixtures.auth import TokenGenerator, auth_fixture
-from tests.fixtures.mongodb import MongoDbFixture, mongodb_fixture
+from tests.fixtures.kafka import KafkaFixture, kafka_fixture
+from tests.fixtures.mongo import MongoFixture, mongo_fixture
 from tests.fixtures.s3 import S3Fixture, s3_fixture
 
 __all__ = [
     "auth_fixture",
     "config_fixture",
     "kafka_fixture",
-    "mongodb_fixture",
+    "mongo_fixture",
     "s3_fixture",
     "joint_fixture",
 ]
@@ -40,7 +40,7 @@ class JointFixture(NamedTuple):
 
     config: Config
     kafka: KafkaFixture
-    mongodb: MongoDbFixture
+    mongo: MongoFixture
     s3: S3Fixture
     auth: TokenGenerator
 
@@ -55,13 +55,11 @@ def config_fixture() -> Config:
 @fixture(name="fixtures")
 def joint_fixture(
     config: Config,
-    kafka_fixture: KafkaFixture,
-    mongodb_fixture: MongoDbFixture,
-    s3_fixture: S3Fixture,
-    auth_fixture: TokenGenerator,
+    kafka: KafkaFixture,
+    mongo: MongoFixture,
+    s3: S3Fixture,
+    auth: TokenGenerator,
 ) -> JointFixture:
     """A fixture that collects all fixtures for integration testing."""
 
-    return JointFixture(
-        config, kafka_fixture, mongodb_fixture, s3_fixture, auth_fixture
-    )
+    return JointFixture(config, kafka, mongo, s3, auth)

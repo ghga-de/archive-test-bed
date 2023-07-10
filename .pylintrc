@@ -248,6 +248,7 @@ good-names=i,
            __,
            id,
            db,
+           s3,
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted

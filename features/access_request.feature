@@ -1,9 +1,11 @@
-@download
-Feature: Access Request
+@download @ars
+Feature: 30 Access Request
   As a user, I can ask for access request to a given dataset.
 
   Scenario: Requesting access to a dataset
 
+    Given the claims repository is empty
+    And no access requests have been made yet
     Given I am logged in as "Dr. John Doe"
 
     When I request access to the test dataset

@@ -35,7 +35,7 @@ def delete_topics(kafka_servers: list[str], topics_to_be_deleted: list[str]):
     admin_client.delete_topics(topics_to_be_deleted)
 
 
-@async_fixture
+@async_fixture(name="kafka")
 async def kafka_fixture(config: Config) -> AsyncGenerator[KafkaFixture, None]:
     """Pytest fixture for tests depending on the Kafka-based provider."""
 

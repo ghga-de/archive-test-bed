@@ -17,20 +17,22 @@
 
 import httpx
 from pytest_asyncio import fixture as async_fixture
-from pytest_bdd import given, parsers, scenarios, then, when
 
 from example_data.datasets import DATASET_OVERVIEW_EVENT
-from tests.fixtures import (  # noqa: F401
-    JointFixture,
-    auth_fixture,
-    config_fixture,
-    joint_fixture,
-    kafka_fixture,
-    mongodb_fixture,
-    s3_fixture,
-)
 
-TIMEOUT = 10
+from .conftest import (
+    TIMEOUT,
+    WPS_DB_NAME,
+    WPS_URL,
+    JointFixture,
+    LoginFixture,
+    MongoFixture,
+    given,
+    parse,
+    scenarios,
+    then,
+    when,
+)
 
 scenarios("../features/work_packages.feature")
 
@@ -45,24 +47,38 @@ async def publish_dataset(fixtures: JointFixture):
     )
 
 
-@given("a dataset has been announced")
+@given("no work packages have been created yet")
+def wps_database_is_empty(mongo: MongoFixture):
+    mongo.empty_database(WPS_DB_NAME)
+
+
+@given("the test dataset has been announced")
 def announce_dataset(publish_dataset):
     pass
 
 
 @when("the list of datasets is queried", target_fixture="response")
-def query_datasets():
-    return httpx.get("http://wps:8080/users/xyz/datasets", timeout=TIMEOUT)  # TBD
+def query_datasets(login: LoginFixture):
+    user_id = login.user["_id"]
+    return httpx.get(
+        f"{WPS_URL}/users/{user_id}/datasets", headers=login.headers, timeout=TIMEOUT
+    )
 
 
-@then(parsers.parse('the response status is "{code:d}"'))
-def check_status_code(code: int, response: httpx.Response):
-    if response.status_code != 403:  # TBD
-        assert response.status_code == code
-
-
-@then(parsers.parse("the dataset is in the response list"))
+@then(parse("the test dataset is in the response list"))
 def check_dataset_in_list(response: httpx.Response):
     data = response.json()
-    if isinstance(data, list):  # TBD
-        assert data == []
+    dataset = DATASET_OVERVIEW_EVENT
+    files = DATASET_OVERVIEW_EVENT.files
+    assert data == [
+        {
+            "id": dataset.accession,
+            "description": dataset.description,
+            "stage": dataset.stage.value,
+            "title": dataset.title,
+            "files": [
+                {"id": file.accession, "extension": file.file_extension}
+                for file in files
+            ],
+        }
+    ]

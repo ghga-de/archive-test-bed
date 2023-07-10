@@ -104,6 +104,27 @@ services:
       WPS_DATASET_OVERVIEW_EVENT_TYPE: metadata_dataset_overview
       WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
       WPS_DB_NAME: wps
+    command: run-rest
+
+  wps-consume:
+    image: ghga/work-package-service:0.1.3
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    env_file: wps.env
+    environment:
+      WPS_HOST: 0.0.0.0
+      WPS_SERVICE_INSTANCE_ID: wps-consume-1
+      WPS_KAFKA_SERVERS: '["kafka:9092"]'
+      WPS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
+      WPS_DATASET_OVERVIEW_EVENT_TOPIC: metadata
+      WPS_DATASET_OVERVIEW_EVENT_TYPE: metadata_dataset_overview
+      WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
+      WPS_DB_NAME: wps
+    command: consume-events
 
   ars:
     image: ghga/access-request-service:0.1.1

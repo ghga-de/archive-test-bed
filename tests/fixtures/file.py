@@ -26,7 +26,7 @@ from src.config import Config
 __all__ = ["file_fixture", "FileObject"]
 
 
-@fixture
+@fixture(name="file")
 def file_fixture(config: Config) -> Generator[FileObject, None, None]:
     """File fixture that provides a temporary file."""
 

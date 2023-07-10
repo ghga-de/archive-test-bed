@@ -71,7 +71,7 @@ class TokenGenerator:
         raise RuntimeError("Cannot read signing key for authentication")
 
 
-@fixture
+@fixture(name="auth")
 def auth_fixture() -> Generator[TokenGenerator, None, None]:
     """Fixture that provides an internal auth token generator."""
 
