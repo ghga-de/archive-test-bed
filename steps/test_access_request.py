@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-"""Step definitions for work package tests"""
+"""Step definitions for access request tests"""
 
 from datetime import timedelta
 from typing import Sequence
