@@ -53,8 +53,10 @@ def wps_database_is_empty(mongo: MongoFixture):
 
 
 @given("the test dataset has been announced")
-def announce_dataset(publish_dataset):
-    pass
+def announce_dataset(publish_dataset, fixtures: JointFixture):
+    assert fixtures.mongo.wait_document(
+        WPS_DB_NAME, "datasets", {"_id": DATASET_OVERVIEW_EVENT.accession}
+    )
 
 
 @when("the list of datasets is queried", target_fixture="response")

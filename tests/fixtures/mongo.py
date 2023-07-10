@@ -16,7 +16,8 @@
 
 """Fixture for testing code that uses the MongoDbDaoFactory provider."""
 
-from typing import Any, Generator, Mapping
+from time import sleep
+from typing import Any, Generator, Mapping, Optional
 
 from hexkit.providers.mongodb.provider import MongoDbDaoFactory
 from hexkit.providers.mongodb.testutils import MongoDbConfig, MongoDbFixture
@@ -49,7 +50,6 @@ class MongoFixture:
 
     def empty_database(self, db_name: str):
         """Drop all mongodb collections in a given database"""
-
         try:
             db = self.client[db_name]
             collection_names = db.list_collection_names()
@@ -58,9 +58,35 @@ class MongoFixture:
         except (ExecutionTimeout, OperationFailure) as error:
             print(f"Could not drop collection of mongo db {db_name}: {error}")
 
+    def find_document(
+        self, db_name: str, collection_name: str, mapping: Mapping[str, Any]
+    ) -> Optional[dict[str, Any]]:
+        """Return one document from the given collection matching the given filter."""
+        db = self.client[db_name]
+        collection = db.get_collection(collection_name)
+        return collection.find_one(mapping)
+
+    def wait_document(
+        self,
+        db_name: str,
+        collection_name: str,
+        mapping: Mapping[str, Any],
+        timeout=10,
+    ) -> bool:
+        """Wait for one document from the given collection matching the given filter."""
+        slept = 0.0
+        interval = 0.1
+        while slept < timeout:
+            if self.find_document(db_name, collection_name, mapping):
+                return True
+            sleep(interval)
+            slept += interval
+        return False
+
     def replace_document(
         self, db_name: str, collection_name: str, document: Mapping[str, Any]
     ):
+        """Replace one document in the given collection with the given document."""
         db = self.client[db_name]
         collection = db.get_collection(collection_name)
         collection.replace_one({"_id": document["_id"]}, document, upsert=True)

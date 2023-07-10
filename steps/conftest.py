@@ -51,9 +51,6 @@ TIMEOUT = 10
 parse = parsers.parse
 
 
-scenarios("../features/")
-
-
 class LoginFixture(NamedTuple):
     """A fixture to hold the users and their access tokens."""
 
