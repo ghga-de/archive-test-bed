@@ -72,7 +72,7 @@ def mongo_fixture(config: Config) -> Generator[MongoFixture, None, None]:
 
     dao_factory = MongoDbDaoFactory(config=config)
     db_connection_str = str(config.db_connection_str.get_secret_value())
-    client = MongoClient(db_connection_str)
+    client: MongoClient = MongoClient(db_connection_str)
     mongo_db = MongoDbFixture(config=config, dao_factory=dao_factory)
     mongo = MongoFixture(
         config=mongo_db.config,
