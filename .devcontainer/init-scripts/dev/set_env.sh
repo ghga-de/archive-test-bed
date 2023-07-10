@@ -38,10 +38,23 @@ if ! grep -q "JWK_1_PRIV=" $KEYS; then
 fi
 
 sed -n "s/^JWK_1_PRIV=/AUTH_KEY=/p" $KEYS > auth.env
+sed -n 's/^TOKEN=\(.*\)/SIMPLE_TOKEN="\1"/p' $KEYS >> auth.env
 
 sed -n "s/^JWK_1_PUB=/AUTH_SERVICE_AUTH_KEY=/p" $KEYS > crs.env
 
 sed -n "s/^JWK_1_PUB=/ARS_AUTH_KEY=/p" $KEYS > ars.env
+
+sed -n "s/^JWK_1_PUB=/WPS_AUTH_KEY=/p" $KEYS > wps.env
+sed -n "s/^JWK_2_PRIV=/WPS_WORK_PACKAGE_SIGNING_KEY=/p" $KEYS >> wps.env
+
+sed -n "s/^JWK_1_PUB=/DCS_AUTH_KEY=/p" $KEYS > dcs.env
+
+sed -n 's/^TOKEN=\(.*\)/FIS_TOKEN="\1"/p' $KEYS > fis.env
+sed -n 's/^TOKEN_HASH=\(.*\)/FIS_TOKEN_HASHES=["\1"]/p' $KEYS >> fis.env
+sed -n "s/^C4GH_PRIV=/FIS_PRIVATE_KEY=/p" $KEYS >> fis.env
+
+sed -n "s/^C4GH_PUB=/GHGA_CONNECTOR_SERVER_PUBKEY=/p" $KEYS > tb.env
+sed -n "s/^C4GH_PUB=/TB_FILE_INGEST_PUBKEY=/p" $KEYS > tb.env
 
 sed -n "s/^JWK_1_PUB=/WPS_AUTH_KEY=/p" $KEYS > wps.env
 sed -n "s/^JWK_2_PRIV=/WPS_WORK_PACKAGE_SIGNING_KEY=/p" $KEYS >> wps.env

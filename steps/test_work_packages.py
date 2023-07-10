@@ -54,6 +54,7 @@ def wps_database_is_empty(mongo: MongoFixture):
 
 @given("the test dataset has been announced")
 def announce_dataset(publish_dataset, fixtures: JointFixture):
+    # TBD: Should happen during upload
     assert fixtures.mongo.wait_document(
         WPS_DB_NAME, "datasets", {"_id": DATASET_OVERVIEW_EVENT.accession}
     )
