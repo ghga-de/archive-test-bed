@@ -19,7 +19,7 @@ cd .devcontainer
 
 echo "Creating testing keys..."
 
-KEYS=jwk.env
+KEYS=keys.env
 
 if ! docker run --rm ghga/auth-km-jobs:main generate-test-keys --num-jwk 2 > $KEYS ||
   ! grep -q "JWK_1_PUB=" $KEYS; then
@@ -38,7 +38,8 @@ sed -n "s/^JWK_2_PRIV=/WPS_WORK_PACKAGE_SIGNING_KEY=/p" $KEYS >> wps.env
 
 sed -n "s/^JWK_1_PUB=/DCS_AUTH_KEY=/p" $KEYS > dcs.env
 
-awk -F'=' '/TOKEN_HASH=/ { print "FIS_TOKEN_HASHES=[\""$2"\"]"}' $KEYS > fis.env
+sed -n 's/^TOKEN=\(.*\)/FIS_TOKEN="\1"/p' $KEYS > fis.env
+sed -n 's/^TOKEN_HASH=\(.*\)/FIS_TOKEN_HASHES=["\1"]/p' $KEYS >> fis.env
 sed -n "s/^C4GH_PRIV=/FIS_PRIVATE_KEY=/p" $KEYS >> fis.env
 
 sed -n "s/^C4GH_PUB=/GHGA_CONNECTOR_SERVER_PUBKEY=/p" $KEYS > tb.env

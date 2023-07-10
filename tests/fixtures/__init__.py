@@ -26,7 +26,8 @@ from pytest import fixture
 from src.config import Config
 from tests.fixtures.akafka import KafkaFixture, kafka_fixture
 from tests.fixtures.auth import TokenGenerator, auth_fixture
-from tests.fixtures.metadata import SubmissionConfig
+from tests.fixtures.file import batch_create_file_fixture, file_fixture
+from tests.fixtures.metadata import SubmissionConfig, submission_config_fixture
 from tests.fixtures.mongodb import MongoDbFixture, mongodb_fixture
 from tests.fixtures.s3 import S3Fixture, s3_fixture
 
@@ -37,7 +38,10 @@ __all__ = [
     "mongodb_fixture",
     "s3_fixture",
     "joint_fixture",
-    "workdir",
+    "submission_workdir",
+    "batch_create_file_fixture",
+    "file_fixture",
+    "submission_config_fixture",
 ]
 
 

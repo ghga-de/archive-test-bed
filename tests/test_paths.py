@@ -28,21 +28,17 @@ from src.utils import data_steward_upload_file, get_file_metadata_from_service
 from tests.fixtures import (  # noqa: F401 # pylint: disable=unused-import
     JointFixture,
     auth_fixture,
+    batch_create_file_fixture,
     config_fixture,
+    file_fixture,
     joint_fixture,
     kafka_fixture,
     mongodb_fixture,
     s3_fixture,
+    submission_config_fixture,
     submission_workdir,
 )
-from tests.fixtures.file import (  # noqa: F401 # pylint: disable=unused-import
-    batch_create_file_fixture,
-    file_fixture,
-)
-from tests.fixtures.metadata import (  # noqa: F401 # pylint: disable=unused-import
-    SubmissionConfig,
-    submission_config_fixture,
-)
+from tests.fixtures.metadata import SubmissionConfig
 
 
 @pytest.mark.asyncio
@@ -142,6 +138,8 @@ async def test_upload_file_ingest(
     batch_file_fixture,
     submission_config: SubmissionConfig,
 ):
+    """Test DSkit DSKit file upload workflow"""
+
     file_objects = batch_file_fixture
     file_metadata_dir = workdir / "file_metadata"
     file_metadata_dir.mkdir()
