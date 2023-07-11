@@ -21,7 +21,7 @@ import pytest
 from ghga_datasteward_kit.file_ingest import IngestConfig
 
 from fixtures.metadata import SubmissionConfig
-from src.utils import (
+from steps.utils import (
     data_steward_upload_file,
     file_ingest,
     get_file_metadata_from_service,

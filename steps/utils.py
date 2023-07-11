@@ -26,8 +26,8 @@ from ghga_datasteward_kit.file_ingest import IngestConfig, alias_to_accession
 from hexkit.providers.s3.testutils import FileObject
 from metldata.submission_registry.submission_store import SubmissionStore
 
+from fixtures.config import Config
 from fixtures.mongo import MongoFixture
-from src.config import Config
 
 FIS_TOKEN_PATH = Path.home() / ".ghga_data_steward_token.txt"  # path required by DSKit
 
