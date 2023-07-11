@@ -9,8 +9,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - id: common
-        uses: ghga-de/gh-action-common@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - run: pip install -r requirements.txt -r requirements-dev.txt
 
       - uses: pre-commit/action@v3.0.0
         env:
@@ -26,13 +28,13 @@ jobs:
           mypy .
       - name: pylint
         run: |
-          pylint "${{ steps.common.outputs.MAIN_SRC_DIR }}"
+          pylint ./steps
       - name: flake8
         run: |
           flake8 --config .flake8
       - name: bandit
         run: |
-          bandit -r "${{ steps.common.outputs.MAIN_SRC_DIR }}"
+          bandit -r .
       - name: Check license header and file
         run: |
           ./scripts/license_checker.py
