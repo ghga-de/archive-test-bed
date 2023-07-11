@@ -71,25 +71,6 @@ services:
       EKSS_SERVER_PRIVATE_KEY: G8oJdJ0zEEGD/ZKqhBdJSLKHM1/MO8XqUNSYpL0xyv0=
       EKSS_SERVER_PUBLIC_KEY: qx5g31H7rdsq7sgkew9ElkLIXvBje4RxDVcAHcJD8XY=
 
-  mongodb:
-    image: mongo:latest
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: testbed_user
-      MONGO_INITDB_ROOT_PASSWORD: testbed_key
-    ports:
-      - 44441:27017
-
-  mongo-express:
-    image: mongo-express:latest
-    restart: unless-stopped
-    depends_on:
-      - mongodb
-    ports:
-      - 8088:8081
-    environment:
-      ME_CONFIG_MONGODB_URL: mongodb://testbed_user:testbed_key@mongodb
-
   dcs:
     image: ghga/download-controller-service:0.6.1
     depends_on:
@@ -291,6 +272,25 @@ services:
       FIS_VAULT_ROLE_ID: 9f03d595-c964-441c-a68e-2e1534f2bb56
       FIS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
 
+  mongodb:
+    image: mongo:latest
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: testbed_user
+      MONGO_INITDB_ROOT_PASSWORD: testbed_key
+    ports:
+      - 44441:27017
+
+  mongo-express:
+    image: mongo-express:latest
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    ports:
+      - 8088:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://testbed_user:testbed_key@mongodb
+
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     restart: always
@@ -317,6 +317,25 @@ services:
       KAFKA_DELETE_TOPIC_ENABLE: "true"
     ports:
       - 9092:9092
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    restart: always
+    depends_on:
+      - kafka
+      - zookeeper
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    ports:
+      - 8089:8080
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
 
   localstack:
     image: localstack/localstack:2.0.2
@@ -355,12 +374,6 @@ services:
     volumes:
       - ./init-scripts/vault:/docker-entrypoint.d
     entrypoint: ./docker-entrypoint.d/setup.sh
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.3.0
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
 
 volumes:
   s3_fs: {}
