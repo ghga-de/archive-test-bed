@@ -17,17 +17,28 @@
 
 cd .devcontainer
 
-echo "Creating testing keys..."
+echo "Creating container envs..."
 
 KEYS=keys.env
 
-if ! docker run --rm ghga/auth-km-jobs:main generate-test-keys --num-jwk 2 > $KEYS ||
-  ! grep -q "JWK_1_PUB=" $KEYS; then
-
-  echo "Error: Testing keys could not be created."
-  exit 1
-
+if [ -s $KEYS ]; then
+  echo "Reusing existing testing keys..."
+else
+  echo "Creating new testing keys..."
+  if ! docker run --rm \
+      ghga/auth-km-jobs:main generate-test-keys --num-jwk=2 \
+      > $KEYS; then
+    echo "Error: Testing keys could not be created."
+    exit 1
+  fi
 fi
+if ! grep -q "JWK_1_PRIV=" $KEYS; then
+  echo "Error: Keys have not been properly created."
+  exit 1
+fi
+
+sed -n "s/^JWK_1_PRIV=/AUTH_KEY=/p" $KEYS > auth.env
+sed -n 's/^TOKEN=\(.*\)/SIMPLE_TOKEN="\1"/p' $KEYS >> auth.env
 
 sed -n "s/^JWK_1_PUB=/AUTH_SERVICE_AUTH_KEY=/p" $KEYS > crs.env
 
@@ -45,4 +56,7 @@ sed -n "s/^C4GH_PRIV=/FIS_PRIVATE_KEY=/p" $KEYS >> fis.env
 sed -n "s/^C4GH_PUB=/GHGA_CONNECTOR_SERVER_PUBKEY=/p" $KEYS > tb.env
 sed -n "s/^C4GH_PUB=/TB_FILE_INGEST_PUBKEY=/p" $KEYS > tb.env
 
-echo "Environments with testing keys have been created."
+sed -n "s/^JWK_1_PUB=/WPS_AUTH_KEY=/p" $KEYS > wps.env
+sed -n "s/^JWK_2_PRIV=/WPS_WORK_PACKAGE_SIGNING_KEY=/p" $KEYS >> wps.env
+
+echo "Container envs have been created."

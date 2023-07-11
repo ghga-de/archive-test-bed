@@ -31,7 +31,7 @@ services:
     env_file: tb.env
     environment:
       # GHGA connector
-      GHGA_CONNECTOR_DOWNLOAD_API: http://dcs_rest:8080
+      GHGA_CONNECTOR_DOWNLOAD_API: http://dcs:8080
       GHGA_CONNECTOR_PART_SIZE: 8589934592
       GHGA_CONNECTOR_WPS_API_URL: http://wps:8080
 
@@ -40,7 +40,7 @@ services:
       TB_SERVICE_INSTANCE_ID: testbed-app-1
       TB_KAFKA_SERVERS: '["kafka:9092"]'
       # MongoDb
-      TB_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      TB_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       # S3
       TB_S3_ENDPOINT_URL: http://localstack:4566
       TB_S3_ACCESS_KEY_ID: testbed-key
@@ -71,7 +71,7 @@ services:
       EKSS_SERVER_PRIVATE_KEY: G8oJdJ0zEEGD/ZKqhBdJSLKHM1/MO8XqUNSYpL0xyv0=
       EKSS_SERVER_PUBLIC_KEY: qx5g31H7rdsq7sgkew9ElkLIXvBje4RxDVcAHcJD8XY=
 
-  mongo_db:
+  mongodb:
     image: mongo:latest
     restart: unless-stopped
     environment:
@@ -80,50 +80,24 @@ services:
     ports:
       - 44441:27017
 
-  dcs_consumer:
-    image: ghga/download-controller-service:0.6.1
+  mongo-express:
+    image: mongo-express:latest
     restart: unless-stopped
     depends_on:
-      kafka:
-        condition: service_healthy
-      mongo_db:
-        condition: service_started
-    env_file: dcs.env
+      - mongodb
+    ports:
+      - 8088:8081
     environment:
-      DCS_HOST: 0.0.0.0
-      DCS_DOWNLOAD_SERVED_EVENT_TOPIC: downloads
-      DCS_DOWNLOAD_SERVED_EVENT_TYPE: drs_object_served
-      DCS_FILE_REGISTERED_EVENT_TOPIC: downloads
-      DCS_FILE_REGISTERED_EVENT_TYPE: drs_object_registered
-      DCS_FILES_TO_REGISTER_TOPIC: internal_registrations
-      DCS_FILES_TO_REGISTER_TYPE: internal_file_registered
-      DCS_UNSTAGED_DOWNLOAD_EVENT_TOPIC: downloads
-      DCS_UNSTAGED_DOWNLOAD_EVENT_TYPE: unstaged_drs_object_requested
-      DCS_FILES_TO_DELETE_TOPIC: purges
-      DCS_FILES_TO_DELETE_TYPE: files_to_delete
-      DCS_FILE_DELETED_EVENT_TOPIC: downloads
-      DCS_FILE_DELETED_EVENT_TYPE: drs_object_deleted
-      DCS_SERVICE_INSTANCE_ID: dcs-consumer-1
-      DCS_KAFKA_SERVERS: '["kafka:9092"]'
-      DCS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
-      DCS_DB_NAME: dcs
-      DCS_OUTBOX_BUCKET: outbox
-      DCS_DRS_SERVER_URI: drs://localhost:8080/
-      DCS_S3_ENDPOINT_URL: http://localstack:4566
-      DCS_S3_ACCESS_KEY_ID: testbed-key
-      DCS_S3_SECRET_ACCESS_KEY: testbed-secret
-      DCS_EKSS_BASE_URL: http://ekss
-      DCS_PRESIGNED_URL_EXPIRES_AFTER: 30
-    command: "consume-events"
+      ME_CONFIG_MONGODB_URL: mongodb://testbed_user:testbed_key@mongodb
 
-  dcs_rest:
+  dcs:
     image: ghga/download-controller-service:0.6.1
     depends_on:
       kafka:
         condition: service_healthy
-      mongo_db:
+      mongodb:
         condition: service_started
-      dcs_consumer:
+      dcs-consumer:
         condition: service_started
     env_file: dcs.env
     environment:
@@ -142,7 +116,7 @@ services:
       DCS_FILE_DELETED_EVENT_TYPE: drs_object_deleted
       DCS_SERVICE_INSTANCE_ID: dcs-rest-1
       DCS_KAFKA_SERVERS: '["kafka:9092"]'
-      DCS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      DCS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       DCS_DB_NAME: dcs
       DCS_OUTBOX_BUCKET: outbox
       DCS_DRS_SERVER_URI: drs://localhost:8080/
@@ -153,13 +127,49 @@ services:
       DCS_PRESIGNED_URL_EXPIRES_AFTER: 30
     command: "run-rest"
 
+  dcs-consumer:
+    image: ghga/download-controller-service:0.6.1
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    env_file: dcs.env
+    environment:
+      DCS_HOST: 0.0.0.0
+      DCS_DOWNLOAD_SERVED_EVENT_TOPIC: downloads
+      DCS_DOWNLOAD_SERVED_EVENT_TYPE: drs_object_served
+      DCS_FILE_REGISTERED_EVENT_TOPIC: downloads
+      DCS_FILE_REGISTERED_EVENT_TYPE: drs_object_registered
+      DCS_FILES_TO_REGISTER_TOPIC: internal_registrations
+      DCS_FILES_TO_REGISTER_TYPE: internal_file_registered
+      DCS_UNSTAGED_DOWNLOAD_EVENT_TOPIC: downloads
+      DCS_UNSTAGED_DOWNLOAD_EVENT_TYPE: unstaged_drs_object_requested
+      DCS_FILES_TO_DELETE_TOPIC: purges
+      DCS_FILES_TO_DELETE_TYPE: files_to_delete
+      DCS_FILE_DELETED_EVENT_TOPIC: downloads
+      DCS_FILE_DELETED_EVENT_TYPE: drs_object_deleted
+      DCS_SERVICE_INSTANCE_ID: dcs-consumer-1
+      DCS_KAFKA_SERVERS: '["kafka:9092"]'
+      DCS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
+      DCS_DB_NAME: dcs
+      DCS_OUTBOX_BUCKET: outbox
+      DCS_DRS_SERVER_URI: drs://localhost:8080/
+      DCS_S3_ENDPOINT_URL: http://localstack:4566
+      DCS_S3_ACCESS_KEY_ID: testbed-key
+      DCS_S3_SECRET_ACCESS_KEY: testbed-secret
+      DCS_EKSS_BASE_URL: http://ekss
+      DCS_PRESIGNED_URL_EXPIRES_AFTER: 30
+    command: "consume-events"
+
   ifrs:
     image: ghga/internal-file-registry-service:0.4.0
     restart: unless-stopped
     depends_on:
       kafka:
         condition: service_healthy
-      mongo_db:
+      mongodb:
         condition: service_started
     environment:
       IFRS_FILE_REGISTERED_EVENT_TOPIC: internal_registrations
@@ -180,42 +190,65 @@ services:
       IFRS_PERMANENT_BUCKET: permanent
       IFRS_SERVICE_INSTANCE_ID: ifrs-1
       IFRS_KAFKA_SERVERS: '["kafka:9092"]'
-      IFRS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      IFRS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       IFRS_DB_NAME: ifrs
       IFRS_S3_ENDPOINT_URL: http://localstack:4566
       IFRS_S3_ACCESS_KEY_ID: testbed-key
       IFRS_S3_SECRET_ACCESS_KEY: testbed-secret
 
   crs:
-    image: ghga/auth-service:0.5.0
+    image: ghga/auth-service:0.5.1
     restart: unless-stopped
     depends_on:
-      mongo_db:
+      mongodb:
         condition: service_started
     env_file: crs.env
     environment:
       AUTH_SERVICE_HOST: 0.0.0.0
       AUTH_SERVICE_INCLUDE_APIS: '["claims"]'
-      AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongo_db
+      AUTH_SERVICE_ADD_AS_DATA_STEWARDS: '["id-of-data-steward"]'
+      AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongodb
+      AUTH_SERVICE_DB_NAME: auth
 
   wps:
-    image: ghga/work-package-service:0.1.2
+    image: ghga/work-package-service:0.1.3
     restart: unless-stopped
     depends_on:
       kafka:
         condition: service_healthy
-      mongo_db:
+      mongodb:
         condition: service_started
     env_file: wps.env
     environment:
       WPS_HOST: 0.0.0.0
       WPS_SERVICE_INSTANCE_ID: wps-rest-1
       WPS_KAFKA_SERVERS: '["kafka:9092"]'
-      WPS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
-      WPS_DATASET_OVERVIEW_EVENT_TOPIC: artifacts.embedded_public
-      WPS_DATASET_OVERVIEW_EVENT_TYPE: artifacts.embedded_public
+      WPS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
+      WPS_DATASET_OVERVIEW_EVENT_TOPIC: metadata
+      WPS_DATASET_OVERVIEW_EVENT_TYPE: metadata_dataset_overview
       WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
       WPS_DB_NAME: wps
+    command: run-rest
+
+  wps-consumer:
+    image: ghga/work-package-service:0.1.3
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    env_file: wps.env
+    environment:
+      WPS_HOST: 0.0.0.0
+      WPS_SERVICE_INSTANCE_ID: wps-consumer-1
+      WPS_KAFKA_SERVERS: '["kafka:9092"]'
+      WPS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
+      WPS_DATASET_OVERVIEW_EVENT_TOPIC: metadata
+      WPS_DATASET_OVERVIEW_EVENT_TYPE: metadata_dataset_overview
+      WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
+      WPS_DB_NAME: wps
+    command: consume-events
 
   ars:
     image: ghga/access-request-service:0.1.1
@@ -223,7 +256,7 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
-      mongo_db:
+      mongodb:
         condition: service_started
     env_file: ars.env
     environment:
@@ -233,7 +266,7 @@ services:
       ARS_NOTIFICATION_EVENT_TOPIC: notifications
       ARS_NOTIFICATION_EVENT_TYPE: notification
       ARS_DATA_STEWARD_EMAIL: "helpdesk@ghga.de"
-      ARS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongo_db
+      ARS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       ARS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
       ARS_DB_NAME: ars
 
@@ -259,7 +292,7 @@ services:
       FIS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
 
   kafka:
-    image: confluentinc/cp-kafka:7.3.0
+    image: confluentinc/cp-kafka:7.4.0
     restart: always
     depends_on:
       - zookeeper
@@ -274,7 +307,11 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_INTERNAL://localhost:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_DELETE_TOPIC_ENABLE: "true"
@@ -309,7 +346,7 @@ services:
     cap_add:
       - IPC_LOCK
 
-  vault_init:
+  vault-init:
     image: hashicorp/vault:1.12
     depends_on:
       - vault
