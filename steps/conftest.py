@@ -27,17 +27,20 @@ from pytest_bdd import (  # noqa: F401; pylint: disable=unused-import
     when,
 )
 
-from tests.fixtures import (  # noqa: F401; pylint: disable=unused-import
+from fixtures import (  # noqa: F401; pylint: disable=unused-import
     Config,
     JointFixture,
     MongoFixture,
     auth_fixture,
+    batch_create_file_fixture,
     c4gh_fixture,
     config_fixture,
     joint_fixture,
     kafka_fixture,
     mongo_fixture,
     s3_fixture,
+    submission_config_fixture,
+    submission_workdir_fixture,
 )
 
 ARS_DB_NAME = "ars"
