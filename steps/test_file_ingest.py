@@ -14,7 +14,10 @@
 # limitations under the License.
 #
 
-import subprocess
+
+""" Step definitions for file ingest tests """
+
+import subprocess  # nosec B404
 import time
 
 import pytest

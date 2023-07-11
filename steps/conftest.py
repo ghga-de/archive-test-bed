@@ -52,7 +52,7 @@ WPS_URL = "http://wps:8080"
 
 TIMEOUT = 10
 
-parse = parsers.parse
+parse = parsers.parse  # pylint: disable=invalid-name
 
 
 class LoginFixture(NamedTuple):

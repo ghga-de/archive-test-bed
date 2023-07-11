@@ -26,13 +26,13 @@ jobs:
           mypy .
       - name: pylint
         run: |
-          pylint "${{ steps.common.outputs.MAIN_SRC_DIR }}"
+          pylint ./steps
       - name: flake8
         run: |
           flake8 --config .flake8
       - name: bandit
         run: |
-          bandit -r "${{ steps.common.outputs.MAIN_SRC_DIR }}"
+          bandit -r .
       - name: Check license header and file
         run: |
           ./scripts/license_checker.py

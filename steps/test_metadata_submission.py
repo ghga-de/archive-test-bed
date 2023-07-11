@@ -14,7 +14,9 @@
 # limitations under the License.
 #
 
-import subprocess
+""" Step definitions for metadata submission """
+
+import subprocess  # nosec B404
 from pathlib import Path
 
 from fixtures.metadata import SubmissionConfig
