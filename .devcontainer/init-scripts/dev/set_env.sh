@@ -36,6 +36,7 @@ if ! grep -q "JWK_1_PRIV=" $KEYS ||
    ! grep -q "C4GH_1_PRIV=" $KEYS ||
    ! grep -q "TOKEN=" $KEYS; then
   echo "Error: Keys have not been properly created."
+  echo "You may need to remove the keys.env file to recreate it."
   exit 1
 fi
 
@@ -51,7 +52,7 @@ sed -n "s/^C4GH_2_PRIV=/FIS_PRIVATE_KEY=/p" $KEYS >> fis.env
 sed -n "s/^C4GH_2_PUB=/TB_FILE_INGEST_PUBKEY=/p" $KEYS > tb.env
 
 sed -n "s/^C4GH_1_PRIV=/EKSS_SERVER_PRIVATE_KEY=/p" $KEYS > ekss.env
-sed -n "s/^C4GH_1_PUB=/EKSS_SERVER_PUBLIC_KEY=/p" $KEYS > ekss.env
+sed -n "s/^C4GH_1_PUB=/EKSS_SERVER_PUBLIC_KEY=/p" $KEYS >> ekss.env
 
 sed -n "s/^JWK_1_PUB=/AUTH_SERVICE_AUTH_KEY=/p" $KEYS > crs.env
 
