@@ -26,14 +26,14 @@ if [ -s $KEYS ]; then
 else
   echo "Creating new testing keys..."
   if ! docker run --rm \
-      ghga/auth-km-jobs:main generate-test-keys --num-jwk=2 --num-c4gh=2 \
+      ghga/auth-km-jobs:main generate-test-keys --num-jwk=2 --num-c4gh=3 \
       > $KEYS; then
     echo "Error: Testing keys could not be created."
     exit 1
   fi
 fi
-if ! grep -q "JWK_1_PRIV=" $KEYS ||
-   ! grep -q "C4GH_1_PRIV=" $KEYS ||
+if ! grep -q "JWK_2_PRIV=" $KEYS ||
+   ! grep -q "C4GH_3_PRIV=" $KEYS ||
    ! grep -q "TOKEN=" $KEYS; then
   echo "Error: Keys have not been properly created."
   echo "You may need to remove the keys.env file to recreate it."
@@ -50,6 +50,8 @@ sed -n 's/^TOKEN_HASH=\(.*\)/FIS_TOKEN_HASHES=["\1"]/p' $KEYS >> fis.env
 sed -n "s/^C4GH_2_PRIV=/FIS_PRIVATE_KEY=/p" $KEYS >> fis.env
 
 sed -n "s/^C4GH_2_PUB=/TB_FILE_INGEST_PUBKEY=/p" $KEYS > tb.env
+sed -n "s/^C4GH_3_PRIV=/TB_USER_PRIVATE_CRYPT4GH_KEY=/p" $KEYS >> tb.env
+sed -n "s/^C4GH_3_PUB=/TB_USER_PUBLIC_CRYPT4GH_KEY=/p" $KEYS >> tb.env
 
 sed -n "s/^C4GH_1_PRIV=/EKSS_SERVER_PRIVATE_KEY=/p" $KEYS > ekss.env
 sed -n "s/^C4GH_1_PUB=/EKSS_SERVER_PUBLIC_KEY=/p" $KEYS >> ekss.env
