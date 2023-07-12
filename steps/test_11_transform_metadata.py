@@ -38,7 +38,7 @@ def call_data_steward_kit_transform(
             "metadata",
             "transform",
             "--config-path",
-            metadata_config_path,
+            str(metadata_config_path),
         ],
         capture_output=True,
         check=True,
