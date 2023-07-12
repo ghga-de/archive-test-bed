@@ -30,4 +30,4 @@ jobs:
           docker exec \
             --workdir /workspace \
             archive-test-bed \
-            pytest
+            pytest -v

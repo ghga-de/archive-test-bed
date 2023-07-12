@@ -28,7 +28,7 @@ jobs:
           mypy .
       - name: pylint
         run: |
-          pylint ./steps
+          pylint ./fixtures ./steps
       - name: flake8
         run: |
           flake8 --config .flake8
