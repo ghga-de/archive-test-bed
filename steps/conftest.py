@@ -102,6 +102,13 @@ def check_status_code(code: int, response: httpx.Response):
 # Global test bed state memory
 
 
+@given("we start on a clean slate", target_fixture="state")
+def reset_state(fixtures: JointFixture):
+    fixtures.kafka.delete_topics()
+    fixtures.mongo.empty_databases("tb")  # state database
+    fixtures.mongo.empty_databases()  # service databases
+
+
 @given(parse('we have the state "{name}"'), target_fixture="state")
 def assume_state_clause(name: str, mongo: MongoFixture):
     value = get_state(name, mongo)
