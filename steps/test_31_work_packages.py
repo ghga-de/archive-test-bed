@@ -49,7 +49,6 @@ async def publish_dataset(fixtures: JointFixture):
     assert len(accessions) == len(payload_files)
     for i, accession in enumerate(accessions):
         payload_files[i]["accession"] = accession
-    print(payload)
     # publish dataset overview event
     await fixtures.kafka.publisher.publish(
         payload=DATASET_OVERVIEW_EVENT.dict(),
