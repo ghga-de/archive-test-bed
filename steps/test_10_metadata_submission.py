@@ -19,13 +19,16 @@
 import subprocess  # nosec B404
 from pathlib import Path
 
+from fixtures import JointFixture
 from fixtures.metadata import SubmissionConfig
 
 from .conftest import TIMEOUT
 
 
 def test_upload_submission(
-    submission_workdir: Path, submission_config: SubmissionConfig
+    submission_workdir: Path,
+    submission_config: SubmissionConfig,
+    fixtures: JointFixture,
 ):
     """Test submission via DSKit with configured file object,
        expected to run through without errors
@@ -35,8 +38,9 @@ def test_upload_submission(
     """
 
     # start on a clean slate
-    # fixtures.kafka.delete_topics()
-    # fixtures.mongo.empty_databases()
+    fixtures.kafka.delete_topics()
+    fixtures.mongo.empty_databases("tb")  # state database
+    fixtures.mongo.empty_databases()  # service databases
 
     completed_submit = subprocess.run(  # nosec B607, B603
         [
