@@ -117,5 +117,6 @@ def check_metadata_documents(ingest_config, fixtures: JointFixture):
 
 
 @then("files exist in object storage")
-def check_files_in_storage(accessions):  # pylint: disable=unused-argument
+def check_files_in_storage(check_object_exist):  # pylint: disable=unused-argument
+    """Check object exist with async fixture"""
     ...
