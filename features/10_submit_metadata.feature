@@ -9,5 +9,5 @@ Feature: 10 Submit Metadata
     And the metadata config yaml exists
 
     When metadata is submitted to the submission registry
-    Then the submission registry exists
+    Then a submission JSON exists in registry
     And set the state to "Metadata submission is completed"

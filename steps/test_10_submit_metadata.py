@@ -16,6 +16,7 @@
 
 """ Step definitions for metadata submission """
 
+import glob
 import os
 import subprocess  # nosec B404
 from pathlib import Path
@@ -80,6 +81,10 @@ def submit_metadata(fixtures: JointFixture):
     os.chdir(cwd)
 
 
-@then("the submission registry exists")
+@then("a submission JSON exists in registry")
 def submission_registry_exists(fixtures: JointFixture):
-    assert fixtures.submission.config.submission_store.exists()
+    submission_store = fixtures.submission.config.submission_store
+    assert submission_store.exists()
+
+    json_files = glob.glob(os.path.join(submission_store, "*.json"))
+    assert json_files, f"No submission JSON files found in '{submission_store}'"

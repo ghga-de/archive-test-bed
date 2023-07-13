@@ -27,10 +27,9 @@ from steps.utils import ingest_config_as_file, temporary_file
 
 from .conftest import (
     FIS_TOKEN_PATH,
-    IFRS_DB_NAME,
-    IFRS_METADATA_COLLECTION,
     JointFixture,
     get_state,
+    parse,
     scenarios,
     then,
     when,
@@ -61,16 +60,11 @@ def call_data_steward_kit_ingest(ingest_config_path: str, token):
 
 
 @async_fixture
-async def check_object_exist(fixtures: JointFixture, accessions):
-    for accession in accessions:
-        metadata = fixtures.mongo.find_document(
-            db_name=IFRS_DB_NAME,
-            collection_name=IFRS_METADATA_COLLECTION,
-            mapping={"_id": accession},
-        )
-        assert metadata
+async def check_object_exist(fixtures: JointFixture, object_ids: list[str]):
+    print(object_ids)
+    for object_id in object_ids:
         assert await fixtures.s3.storage.does_object_exist(
-            bucket_id="permanent", object_id=metadata["object_id"]
+            bucket_id=fixtures.config.permanent_bucket, object_id=object_id
         )
 
 
@@ -94,10 +88,9 @@ def ingest_file_metadata(fixtures: JointFixture):
     return ingest_config
 
 
-@then("file metadata exist in service", target_fixture="accessions")
-def check_metadata_documents(ingest_config, fixtures: JointFixture):
+@then("we have the file accessions", target_fixture="accessions")
+def check_file_accessions_exist(ingest_config, fixtures: JointFixture):
     file_aliases = get_state("we have file aliases", fixtures.mongo)
-
     file_accessions = []
     for alias in file_aliases:
         accession = alias_to_accession(
@@ -105,18 +98,37 @@ def check_metadata_documents(ingest_config, fixtures: JointFixture):
             map_fields=ingest_config.map_files_fields,
             submission_store=SubmissionStore(config=ingest_config),
         )
-
-        assert fixtures.mongo.wait_for_document(
-            db_name=IFRS_DB_NAME,
-            collection_name=IFRS_METADATA_COLLECTION,
-            mapping={"_id": accession},
-        )
+        assert accession
         file_accessions.append(accession)
-
     return file_accessions
 
 
-@then("files exist in object storage")
+@then(
+    parse('file metadata exist in "{db_name}" collection "{collection}"'),
+    target_fixture="object_ids",
+)
+def check_metadata_documents(
+    accessions: list[str], fixtures: JointFixture, collection: str, db_name: str
+):
+    object_ids = []  # Object IDs for storage object mapping
+    for accession in accessions:
+        assert fixtures.mongo.wait_for_document(
+            db_name=db_name,
+            collection_name=collection,
+            mapping={"_id": accession},
+        )
+        metadata = fixtures.mongo.find_document(
+            db_name=db_name,
+            collection_name=collection,
+            mapping={"_id": accession},
+        )
+        assert metadata
+        object_ids.append(metadata["object_id"])
+
+    return object_ids
+
+
+@then("files exist in permanent bucket")
 def check_files_in_storage(check_object_exist):  # pylint: disable=unused-argument
     """Check object exist with async fixture"""
     ...

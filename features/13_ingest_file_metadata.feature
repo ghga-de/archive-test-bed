@@ -7,6 +7,7 @@ Feature: 13 Ingest File Metadata
     Given we have the state "Files uploaded successfully"
 
     When file metadata is ingested
-    Then file metadata exist in service
-    And files exist in object storage
+    Then we have the file accessions
+    And file metadata exist in "ifrs" collection "file_metadata"
+    And files exist in permanent bucket
     And set the state to "File metadata ingested successfully"
