@@ -57,11 +57,14 @@ services:
       TB_FILE_INGEST_URL: http://fis:8080/ingest
 
   wkvs:
-    image: ghga/well-known-value-service:0.1.0
+    image: ghga/well-known-value-service:0.1.1
     env_file: wkvs.env
     environment:
       WKVS_HOST: 0.0.0.0
       WKVS_PORT: 80
+      WKVS_DCS_API_URL: http://dcs:8080/download
+      WKVS_UCS_API_URL: http://ucs:8080/upload
+      WKVS_WPS_API_URL: http://wps:8080
 
   ekss:
     image: ghga/encryption-key-store-service:0.3.5
