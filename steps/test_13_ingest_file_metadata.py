@@ -27,6 +27,8 @@ from steps.utils import ingest_config_as_file, temporary_file
 
 from .conftest import (
     FIS_TOKEN_PATH,
+    IFRS_DB_NAME,
+    IFRS_METADATA_COLLECTION,
     JointFixture,
     get_state,
     parse,
@@ -61,7 +63,6 @@ def call_data_steward_kit_ingest(ingest_config_path: str, token):
 
 @async_fixture
 async def check_object_exist(fixtures: JointFixture, object_ids: list[str]):
-    print(object_ids)
     for object_id in object_ids:
         assert await fixtures.s3.storage.does_object_exist(
             bucket_id=fixtures.config.permanent_bucket, object_id=object_id
@@ -98,28 +99,18 @@ def check_file_accessions_exist(ingest_config, fixtures: JointFixture):
             map_fields=ingest_config.map_files_fields,
             submission_store=SubmissionStore(config=ingest_config),
         )
-        assert accession
+        assert accession.startswith("GHGAF")
         file_accessions.append(accession)
     return file_accessions
 
 
-@then(
-    parse('file metadata exist in "{db_name}" collection "{collection}"'),
-    target_fixture="object_ids",
-)
-def check_metadata_documents(
-    accessions: list[str], fixtures: JointFixture, collection: str, db_name: str
-):
+@then(parse("file metadata exist in the service"), target_fixture="object_ids")
+def check_metadata_documents(accessions: list[str], fixtures: JointFixture):
     object_ids = []  # Object IDs for storage object mapping
     for accession in accessions:
-        assert fixtures.mongo.wait_for_document(
-            db_name=db_name,
-            collection_name=collection,
-            mapping={"_id": accession},
-        )
-        metadata = fixtures.mongo.find_document(
-            db_name=db_name,
-            collection_name=collection,
+        metadata = fixtures.mongo.wait_for_document(
+            db_name=IFRS_DB_NAME,
+            collection_name=IFRS_METADATA_COLLECTION,
             mapping={"_id": accession},
         )
         assert metadata

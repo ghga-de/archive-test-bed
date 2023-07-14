@@ -59,12 +59,12 @@ def call_data_steward_kit_submit(
     assert b"ERROR" not in completed_submit.stderr
 
 
-@given("the metadata json file exists")
+@given("we have a valid research metadata JSON file")
 def metadata_json_exist(fixtures: JointFixture):
     assert fixtures.submission.config.metadata_path.exists()
 
 
-@given("the metadata config yaml exists")
+@given("we have a valid metadata config YAML file")
 def metadata_config_exist(fixtures: JointFixture):
     assert fixtures.submission.config.metadata_config_path.exists()
 
@@ -81,7 +81,7 @@ def submit_metadata(fixtures: JointFixture):
     os.chdir(cwd)
 
 
-@then("a submission JSON exists in registry")
+@then("a submission JSON exists in the local submission registry")
 def submission_registry_exists(fixtures: JointFixture):
     submission_store = fixtures.submission.config.submission_store
     assert submission_store.exists()

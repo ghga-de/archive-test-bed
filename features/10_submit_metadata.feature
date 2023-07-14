@@ -5,9 +5,9 @@ Feature: 10 Submit Metadata
   Scenario: Submitting metadata
 
     Given we start on a clean slate
-    And the metadata json file exists
-    And the metadata config yaml exists
+    And we have a valid research metadata JSON file
+    And we have a valid metadata config YAML file
 
     When metadata is submitted to the submission registry
-    Then a submission JSON exists in registry
+    Then a submission JSON exists in the local submission registry
     And set the state to "Metadata submission is completed"
