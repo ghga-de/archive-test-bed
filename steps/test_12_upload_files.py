@@ -62,7 +62,7 @@ def call_data_steward_kit_upload(
 
 @when("files are uploaded", target_fixture="file_objects")
 def upload_files(fixtures: JointFixture, batch_file_fixture):
-    file_metadata_dir = fixtures.submission.config.file_metadata_dir
+    file_metadata_dir = fixtures.dsk.config.file_metadata_dir
     file_metadata_dir.mkdir(exist_ok=True)
 
     file_objects = batch_file_fixture
@@ -77,7 +77,7 @@ def upload_files(fixtures: JointFixture, batch_file_fixture):
 
 @then("metadata for each file exist")
 def metadata_files_exist(fixtures: JointFixture, file_objects: list[FileObject]):
-    file_metadata_dir = fixtures.submission.config.file_metadata_dir
+    file_metadata_dir = fixtures.dsk.config.file_metadata_dir
     file_aliases = []
     for file_object in file_objects:
         metadata_file_path = file_metadata_dir / f"{file_object.object_id}.json"

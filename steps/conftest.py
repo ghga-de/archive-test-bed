@@ -31,16 +31,21 @@ from pytest_bdd import (  # noqa: F401; pylint: disable=unused-import
 
 from fixtures import (  # noqa: F401; pylint: disable=unused-import
     Config,
+    ConnectorFixture,
+    DskFixture,
     JointFixture,
+    KafkaFixture,
     MongoFixture,
+    S3Fixture,
     auth_fixture,
     batch_file_fixture,
     config_fixture,
+    connector_fixture,
+    dsk_fixture,
     joint_fixture,
     kafka_fixture,
     mongo_fixture,
     s3_fixture,
-    submission_fixture,
 )
 
 ARS_DB_NAME = "ars"
@@ -117,7 +122,7 @@ def reset_state(
     fixtures.kafka.delete_topics()
     fixtures.mongo.empty_databases("tb")  # state database
     fixtures.mongo.empty_databases()  # service databases
-    fixtures.submission.reset_workdir()  # reset local submission registry
+    fixtures.dsk.reset_work_dir()  # reset local submission registry
 
 
 @given(parse('we have the state "{name}"'), target_fixture="state")

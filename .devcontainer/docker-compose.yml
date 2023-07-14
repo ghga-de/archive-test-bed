@@ -8,9 +8,9 @@ services:
       context: .
       dockerfile: ./Dockerfile
       args:
-        # [Choice] Python version: 3, 3.8, 3.7, 3.6
+        # Python version: 3, 3.11, 3.10, 3.9
         VARIANT: 3.9
-        # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
+        # You may need to change USER_UID and USER_GID if your local UID is different
         USER_UID: 1000
         USER_GID: 1000
 
@@ -31,9 +31,8 @@ services:
     env_file: tb.env
     environment:
       # GHGA connector
-      GHGA_CONNECTOR_DOWNLOAD_API: http://dcs:8080
       GHGA_CONNECTOR_PART_SIZE: 8589934592
-      GHGA_CONNECTOR_WPS_API_URL: http://wps:8080
+      GHGA_CONNECTOR_WKVS_API_URL: http://wkvs
 
       # Kafka
       TB_SERVICE_NAME: testbed_kafka

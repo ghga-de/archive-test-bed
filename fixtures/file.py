@@ -26,7 +26,7 @@ from hexkit.providers.s3.testutils import FileObject
 from pytest import fixture
 
 from fixtures.config import Config
-from fixtures.submission import SubmissionFixture
+from fixtures.dsk import DskFixture
 from steps.utils import get_ext_char
 
 __all__ = ["FileObject", "batch_file_fixture"]
@@ -58,16 +58,14 @@ def create_named_file(
 
 
 @fixture(name="batch_file_fixture")
-def batch_file_fixture(
-    config: Config, submission: SubmissionFixture
-) -> Generator[list, None, None]:
+def batch_file_fixture(config: Config, dsk: DskFixture) -> Generator[list, None, None]:
     """Batch file fixture that provides temporary files according to metadata."""
 
     temp_dir = tempfile.gettempdir()
-    metadata = json.loads(submission.config.metadata_path.read_text())
+    metadata = json.loads(dsk.config.metadata_path.read_text())
 
     created_files = []
-    for file_field in submission.config.metadata_file_fields:
+    for file_field in dsk.config.metadata_file_fields:
         files = metadata[file_field]
 
         for _file in files:

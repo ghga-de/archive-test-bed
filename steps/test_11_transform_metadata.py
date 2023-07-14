@@ -51,11 +51,11 @@ def call_data_steward_kit_transform(
 
 @when("submitted metadata is transformed")
 def transform_metadata(fixtures: JointFixture):
-    workdir = fixtures.submission.config.submission_registry
+    workdir = fixtures.dsk.config.submission_registry
     cwd = os.getcwd()
     os.chdir(workdir)
     call_data_steward_kit_transform(
-        metadata_config_path=fixtures.submission.config.metadata_config_path,
+        metadata_config_path=fixtures.dsk.config.metadata_config_path,
         timeout=15,  # This command may take >10min
     )
     os.chdir(cwd)
@@ -63,4 +63,4 @@ def transform_metadata(fixtures: JointFixture):
 
 @then("the embedded_public event exists")
 def embedded_public_event_exists(fixtures: JointFixture):
-    assert fixtures.submission.config.embedded_public_event.exists()
+    assert fixtures.dsk.config.embedded_public_event.exists()

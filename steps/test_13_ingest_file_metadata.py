@@ -74,9 +74,9 @@ def ingest_file_metadata(fixtures: JointFixture):
     ingest_config = IngestConfig(
         file_ingest_url=fixtures.config.file_ingest_url,
         file_ingest_pubkey=fixtures.config.file_ingest_pubkey,
-        input_dir=fixtures.submission.config.file_metadata_dir,
-        submission_store_dir=fixtures.submission.config.submission_store,
-        map_files_fields=fixtures.submission.config.metadata_file_fields,
+        input_dir=fixtures.dsk.config.file_metadata_dir,
+        submission_store_dir=fixtures.dsk.config.submission_store,
+        map_files_fields=fixtures.dsk.config.metadata_file_fields,
     )
 
     ingest_config_path = ingest_config_as_file(config=ingest_config)

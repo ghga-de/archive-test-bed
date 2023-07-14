@@ -61,7 +61,7 @@ async def publish_dataset(fixtures: JointFixture):
 @given("no work packages have been created yet")
 def wps_database_is_empty(mongo: MongoFixture):
     mongo.empty_databases(WPS_DB_NAME)
-    unset_state("we have a work package access token", mongo)
+    unset_state("a download token has been created", mongo)
 
 
 @given("the test dataset has been announced")
@@ -113,11 +113,17 @@ def create_work_package(login: LoginFixture, fixtures: JointFixture):
     return response
 
 
-@then("the response contains a work package access token")
-def check_work_package_access_token(fixtures: JointFixture, response: httpx.Response):
+@then("the response contains a download token for the test dataset")
+def check_download_token(fixtures: JointFixture, response: httpx.Response):
     data = response.json()
     assert set(data) == {"id", "token"}
     id_, token = data["id"], data["token"]
     assert 20 <= len(id_) < 40 and 80 < len(token) < 120
     id_and_token = f"{id_}:{token}"
-    set_state("we have a work package access token", id_and_token, fixtures.mongo)
+    work_package = fixtures.mongo.find_document(
+        WPS_DB_NAME, "workPackages", {"_id": id_}
+    )
+    assert work_package
+    assert work_package["type"] == "download"
+    assert work_package["dataset_id"] == DATASET_OVERVIEW_EVENT.accession
+    set_state("a download token has been created", id_and_token, fixtures.mongo)
