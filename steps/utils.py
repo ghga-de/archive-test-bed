@@ -74,3 +74,11 @@ def upload_config_as_file(config: Config, file_metadata_dir: Path):
     }
 
     return write_data_to_yaml(data=upload_config)
+
+
+def get_ext_char(file_path: Path):
+    """Get file path and return first character of the extension"""
+    first_char = " "
+    if file_path.suffixes:
+        first_char = file_path.suffixes[0].strip(".")[0]
+    return first_char
