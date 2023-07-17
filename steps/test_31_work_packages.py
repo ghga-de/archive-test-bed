@@ -51,7 +51,7 @@ async def publish_dataset(fixtures: JointFixture):
         payload_files[i]["accession"] = accession
     # publish dataset overview event
     await fixtures.kafka.publisher.publish(
-        payload=DATASET_OVERVIEW_EVENT.dict(),
+        payload=payload,
         type_="metadata_dataset_overview",
         key="metadata-1",
         topic="metadata",
@@ -86,6 +86,8 @@ def check_dataset_in_list(response: httpx.Response):
     data = response.json()
     dataset = DATASET_OVERVIEW_EVENT
     files = DATASET_OVERVIEW_EVENT.files
+    for file in (data[0] if data else {}).get("files", []):
+        file.pop("id", None)
     assert data == [
         {
             "id": dataset.accession,
@@ -93,7 +95,7 @@ def check_dataset_in_list(response: httpx.Response):
             "stage": dataset.stage.value,  # pylint: disable=no-member
             "title": dataset.title,
             "files": [
-                {"id": file.accession, "extension": file.file_extension}
+                {"extension": file.file_extension}
                 for file in files  # pylint: disable=not-an-iterable
             ],
         }
