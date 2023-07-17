@@ -2,7 +2,7 @@
 
 ghga-service-commons[auth,crypt]==0.4.2
 ghga-event-schemas==0.13.2
-ghga-connector==0.3.7
+ghga-connector==0.3.8
 ghga-datasteward-kit==0.4.4
 hexkit[test-all]==0.10.0
 
