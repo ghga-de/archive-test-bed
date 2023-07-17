@@ -15,9 +15,26 @@
 
 """Step definitions for file download tests"""
 
-from .conftest import Config, ConnectorFixture, given, scenarios
+from .conftest import (
+    Config,
+    ConnectorFixture,
+    S3Fixture,
+    async_fixture,
+    given,
+    scenarios,
+)
 
 scenarios("../features/32_download_files.feature")
+
+
+@async_fixture
+async def empty_download_buckets(s3: S3Fixture):
+    await s3.empty_buckets(["inbox", "staging"])
+
+
+@given("the download buckets are empty")
+def download_buckets_empty(empty_download_buckets):  # pylint: disable=unused-argument
+    pass
 
 
 @given("I have an empty working directory for the GHGA connector")

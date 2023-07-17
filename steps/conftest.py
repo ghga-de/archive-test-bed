@@ -111,13 +111,13 @@ def check_status_code(code: int, response: httpx.Response):
 
 
 @async_fixture
-async def reset_buckets(fixtures: JointFixture):
-    await fixtures.s3.empty_buckets()
+async def empty_buckets(s3: S3Fixture):
+    await s3.empty_buckets()
 
 
 @given("we start on a clean slate", target_fixture="state")
 def reset_state(
-    fixtures: JointFixture, reset_buckets
+    fixtures: JointFixture, empty_buckets
 ):  # pylint: disable=unused-argument
     fixtures.kafka.delete_topics()
     fixtures.mongo.empty_databases("tb")  # state database

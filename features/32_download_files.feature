@@ -5,5 +5,6 @@ Feature: 32 Download files
   Scenario: Downloading files
 
     Given we have the state "a download token has been created"
+    And the download buckets are empty
     And I have an empty working directory for the GHGA connector
     And my Crypt4GH key pair has been stored in two key files
