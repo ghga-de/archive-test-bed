@@ -5,7 +5,7 @@ Feature: 11 Transform Metadata
 
   Scenario: Transforming metadata
 
-    Given we have the state "Metadata submission is completed"
+    Given we have the state "metadata submission is completed"
     When submitted metadata is transformed
     Then the embedded_public event exists
-    And set the state to "Metadata transformation is completed"
+    And set the state to "metadata transformation is completed"

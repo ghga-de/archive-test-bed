@@ -21,7 +21,7 @@ import os
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Generator
+from typing import Generator, Literal
 
 from pydantic import BaseSettings
 from pytest import fixture
@@ -29,17 +29,30 @@ from pytest import fixture
 BASE_DIR = Path(__file__).parent.parent
 TMP_DIR = Path(tempfile.gettempdir())
 
+KeyType = Literal["private", "public"]
 
-def private_keyfile_content(raw_key: str):
+
+def private_keyfile_content(raw_key: str) -> str:
     """Create content for unencrypted Crypt4GH private key file from raw encoded key."""
     magic_word = b"c4gh-v1"
     none = b"\x00\x04none"
     kdf = cipher = none
     comment = b""
-    key_bytes = base64.b64decode(raw_key)
-    content_bytes = magic_word + kdf + cipher + key_bytes + comment
+    key = base64.b64decode(raw_key)
+    key = len(key).to_bytes(2, "big") + key
+    content_bytes = magic_word + kdf + cipher + key + comment
     content = base64.b64encode(content_bytes).decode("ascii")
     return content
+
+
+def write_keyfile(path: Path, content: str, key_type: KeyType = "private"):
+    if key_type == "private":
+        content = private_keyfile_content(content)
+    header = f"crypt4gh {key_type} key".upper()
+    with open(path, "w", encoding="ascii") as file:
+        file.write(f"-----BEGIN {header}-----\n")
+        file.write(content)
+        file.write(f"\n-----END {header}-----")
 
 
 class ConnectorConfig(BaseSettings):
@@ -71,14 +84,8 @@ class ConnectorFixture:
 
     def store_keys(self, public_key: str, private_key: str):
         """Store the given public and private keys in the working directory."""
-        with open(self.config.user_public_key_path, "w", encoding="ascii") as file:
-            file.write("-----BEGIN CRYPT4GH PUBLIC KEY-----\n")
-            file.write(public_key)
-            file.write("\n-----END CRYPT4GH PUBLIC KEY-----")
-        with open(self.config.user_private_key_path, "w", encoding="ascii") as file:
-            file.write("-----BEGIN CRYPT4GH PRIVATE KEY-----\n")
-            file.write(private_keyfile_content(private_key))
-            file.write("\n-----END CRYPT4GH PRIVATE KEY-----")
+        write_keyfile(self.config.user_public_key_path, public_key, "public")
+        write_keyfile(self.config.user_private_key_path, private_key, "private")
 
 
 @fixture(name="connector")
