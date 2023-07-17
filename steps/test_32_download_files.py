@@ -28,13 +28,14 @@ scenarios("../features/32_download_files.feature")
 
 
 @async_fixture
-async def empty_download_buckets(s3: S3Fixture):
+async def empty_download_buckets(s3: S3Fixture) -> bool:
     await s3.empty_buckets(["inbox", "staging"])
+    return True
 
 
 @given("the download buckets are empty")
-def download_buckets_empty(empty_download_buckets):  # pylint: disable=unused-argument
-    pass
+def download_buckets_empty(empty_download_buckets: bool):
+    assert empty_download_buckets
 
 
 @given("I have an empty working directory for the GHGA connector")

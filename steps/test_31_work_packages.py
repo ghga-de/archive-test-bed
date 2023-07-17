@@ -40,7 +40,7 @@ scenarios("../features/31_work_packages.feature")
 
 
 @async_fixture
-async def publish_dataset(fixtures: JointFixture):
+async def publish_dataset(fixtures: JointFixture) -> str:
     # replace file accessions in dataset overview event
     files = fixtures.mongo.find_documents("ifrs", "file_metadata", {})
     accessions = [file["_id"] for file in files]
@@ -56,6 +56,7 @@ async def publish_dataset(fixtures: JointFixture):
         key="metadata-1",
         topic="metadata",
     )
+    return payload["accession"]
 
 
 @given("no work packages have been created yet")
@@ -65,12 +66,10 @@ def wps_database_is_empty(mongo: MongoFixture):
 
 
 @given("the test dataset has been announced")
-def announce_dataset(
-    publish_dataset, fixtures: JointFixture
-):  # pylint: disable=unused-argument
-    # TBD: Should happen during upload
+def announce_dataset(publish_dataset: str, fixtures: JointFixture):
+    # TBD: Should actually happen during upload, not here
     assert fixtures.mongo.wait_for_document(
-        WPS_DB_NAME, "datasets", {"_id": DATASET_OVERVIEW_EVENT.accession}
+        WPS_DB_NAME, "datasets", {"_id": publish_dataset}
     )
 
 

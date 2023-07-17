@@ -62,11 +62,12 @@ def call_data_steward_kit_ingest(ingest_config_path: str, token):
 
 
 @async_fixture
-async def check_object_exist(fixtures: JointFixture, object_ids: list[str]):
+async def check_object_exist(fixtures: JointFixture, object_ids: list[str]) -> bool:
     for object_id in object_ids:
         assert await fixtures.s3.storage.does_object_exist(
             bucket_id=fixtures.config.permanent_bucket, object_id=object_id
         )
+    return True
 
 
 @when("file metadata is ingested", target_fixture="ingest_config")
@@ -120,6 +121,6 @@ def check_metadata_documents(accessions: list[str], fixtures: JointFixture):
 
 
 @then("files exist in permanent bucket")
-def check_files_in_storage(check_object_exist):  # pylint: disable=unused-argument
+def check_files_in_storage(check_object_exist: bool):
     """Check object exist with async fixture"""
-    ...
+    assert check_object_exist
