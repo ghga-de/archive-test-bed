@@ -15,4 +15,4 @@
 
 [bandit]
 exclude = .devcontainer,scripts
-skips = B101
+skips = B101,B404

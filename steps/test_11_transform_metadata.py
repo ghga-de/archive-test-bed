@@ -17,7 +17,7 @@
 """ Step definitions for metadata transformation """
 
 import os
-import subprocess  # nosec B404
+import subprocess
 from pathlib import Path
 
 from .conftest import TIMEOUT, JointFixture, scenarios, then, when
@@ -42,11 +42,13 @@ def call_data_steward_kit_transform(
         ],
         capture_output=True,
         check=True,
+        encoding="utf-8",
+        text=True,
         timeout=timeout * 60,
     )
 
     assert not completed_submit.stdout
-    assert b"ERROR" not in completed_submit.stderr
+    assert "ERROR" not in completed_submit.stderr
 
 
 @when("submitted metadata is transformed")

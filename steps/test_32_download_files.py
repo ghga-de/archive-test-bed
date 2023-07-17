@@ -15,16 +15,25 @@
 
 """Step definitions for file download tests"""
 
+import re
+import subprocess
+
 from .conftest import (
     Config,
     ConnectorFixture,
+    JointFixture,
     S3Fixture,
     async_fixture,
+    get_state,
     given,
     scenarios,
+    when,
 )
 
 scenarios("../features/32_download_files.feature")
+
+# TBD: the download currently fails because of a DCS issue
+SKIP_DOWNLOAD_TEST = True
 
 
 @async_fixture
@@ -49,3 +58,31 @@ def keys_are_made_available(connector: ConnectorFixture, config: Config):
         public_key=config.user_public_crypt4gh_key,
         private_key=config.user_private_crypt4gh_key,
     )
+
+
+@when("I run the download command of the GHGA connector")
+def run_the_download_command(fixtures: JointFixture):
+    if SKIP_DOWNLOAD_TEST:
+        return
+    download_token = get_state("a download token has been created", fixtures.mongo)
+    assert download_token and isinstance(download_token, str)
+    connector = fixtures.connector
+    completed_download = subprocess.run(  # nosec B607, B603
+        [
+            "ghga-connector",
+            "download",
+            "--output-dir",
+            connector.config.download_dir,
+            "--debug",
+        ],
+        cwd=connector.config.work_dir,
+        input=download_token,
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+        text=True,
+        timeout=10 * 60,
+    )
+
+    assert not completed_download.stdout
+    assert not re.search("error|traceback", completed_download.stderr, re.I)

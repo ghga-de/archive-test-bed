@@ -17,7 +17,7 @@
 
 """ Step definitions for file ingest """
 
-import subprocess  # nosec B404
+import subprocess
 
 from ghga_datasteward_kit.file_ingest import IngestConfig, alias_to_accession
 from metldata.submission_registry.submission_store import SubmissionStore
@@ -54,11 +54,13 @@ def call_data_steward_kit_ingest(ingest_config_path: str, token):
             ],
             capture_output=True,
             check=True,
+            encoding="utf-8",
+            text=True,
             timeout=10 * 60,
         )
 
         assert not completed_ingest.returncode
-        assert b"ERROR" not in completed_ingest.stderr
+        assert "ERROR" not in completed_ingest.stderr
 
 
 @async_fixture

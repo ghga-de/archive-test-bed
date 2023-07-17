@@ -17,7 +17,7 @@
 
 """ Step definitions for file upload """
 
-import subprocess  # nosec B404
+import subprocess
 from pathlib import Path
 
 from hexkit.providers.s3.testutils import FileObject
@@ -53,11 +53,13 @@ def call_data_steward_kit_upload(
         ],
         capture_output=True,
         check=True,
+        encoding="utf-8",
+        text=True,
         timeout=10 * 60,
     )
 
     assert not completed_upload.stdout
-    assert b"ERROR" not in completed_upload.stderr
+    assert "ERROR" not in completed_upload.stderr
 
 
 @when("files are uploaded", target_fixture="file_objects")
