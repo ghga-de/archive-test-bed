@@ -305,11 +305,11 @@ services:
     depends_on:
       - zookeeper
     healthcheck:
-      test: [ "CMD", "nc", "-z", "localhost", "9092" ]
+      test: [ "CMD", "kafka-topics", "--list", "--bootstrap-server", "localhost:9092" ]
       interval: 5s
       timeout: 5s
-      retries: 20
-      start_period: 100s
+      start_period: 60s
+      retries: 12
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
