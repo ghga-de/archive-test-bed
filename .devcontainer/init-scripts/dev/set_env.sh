@@ -63,6 +63,6 @@ sed -n "s/^JWK_1_PUB=/ARS_AUTH_KEY=/p" $KEYS > ars.env
 sed -n "s/^JWK_1_PUB=/WPS_AUTH_KEY=/p" $KEYS > wps.env
 sed -n "s/^JWK_2_PRIV=/WPS_WORK_PACKAGE_SIGNING_KEY=/p" $KEYS >> wps.env
 
-sed -n "s/^JWK_1_PUB=/DCS_AUTH_KEY=/p" $KEYS > dcs.env
+sed -n "s/^JWK_2_PUB=/DCS_AUTH_KEY=/p" $KEYS > dcs.env
 
 echo "Container envs have been created."
