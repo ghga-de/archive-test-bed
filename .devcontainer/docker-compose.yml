@@ -80,7 +80,7 @@ services:
       EKSS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
 
   dcs:
-    image: ghga/download-controller-service:0.6.1
+    image: ghga/download-controller-service:0.6.2
     depends_on:
       kafka:
         condition: service_healthy
@@ -117,7 +117,7 @@ services:
     command: "run-rest"
 
   dcs-consumer:
-    image: ghga/download-controller-service:0.6.1
+    image: ghga/download-controller-service:0.6.2
     restart: unless-stopped
     depends_on:
       kafka:
