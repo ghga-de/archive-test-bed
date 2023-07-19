@@ -102,9 +102,7 @@ def verify_named_file(
         file_ext += ".c4gh"
     file_size = config.file_size if not file_size else file_size
 
-    matching = [
-        path for path in file_path.iterdir() if str(path.name).endswith(file_ext)
-    ]
+    matching = [path for path in file_path.iterdir() if path.name.endswith(file_ext)]
 
     if not matching:
         assert False, f"File similar to {name} was not found"

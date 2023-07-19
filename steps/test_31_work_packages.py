@@ -15,6 +15,8 @@
 
 """Step definitions for work package tests"""
 
+from operator import itemgetter
+
 import httpx
 from pytest_asyncio import fixture as async_fixture
 
@@ -43,7 +45,9 @@ scenarios("../features/31_work_packages.feature")
 async def publish_dataset(fixtures: JointFixture) -> str:
     # replace file accessions in dataset overview event
     files = fixtures.mongo.find_documents("ifrs", "file_metadata", {})
-    accessions = [file["_id"] for file in files]
+    accessions = [
+        file["_id"] for file in sorted(files, key=itemgetter("decrypted_size"))
+    ]
     payload = DATASET_OVERVIEW_EVENT.dict()
     payload_files = payload["files"]
     assert len(accessions) == len(payload_files)

@@ -100,3 +100,47 @@ def files_are_downloaded(fixtures: JointFixture):
                 file_size=file_["size"],
                 encrypted=True,
             )
+
+
+@when("I run the decrypt command of the GHGA connector")
+def run_the_decrypt_command(fixtures: JointFixture):
+    connector = fixtures.connector
+    completed_download = subprocess.run(  # nosec B607, B603
+        [
+            "ghga-connector",
+            "decrypt",
+            "--input-dir",
+            str(connector.config.download_dir),
+            # TBD: in next version of connector, the remaining options are not needed
+            "--output-dir",
+            ".",
+            "--decryption-private-key-path",
+            "key.sec",
+        ],
+        cwd=connector.config.work_dir,
+        capture_output=True,
+        check=True,
+        encoding="utf-8",
+        text=True,
+        timeout=10 * 60,
+    )
+
+    assert "Successfully decrypted file" in completed_download.stdout
+    assert not completed_download.stderr
+
+
+@then("all downloaded files have been properly decrypted")
+def files_have_been_decrypted(fixtures: JointFixture):
+    metadata = json.loads(fixtures.dsk.config.metadata_path.read_text())
+
+    for file_field in fixtures.dsk.config.metadata_file_fields:
+        files = metadata[file_field]
+
+        for file_ in files:
+            verify_named_file(
+                target_dir=fixtures.connector.config.download_dir,
+                config=fixtures.config,
+                name=file_["name"],
+                file_size=file_["size"],
+                encrypted=False,
+            )

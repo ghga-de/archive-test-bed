@@ -11,4 +11,7 @@ Feature: 32 Download files
 
     When I run the download command of the GHGA connector
     Then all files announced in metadata have been downloaded
+
+    When I run the decrypt command of the GHGA connector
+    Then all downloaded files have been properly decrypted
     And set the state to "files have been downloaded"
