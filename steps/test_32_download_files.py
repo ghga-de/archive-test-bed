@@ -15,7 +15,7 @@
 
 """Step definitions for file download tests"""
 
-import re
+import json
 import subprocess
 
 from .conftest import (
@@ -27,13 +27,12 @@ from .conftest import (
     get_state,
     given,
     scenarios,
+    then,
     when,
 )
+from .utils import verify_named_file
 
 scenarios("../features/32_download_files.feature")
-
-# TBD: the download currently fails because of a DCS issue
-SKIP_DOWNLOAD_TEST = True
 
 
 @async_fixture
@@ -62,8 +61,6 @@ def keys_are_made_available(connector: ConnectorFixture, config: Config):
 
 @when("I run the download command of the GHGA connector")
 def run_the_download_command(fixtures: JointFixture):
-    if SKIP_DOWNLOAD_TEST:
-        return
     download_token = get_state("a download token has been created", fixtures.mongo)
     assert download_token and isinstance(download_token, str)
     connector = fixtures.connector
@@ -72,8 +69,7 @@ def run_the_download_command(fixtures: JointFixture):
             "ghga-connector",
             "download",
             "--output-dir",
-            connector.config.download_dir,
-            "--debug",
+            str(connector.config.download_dir),
         ],
         cwd=connector.config.work_dir,
         input=download_token,
@@ -84,5 +80,23 @@ def run_the_download_command(fixtures: JointFixture):
         timeout=10 * 60,
     )
 
-    assert not completed_download.stdout
-    assert not re.search("error|traceback", completed_download.stderr, re.I)
+    assert "Please paste the complete download token" in completed_download.stdout
+    assert "Downloading file" in completed_download.stdout
+    assert not completed_download.stderr
+
+
+@then("all files announced in metadata have been downloaded")
+def files_are_downloaded(fixtures: JointFixture):
+    metadata = json.loads(fixtures.dsk.config.metadata_path.read_text())
+
+    for file_field in fixtures.dsk.config.metadata_file_fields:
+        files = metadata[file_field]
+
+        for file_ in files:
+            verify_named_file(
+                target_dir=fixtures.connector.config.download_dir,
+                config=fixtures.config,
+                name=file_["name"],
+                file_size=file_["size"],
+                encrypted=True,
+            )

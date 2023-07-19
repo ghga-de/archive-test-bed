@@ -10,3 +10,5 @@ Feature: 32 Download files
     And my Crypt4GH key pair has been stored in two key files
 
     When I run the download command of the GHGA connector
+    Then all files announced in metadata have been downloaded
+    And set the state to "files have been downloaded"
