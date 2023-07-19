@@ -10,4 +10,5 @@ Feature: 13 Ingest File Metadata
     Then we have the file accessions
     And file metadata exist in the service
     And files exist in permanent bucket
-    And set the state to "file metadata has been ingested"
+
+    Then set the state to "file metadata has been ingested"

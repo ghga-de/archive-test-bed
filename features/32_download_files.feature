@@ -14,4 +14,5 @@ Feature: 32 Download files
 
     When I run the decrypt command of the GHGA connector
     Then all downloaded files have been properly decrypted
-    And set the state to "files have been downloaded"
+
+    Then set the state to "files have been downloaded"

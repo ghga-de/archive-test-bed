@@ -8,4 +8,5 @@ Feature: 12 Upload Files
 
     When files are uploaded
     Then metadata for each file exist
-    And set the state to "files have been uploaded"
+
+    Then set the state to "files have been uploaded"
