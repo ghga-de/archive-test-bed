@@ -21,7 +21,6 @@ import subprocess
 
 from ghga_datasteward_kit.file_ingest import IngestConfig, alias_to_accession
 from metldata.submission_registry.submission_store import SubmissionStore
-from pytest_asyncio import fixture as async_fixture
 
 from steps.utils import ingest_config_as_file, temporary_file
 
@@ -30,6 +29,7 @@ from .conftest import (
     IFRS_DB_NAME,
     IFRS_METADATA_COLLECTION,
     JointFixture,
+    async_step,
     get_state,
     parse,
     scenarios,
@@ -61,15 +61,6 @@ def call_data_steward_kit_ingest(ingest_config_path: str, token):
 
         assert not completed_ingest.returncode
         assert "ERROR" not in completed_ingest.stderr
-
-
-@async_fixture
-async def check_object_exist(fixtures: JointFixture, object_ids: list[str]) -> bool:
-    for object_id in object_ids:
-        assert await fixtures.s3.storage.does_object_exist(
-            bucket_id=fixtures.config.permanent_bucket, object_id=object_id
-        )
-    return True
 
 
 @when("file metadata is ingested", target_fixture="ingest_config")
@@ -123,6 +114,11 @@ def check_metadata_documents(accessions: list[str], fixtures: JointFixture):
 
 
 @then("files exist in permanent bucket")
-def check_files_in_storage(check_object_exist: bool):
+@async_step
+async def check_files_in_storage(fixtures: JointFixture, object_ids: list[str]):
     """Check object exist with async fixture"""
-    assert check_object_exist
+    for object_id in object_ids:
+        assert await fixtures.s3.storage.does_object_exist(
+            bucket_id=fixtures.config.permanent_bucket, object_id=object_id
+        )
+    return True

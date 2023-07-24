@@ -23,7 +23,7 @@ from .conftest import (
     ConnectorFixture,
     JointFixture,
     S3Fixture,
-    async_fixture,
+    async_step,
     get_state,
     given,
     scenarios,
@@ -35,15 +35,10 @@ from .utils import verify_named_file
 scenarios("../features/32_download_files.feature")
 
 
-@async_fixture
-async def empty_download_buckets(s3: S3Fixture) -> bool:
-    await s3.empty_buckets(["inbox", "staging"])
-    return True
-
-
 @given("the download buckets are empty")
-def download_buckets_empty(empty_download_buckets: bool):
-    assert empty_download_buckets
+@async_step
+async def download_buckets_empty(s3: S3Fixture):
+    await s3.empty_buckets(["inbox", "staging"])
 
 
 @given("I have an empty working directory for the GHGA connector")

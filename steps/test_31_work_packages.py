@@ -18,7 +18,6 @@
 from operator import itemgetter
 
 import httpx
-from pytest_asyncio import fixture as async_fixture
 
 from example_data.datasets import DATASET_OVERVIEW_EVENT
 
@@ -29,6 +28,7 @@ from .conftest import (
     JointFixture,
     LoginFixture,
     MongoFixture,
+    async_step,
     given,
     parse,
     scenarios,
@@ -41,9 +41,17 @@ from .conftest import (
 scenarios("../features/31_work_packages.feature")
 
 
-@async_fixture
-async def publish_dataset(fixtures: JointFixture) -> str:
-    # replace file accessions in dataset overview event
+@given("no work packages have been created yet")
+def wps_database_is_empty(mongo: MongoFixture):
+    mongo.empty_databases(WPS_DB_NAME)
+    unset_state("a download token has been created", mongo)
+
+
+@given("the test dataset has been announced")
+@async_step
+async def announce_dataset(fixtures: JointFixture):
+    # TBD: Should actually happen during upload, not here
+
     files = fixtures.mongo.find_documents("ifrs", "file_metadata", {})
     accessions = [
         file["_id"] for file in sorted(files, key=itemgetter("decrypted_size"))
@@ -60,20 +68,9 @@ async def publish_dataset(fixtures: JointFixture) -> str:
         key="metadata-1",
         topic="metadata",
     )
-    return payload["accession"]
-
-
-@given("no work packages have been created yet")
-def wps_database_is_empty(mongo: MongoFixture):
-    mongo.empty_databases(WPS_DB_NAME)
-    unset_state("a download token has been created", mongo)
-
-
-@given("the test dataset has been announced")
-def announce_dataset(publish_dataset: str, fixtures: JointFixture):
-    # TBD: Should actually happen during upload, not here
+    # wait until the event has been processed
     assert fixtures.mongo.wait_for_document(
-        WPS_DB_NAME, "datasets", {"_id": publish_dataset}
+        WPS_DB_NAME, "datasets", {"_id": payload["accession"]}
     )
 
 
