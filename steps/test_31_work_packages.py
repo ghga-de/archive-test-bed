@@ -15,6 +15,8 @@
 
 """Step definitions for work package tests"""
 
+from operator import itemgetter
+
 import httpx
 
 from example_data.datasets import DATASET_OVERVIEW_EVENT

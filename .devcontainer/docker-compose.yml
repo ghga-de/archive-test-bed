@@ -317,14 +317,7 @@ services:
     depends_on:
       - zookeeper
     healthcheck:
-      test:
-        [
-          "CMD",
-          "kafka-topics",
-          "--list",
-          "--bootstrap-server",
-          "localhost:9092"
-        ]
+      test: [ "CMD", "kafka-topics", "--list", "--bootstrap-server", "localhost:9092" ]
       interval: 5s
       timeout: 5s
       start_period: 60s
