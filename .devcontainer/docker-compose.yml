@@ -54,6 +54,7 @@ services:
       TB_PERMANENT_BUCKET: permanent
       # file ingest
       TB_FILE_INGEST_URL: http://fis:8080/ingest
+      TB_METLDATA_URL: http://metldata:8080
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
@@ -64,6 +65,17 @@ services:
       WKVS_DCS_API_URL: http://dcs:8080
       WKVS_UCS_API_URL: http://ucs:8080
       WKVS_WPS_API_URL: http://wps:8080
+
+  metldata:
+    image: ghga/metldata:0.3.7
+    env_file: metldata.env
+    environment:
+      METLDATA_HOST: 0.0.0.0
+      METLDATA_PORT: 8080
+      METLDATA_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
+      METLDATA_DB_NAME: metldata
+    volumes:
+      - ./metldata.yaml:/home/appuser/.metldata.yaml:ro
 
   ekss:
     image: ghga/encryption-key-store-service:0.3.5
@@ -361,7 +373,7 @@ services:
         target: /var/lib/localstack
         volume:
           nocopy: true
-      - ./init-scripts/localstack:/etc/localstack/init/ready.d
+      - ./init-scripts/localstack:/etc/localstack/init/ready.d:ro
 
   vault:
     image: hashicorp/vault:1.12
@@ -380,7 +392,7 @@ services:
     environment:
       VAULT_ADDR: "http://vault:8200"
     volumes:
-      - ./init-scripts/vault:/docker-entrypoint.d
+      - ./init-scripts/vault:/docker-entrypoint.d:ro
     entrypoint: ./docker-entrypoint.d/setup.sh
 
 volumes:

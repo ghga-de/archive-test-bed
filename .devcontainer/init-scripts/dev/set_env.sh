@@ -45,8 +45,9 @@ sed -n 's/^TOKEN=\(.*\)/SIMPLE_TOKEN="\1"/p' $KEYS >> auth.env
 
 sed -n "s/^C4GH_1_PUB=/WKVS_CRYPT4GH_PUBLIC_KEY=/p" $KEYS > wkvs.env
 
-sed -n 's/^TOKEN=\(.*\)/FIS_TOKEN="\1"/p' $KEYS > fis.env
-sed -n 's/^TOKEN_HASH=\(.*\)/FIS_TOKEN_HASHES=["\1"]/p' $KEYS >> fis.env
+sed -n 's/^TOKEN_HASH=\(.*\)/METLDATA_LOADER_TOKEN_HASHES=["\1"]/p' $KEYS >> metldata.env
+
+sed -n 's/^TOKEN_HASH=\(.*\)/FIS_TOKEN_HASHES=["\1"]/p' $KEYS > fis.env
 sed -n "s/^C4GH_2_PRIV=/FIS_PRIVATE_KEY=/p" $KEYS >> fis.env
 
 sed -n "s/^C4GH_2_PUB=/TB_FILE_INGEST_PUBKEY=/p" $KEYS > tb.env
