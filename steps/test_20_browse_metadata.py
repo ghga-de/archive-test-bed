@@ -80,7 +80,7 @@ def check_artifact(artifact_name, response: httpx.Response):
 
 
 @when(
-    "I request the embedded public test dataset resource",
+    "I request the test dataset resource",
     target_fixture="response",
 )
 def request_dataset_resource(mongo: MongoFixture):
@@ -100,7 +100,7 @@ def request_dataset_resource(mongo: MongoFixture):
     return response
 
 
-@then("the test dataset resource is returned in embedded form")
+@then("the test dataset resource is returned")
 def check_dataset_resource(response: httpx.Response):
     dataset = response.json()
     assert isinstance(dataset, dict)

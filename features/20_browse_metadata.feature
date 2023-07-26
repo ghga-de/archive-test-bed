@@ -18,6 +18,6 @@ Feature: 20 Browse Metadata
     When I request info on the "non_existing" artifact
     Then the response status code is "404"
 
-    When I request the embedded public test dataset resource
+    When I request the test dataset resource
     Then the response status code is "200"
-    And the test dataset resource is returned in embedded form
+    And the test dataset resource is returned
