@@ -15,7 +15,7 @@
 #
 
 
-""" Step definitions for file ingest """
+"""Step definitions for metadata upload tests"""
 
 import subprocess
 
