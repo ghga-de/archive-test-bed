@@ -140,7 +140,7 @@ def metadata_file_exist(fixtures: JointFixture, uploaded_file: FileObject):
     return file_uuid
 
 
-@then("the uploaded file exist in the staging bucket")
+@then("the uploaded file exists in the staging bucket")
 @then("the uploaded files exist in the staging bucket")
 @async_step
 async def check_file_in_storage(

@@ -101,9 +101,7 @@ def batch_file_fixture(
                 )
 
                 created_files.append(file_object)
-                tsv_file.write(
-                    f"{str(file_object.file_path)}\t{file_object.object_id}\n"
-                )
+                tsv_file.write(f"{file_object.file_path}\t{file_object.object_id}\n")
 
     file_batch = FileBatch(
         file_objects=created_files, tsv_file=dsk.config.files_to_upload_tsv

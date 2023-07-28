@@ -11,7 +11,7 @@ Feature: 12 Upload Files
 
     When a single file is uploaded
     Then the file metadata for the uploaded file exists
-    And the uploaded file exist in the staging bucket
+    And the uploaded file exists in the staging bucket
 
   Scenario: Batch uploading files
 
