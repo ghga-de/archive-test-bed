@@ -22,6 +22,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Union
 
 from hexkit.providers.s3.testutils import FileObject
 
@@ -124,7 +125,7 @@ def upload_single_file(fixtures: JointFixture, file_fixture):
     return file_object
 
 
-@then("metadata for the file exist", target_fixture="uploaded_file_uuid")
+@then("metadata for the file exist", target_fixture="uploaded_file_uuids")
 def metadata_file_exist(fixtures: JointFixture, uploaded_file: FileObject):
     """Check the metadata for the uploaded file exists
     Return the file uuid to be used as object storage id"""
@@ -136,13 +137,18 @@ def metadata_file_exist(fixtures: JointFixture, uploaded_file: FileObject):
     return file_uuid
 
 
-@then("the file exist in staging bucket")
+@then("the files exist in the staging bucket")
 @async_step
-async def check_file_in_storage(fixtures: JointFixture, uploaded_file_uuid: str):
+async def check_file_in_storage(
+    fixtures: JointFixture, uploaded_file_uuids: Union[str, list]
+):
     """Check object exist with async fixture"""
-    assert await fixtures.s3.storage.does_object_exist(
-        bucket_id=fixtures.config.staging_bucket, object_id=uploaded_file_uuid
-    )
+    if isinstance(uploaded_file_uuids, str):
+        uploaded_file_uuids = [uploaded_file_uuids]
+    for uploaded_file_uuid in uploaded_file_uuids:
+        assert await fixtures.s3.storage.does_object_exist(
+            bucket_id=fixtures.config.staging_bucket, object_id=uploaded_file_uuid
+        )
     return True
 
 
@@ -160,15 +166,19 @@ def upload_files(fixtures: JointFixture, batch_file_fixture):
     return batch_file_fixture.file_objects
 
 
-@then("metadata for each file exist")
+@then("metadata for each file exist", target_fixture="uploaded_file_uuids")
 def metadata_files_exist(fixtures: JointFixture, file_objects: list[FileObject]):
     """Check the metadata for each uploaded file exists
     Set the state and save file aliases
     """
     file_metadata_dir = fixtures.dsk.config.file_metadata_dir
-    file_aliases = []
+    file_aliases, file_uuids = [], []
     for file_object in file_objects:
         metadata_file_path = file_metadata_dir / f"{file_object.object_id}.json"
         assert metadata_file_path.exists()
         file_aliases.append(file_object.object_id)
+        file_uuid = json.loads(metadata_file_path.read_text())["File UUID"]
+        file_uuids.append(file_uuid)
+
     set_state("we have file aliases", file_aliases, fixtures.mongo)
+    return file_uuids
