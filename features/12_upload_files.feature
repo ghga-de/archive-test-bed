@@ -9,14 +9,14 @@ Feature: 12 Upload Files
 
   Scenario: Uploading single file
 
-    When a file is uploaded
-    Then metadata for the file exist
-    And the files exist in the staging bucket
+    When a single file is uploaded
+    Then the file metadata for the uploaded file exists
+    And the uploaded file exist in the staging bucket
 
   Scenario: Batch uploading files
 
-    When files are uploaded
-    Then metadata for each file exist
-    And the files exist in the staging bucket
+    When multiple files are uploaded as a batch
+    Then the file metadata for each uploaded file exists
+    And the uploaded files exist in the staging bucket
 
     Then set the state to "files have been uploaded"

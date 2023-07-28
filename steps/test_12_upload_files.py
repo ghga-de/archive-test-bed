@@ -111,7 +111,7 @@ def local_metadata_empty(fixtures: JointFixture):
         shutil.rmtree(file_metadata_dir)
 
 
-@when("a file is uploaded", target_fixture="uploaded_file")
+@when("a single file is uploaded", target_fixture="uploaded_file")
 def upload_single_file(fixtures: JointFixture, file_fixture):
     file_metadata_dir = fixtures.dsk.config.file_metadata_dir
     file_metadata_dir.mkdir(exist_ok=True)
@@ -125,7 +125,10 @@ def upload_single_file(fixtures: JointFixture, file_fixture):
     return file_object
 
 
-@then("metadata for the file exist", target_fixture="uploaded_file_uuids")
+@then(
+    "the file metadata for the uploaded file exists",
+    target_fixture="uploaded_file_uuids",
+)
 def metadata_file_exist(fixtures: JointFixture, uploaded_file: FileObject):
     """Check the metadata for the uploaded file exists
     Return the file uuid to be used as object storage id"""
@@ -137,7 +140,8 @@ def metadata_file_exist(fixtures: JointFixture, uploaded_file: FileObject):
     return file_uuid
 
 
-@then("the files exist in the staging bucket")
+@then("the uploaded file exist in the staging bucket")
+@then("the uploaded files exist in the staging bucket")
 @async_step
 async def check_file_in_storage(
     fixtures: JointFixture, uploaded_file_uuids: Union[str, list]
@@ -149,10 +153,9 @@ async def check_file_in_storage(
         assert await fixtures.s3.storage.does_object_exist(
             bucket_id=fixtures.config.staging_bucket, object_id=uploaded_file_uuid
         )
-    return True
 
 
-@when("files are uploaded", target_fixture="file_objects")
+@when("multiple files are uploaded as a batch", target_fixture="file_objects")
 def upload_files(fixtures: JointFixture, batch_file_fixture):
     file_metadata_dir = fixtures.dsk.config.file_metadata_dir
     file_metadata_dir.mkdir(exist_ok=True)
@@ -166,7 +169,10 @@ def upload_files(fixtures: JointFixture, batch_file_fixture):
     return batch_file_fixture.file_objects
 
 
-@then("metadata for each file exist", target_fixture="uploaded_file_uuids")
+@then(
+    "the file metadata for each uploaded file exists",
+    target_fixture="uploaded_file_uuids",
+)
 def metadata_files_exist(fixtures: JointFixture, file_objects: list[FileObject]):
     """Check the metadata for each uploaded file exists
     Set the state and save file aliases
