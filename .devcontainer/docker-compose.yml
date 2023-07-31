@@ -310,7 +310,7 @@ services:
       NS_LOGIN_USER: "test@test.com"
       NS_LOGIN_PASSWORD: test
       NS_FROM_ADDRESS: "test@test.com"
-      NS_USE_STARTTLS: false
+      NS_USE_STARTTLS: "false"
 
   mailhog:
     image: mailhog/mailhog
