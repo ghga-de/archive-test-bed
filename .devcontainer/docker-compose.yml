@@ -33,13 +33,14 @@ services:
       # GHGA connector
       GHGA_CONNECTOR_PART_SIZE: 8589934592
       GHGA_CONNECTOR_WKVS_API_URL: http://wkvs
-
       # Kafka
       TB_SERVICE_NAME: testbed_kafka
       TB_SERVICE_INSTANCE_ID: testbed-app-1
       TB_KAFKA_SERVERS: '["kafka:9092"]'
       # MongoDb
       TB_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
+      TB_DB_NAME: "test-db"
+      TB_SERVICE_DB_NAMES: '["ars", "auth", "dcs", "ifrs", "metldata", "ucs", "wps"]'
       # S3
       TB_S3_ENDPOINT_URL: http://localstack:4566
       TB_S3_ACCESS_KEY_ID: testbed-key
@@ -54,7 +55,24 @@ services:
       TB_PERMANENT_BUCKET: permanent
       # file ingest
       TB_FILE_INGEST_URL: http://fis:8080/ingest
-      TB_METLDATA_URL: http://metldata:8080
+      # metldata
+      TB_METLDATA_DB_NAME: "metldata"
+      TB_METLDATA_URL: "http://metldata:8080"
+      # ars
+      TB_ARS_DB_NAME: "ars"
+      TB_ARS_URL: "http://ars:8080"
+      #auth
+      TB_AUTH_DB_NAME: "auth"
+      TB_AUTH_USERS_COLLECTION: "users"
+      TB_AUTH_KEY_FILE: ".devcontainer/auth.env"
+      # wps
+      TB_WPS_DB_NAME: "wps"
+      TB_WPS_URL: "http://wps:8080"
+      # ifrs
+      TB_IFRS_DB_NAME: "ifrs"
+      TB_IFRS_METADATA_COLLECTION: "file_metadata"
+      # dskit
+      TB_DSK_TOKEN_PATHH: "/home/ghga_data_steward_token.txt"
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
