@@ -165,4 +165,4 @@ def unset_state(state_regex: str, mongo: MongoFixture):
 
 def empty_mail_server(config: Config):
     """Delete all e-mails from mail server"""
-    httpx.delete(f"{config.mail_server_url}/api/v1/messages", timeout=TIMEOUT)
+    httpx.delete(f"{config.mailhog_url}/api/v1/messages", timeout=TIMEOUT)

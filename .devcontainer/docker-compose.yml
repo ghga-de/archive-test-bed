@@ -74,7 +74,7 @@ services:
       # dskit
       TB_DSK_TOKEN_PATHH: "/home/ghga_data_steward_token.txt"
       # notifications
-      TB_MAIL_SERVER_URL: "http://mailhog:8025"
+      TB_MAILHOG_URL: "http://mailhog:8025"
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
@@ -333,7 +333,7 @@ services:
       NS_USE_STARTTLS: "false"
 
   mailhog:
-    image: mailhog/mailhog
+    image: mailhog/mailhog:v1.0.1
     ports:
       - 8025:8025
 

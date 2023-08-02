@@ -71,10 +71,13 @@ def request_access_for_dataset(config: Config, login: LoginFixture):
 def check_email_sent_to(
     config: Config, email: str, timeout: float = TIMEOUT, interval: float = INTERVAL
 ):
-    """Wait for an e-mail to be received by the mail server. If it does not appear
-    within the given timeout (in seconds), an AssertionError is raised."""
+    """Validate e-mail notification.
 
-    url = f"{config.mail_server_url}/api/v2/search"
+    Wait for an e-mail to be received by the mail server. If it does not appear
+    within the given timeout (in seconds), an AssertionError is raised.
+    """
+
+    url = f"{config.mailhog_url}/api/v2/search"
     slept: float = 0
     while slept < timeout:
         response = httpx.get(

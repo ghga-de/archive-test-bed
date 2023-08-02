@@ -113,4 +113,4 @@ class Config(
     dsk_token_path: Path = Path.home() / ".ghga_data_steward_token.txt"
 
     # notifications
-    mail_server_url: str = "http://mailhog:8025"
+    mailhog_url: str = "http://mailhog:8025"
