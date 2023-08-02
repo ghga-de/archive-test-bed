@@ -73,6 +73,8 @@ services:
       TB_IFRS_METADATA_COLLECTION: "file_metadata"
       # dskit
       TB_DSK_TOKEN_PATHH: "/home/ghga_data_steward_token.txt"
+      # notifications
+      TB_MAILHOG_URL: "http://mailhog:8025"
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
@@ -309,6 +311,31 @@ services:
       FIS_VAULT_PORT: 8200
       FIS_VAULT_ROLE_ID: 9f03d595-c964-441c-a68e-2e1534f2bb56
       FIS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
+
+  ns:
+    image: ghga/notification-service:0.1.2
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      NS_NOTIFICATION_EVENT_TOPIC: notifications
+      NS_NOTIFICATION_EVENT_TYPE: notification
+      NS_SERVICE_INSTANCE_ID: 001
+      NS_KAFKA_SERVERS: '["kafka:9092"]'
+      NS_PLAINTEXT_EMAIL_TEMPLATE: '"Dear $$recipient_name,\n\n$$plaintext_body\n\nWarm regards,\n\nThe GHGA Team"'
+      NS_HTML_EMAIL_TEMPLATE: '<!DOCTYPE html><html><head></head><body style="color: #00393f;padding: 12px;"><h2>Dear $$recipient_name,</h2><p>$$plaintext_body</p><p>Warm regards,</p><h3>The GHGA Team</h3></body></html>'
+      NS_SMTP_HOST: mailhog
+      NS_SMTP_PORT: 1025
+      NS_LOGIN_USER: "test@test.com"
+      NS_LOGIN_PASSWORD: test
+      NS_FROM_ADDRESS: "test@test.com"
+      NS_USE_STARTTLS: "false"
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - 8025:8025
 
   mongodb:
     image: mongo:latest
