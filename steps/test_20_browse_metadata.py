@@ -18,25 +18,15 @@
 
 import httpx
 
-from .conftest import (
-    METLDATA_DB_NAME,
-    METLDATA_URL,
-    TIMEOUT,
-    MongoFixture,
-    parse,
-    scenarios,
-    then,
-    when,
-)
+from .conftest import TIMEOUT, Config, MongoFixture, parse, scenarios, then, when
 
 scenarios("../features/20_browse_metadata.feature")
 
 
 @when("I request info on all available artifacts", target_fixture="response")
-def request_info_on_artifacts():
-    url = f"{METLDATA_URL}/artifacts"
-    response = httpx.options(url, timeout=TIMEOUT)
-    return response
+def request_info_on_artifacts(config: Config):
+    url = f"{config.metldata_url}/artifacts"
+    return httpx.options(url, timeout=TIMEOUT)
 
 
 @then("I get the expected info on all the artifacts")
@@ -63,10 +53,9 @@ def check_artifacts(response: httpx.Response):
 @when(
     parse('I request info on the "{artifact_name}" artifact'), target_fixture="response"
 )
-def request_info_on_artifact(artifact_name: str):
-    url = f"{METLDATA_URL}/artifacts/{artifact_name}"
-    response = httpx.options(url, timeout=TIMEOUT)
-    return response
+def request_info_on_artifact(config: Config, artifact_name: str):
+    url = f"{config.metldata_url}/artifacts/{artifact_name}"
+    return httpx.options(url, timeout=TIMEOUT)
 
 
 @then(parse('I get the expected info on the "{artifact_name}" artifact'))
@@ -83,27 +72,38 @@ def check_artifact(artifact_name, response: httpx.Response):
     "I request the test dataset resource",
     target_fixture="response",
 )
-def request_dataset_resource(mongo: MongoFixture):
+def request_test_dataset_resource(config: Config, mongo: MongoFixture):
     # TBD: We fetch the dataset accession from the database, but this should
     # eventually be fetched by browsing the metadata through the mass service
     datasets = mongo.find_documents(
-        METLDATA_DB_NAME, "art_embedded_public_class_Dataset", {}
+        config.metldata_db_name, "art_embedded_public_class_Dataset", {}
     )
     assert len(datasets) == 1
     accession = datasets[0]["_id"]
 
     url = (
-        f"{METLDATA_URL}/artifacts/"
+        f"{config.metldata_url}/artifacts/"
         + f"embedded_public/classes/Dataset/resources/{accession}"
     )
-    response = httpx.get(url, timeout=TIMEOUT)
-    return response
+    return httpx.get(url, timeout=TIMEOUT)
 
 
 @then("the test dataset resource is returned")
-def check_dataset_resource(response: httpx.Response):
+def check_test_dataset_resource(response: httpx.Response):
     dataset = response.json()
     assert isinstance(dataset, dict)
     assert dataset["alias"] == "DS_1"
     assert dataset["description"] == "An interesting dataset A"
     assert len(dataset["study_files"]) == 2
+
+
+@when(
+    "I request a non-existing dataset resource",
+    target_fixture="response",
+)
+def request_non_existing_dataset_resource(config: Config):
+    url = (
+        f"{config.metldata_url}/artifacts/"
+        + "embedded_public/classes/Dataset/resources/does-not-exist"
+    )
+    return httpx.get(url, timeout=TIMEOUT)

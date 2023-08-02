@@ -18,7 +18,6 @@
 
 import inspect
 from functools import wraps
-from pathlib import Path
 from typing import Any, NamedTuple
 
 import httpx
@@ -50,19 +49,6 @@ from fixtures import (  # noqa: F401; pylint: disable=unused-import
     mongo_fixture,
     s3_fixture,
 )
-
-ARS_DB_NAME = "ars"
-ARS_URL = "http://ars:8080"
-AUTH_DB_NAME = "auth"
-AUTH_USERS_COLLECTION = "users"
-WPS_DB_NAME = "wps"
-WPS_URL = "http://wps:8080"
-DSK_TOKEN_PATH = Path.home() / ".ghga_data_steward_token.txt"  # path required by DSKit
-IFRS_DB_NAME = "ifrs"
-IFRS_METADATA_COLLECTION = "file_metadata"
-METLDATA_DB_NAME = "metldata"
-METLDATA_URL = "http://metldata:8080"
-MAIL_SERVER_URL = "http://mailhog:8025"
 
 TIMEOUT = 10
 
@@ -124,7 +110,9 @@ def access_as_user(name: str, fixtures: JointFixture) -> LoginFixture:
     }
     # Add the user to the auth database. This is needed
     # because users are not registered as part of the test.
-    fixtures.mongo.replace_document(AUTH_DB_NAME, AUTH_USERS_COLLECTION, user)
+    fixtures.mongo.replace_document(
+        fixtures.config.auth_db_name, fixtures.config.auth_users_collection, user
+    )
     headers = fixtures.auth.generate_headers(
         id_=user_id, name=name, email=email, title=title, role=role
     )
@@ -147,7 +135,7 @@ async def reset_state(fixtures: JointFixture):
     fixtures.mongo.empty_databases("tb")  # empty state database
     fixtures.mongo.empty_databases()  # empty service databases
     fixtures.dsk.reset_work_dir()  # reset local submission registry
-    empty_mail_server()  # reset mail server
+    empty_mail_server(fixtures.config)  # reset mail server
 
 
 @given(parse('we have the state "{name}"'), target_fixture="state")
@@ -175,6 +163,6 @@ def unset_state(state_regex: str, mongo: MongoFixture):
     mongo.remove_document("tb", "state", {"_id": {"$regex": state_regex}})
 
 
-def empty_mail_server():
+def empty_mail_server(config: Config):
     """Delete all e-mails from mail server"""
-    httpx.delete(f"{MAIL_SERVER_URL}/api/v1/messages", timeout=TIMEOUT)
+    httpx.delete(f"{config.mail_server_url}/api/v1/messages", timeout=TIMEOUT)

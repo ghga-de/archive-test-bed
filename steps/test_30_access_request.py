@@ -24,11 +24,8 @@ from ghga_service_commons.utils.utc_dates import now_as_utc
 from fixtures.mongo import INTERVAL
 
 from .conftest import (
-    ARS_DB_NAME,
-    ARS_URL,
-    AUTH_DB_NAME,
-    MAIL_SERVER_URL,
     TIMEOUT,
+    Config,
     LoginFixture,
     MongoFixture,
     given,
@@ -43,19 +40,19 @@ scenarios("../features/30_access_request.feature")
 
 
 @given("no access requests have been made yet")
-def ars_database_is_empty(mongo: MongoFixture):
-    mongo.empty_databases(ARS_DB_NAME)
+def ars_database_is_empty(config: Config, mongo: MongoFixture):
+    mongo.empty_databases(config.ars_db_name)
     unset_state("is allowed to download", mongo)
 
 
 @given("the claims repository is empty")
-def claims_repository_is_empty(mongo: MongoFixture):
-    mongo.empty_databases(AUTH_DB_NAME)
+def claims_repository_is_empty(config: Config, mongo: MongoFixture):
+    mongo.empty_databases(config.auth_db_name)
 
 
 @when("I request access to the test dataset", target_fixture="response")
-def request_access_for_dataset(login: LoginFixture):
-    url = f"{ARS_URL}/access-requests"
+def request_access_for_dataset(config: Config, login: LoginFixture):
+    url = f"{config.ars_url}/access-requests"
     date_now = now_as_utc()
     user, headers = login
     data = {
@@ -72,12 +69,12 @@ def request_access_for_dataset(login: LoginFixture):
 
 @then(parse('an email has been sent to "{email}"'))
 def check_email_sent_to(
-    email: str, timeout: float = TIMEOUT, interval: float = INTERVAL
+    config: Config, email: str, timeout: float = TIMEOUT, interval: float = INTERVAL
 ):
     """Wait for an e-mail to be received by the mail server. If it does not appear
     within the given timeout (in seconds), an AssertionError is raised."""
 
-    url = f"{MAIL_SERVER_URL}/api/v2/search"
+    url = f"{config.mail_server_url}/api/v2/search"
     slept: float = 0
     while slept < timeout:
         response = httpx.get(
@@ -95,8 +92,8 @@ def check_email_sent_to(
 
 
 @when("I fetch the list of access requests", target_fixture="response")
-def fetch_list_of_access_requests(login: LoginFixture):
-    url = f"{ARS_URL}/access-requests"
+def fetch_list_of_access_requests(config: Config, login: LoginFixture):
+    url = f"{config.ars_url}/access-requests"
     response = httpx.get(url, headers=login.headers, timeout=TIMEOUT)
     return response
 
@@ -113,7 +110,9 @@ def there_is_one_request(name: str, response: httpx.Response):
 
 
 @when(parse('I allow the pending request from "{name}"'), target_fixture="response")
-def allow_pending_request(name: str, login: LoginFixture, response: httpx.Response):
+def allow_pending_request(
+    config: Config, name: str, login: LoginFixture, response: httpx.Response
+):
     requests = response.json()
     requests = [
         request
@@ -125,7 +124,7 @@ def allow_pending_request(name: str, login: LoginFixture, response: httpx.Respon
     assert len(requests) == 1
     request = requests[0]
     request_id = request["id"]
-    url = f"{ARS_URL}/access-requests/{request_id}"
+    url = f"{config.ars_url}/access-requests/{request_id}"
     data = {"status": "allowed"}
     response = httpx.patch(url, headers=login.headers, json=data)
     return response
