@@ -26,3 +26,6 @@ RUN pip install --upgrade -r requirements.txt
 
 # set environment
 ENV PYTHONUNBUFFERED=1
+
+# run the tests when the container starts
+ENTRYPOINT ["pytest", "-v"]
