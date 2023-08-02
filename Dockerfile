@@ -16,6 +16,10 @@
 ## creating building container
 FROM python:3.10.9-slim-bullseye
 
+# update and upgrade the system packages
+RUN apt update
+RUN apt upgrade -y
+
 # copy code
 COPY . /app
 WORKDIR /app
