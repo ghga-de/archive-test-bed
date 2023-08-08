@@ -114,3 +114,6 @@ class Config(
 
     # notifications
     mailhog_url: str = "http://mailhog:8025"
+
+    # mass
+    mass_url: str = "http://mass:8080"

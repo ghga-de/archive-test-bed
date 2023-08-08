@@ -22,7 +22,7 @@ from example_data.datasets import DATASET_OVERVIEW_EVENT
 
 from .conftest import TIMEOUT, Config, MongoFixture, parse, scenarios, then, when
 
-scenarios("../features/20_browse_metadata.feature")
+scenarios("../features/20_review_metadata.feature")
 
 
 @when("I request info on all available artifacts", target_fixture="response")

@@ -75,6 +75,9 @@ services:
       TB_DSK_TOKEN_PATHH: "/home/ghga_data_steward_token.txt"
       # notifications
       TB_MAILHOG_URL: "http://mailhog:8025"
+      # mass
+      TB_MASS_URL: str = "http://mass:8080"
+
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
@@ -96,6 +99,36 @@ services:
       METLDATA_DB_NAME: metldata
     volumes:
       - ./metldata.yaml:/home/appuser/.metldata.yaml:ro
+
+  mass:
+    image: ghga/mass:0.2.0
+    depends_on:
+      mass-consumer:
+        condition: service_started
+    environment:
+      MASS_HOST: 0.0.0.0
+      MASS_PORT: 8080
+      MASS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
+      MASS_DB_NAME: mass
+      MASS_KAFKA_SERVERS: '["kafka:9092"]'
+      MASS_SERVICE_INSTANCE_ID: 001
+    command: "run-rest"
+    volumes:
+      - ./mass.yaml:/home/appuser/.mass.yaml:ro
+
+  mass-consumer:
+    image: ghga/mass:0.2.0
+    restart: unless-stopped
+    environment:
+      MASS_HOST: 0.0.0.0
+      MASS_PORT: 8080
+      MASS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
+      MASS_DB_NAME: mass
+      MASS_KAFKA_SERVERS: '["kafka:9092"]'
+      MASS_SERVICE_INSTANCE_ID: 001
+    command: "consume-events"
+    volumes:
+      - ./mass.yaml:/home/appuser/.mass.yaml:ro
 
   ekss:
     image: ghga/encryption-key-store-service:0.3.5
