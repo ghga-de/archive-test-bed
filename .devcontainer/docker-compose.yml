@@ -76,7 +76,7 @@ services:
       # notifications
       TB_MAILHOG_URL: "http://mailhog:8025"
       # mass
-      TB_MASS_URL: str = "http://mass:8080"
+      TB_MASS_URL: "http://mass:8080"
 
 
   wkvs:
@@ -107,11 +107,10 @@ services:
         condition: service_started
     environment:
       MASS_HOST: 0.0.0.0
-      MASS_PORT: 8080
+      MASS_SERVICE_INSTANCE_ID: mass-rest-1
       MASS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       MASS_DB_NAME: mass
       MASS_KAFKA_SERVERS: '["kafka:9092"]'
-      MASS_SERVICE_INSTANCE_ID: 001
     command: "run-rest"
     volumes:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
@@ -121,11 +120,10 @@ services:
     restart: unless-stopped
     environment:
       MASS_HOST: 0.0.0.0
-      MASS_PORT: 8080
+      MASS_SERVICE_INSTANCE_ID: mass-consumer-1
       MASS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       MASS_DB_NAME: mass
       MASS_KAFKA_SERVERS: '["kafka:9092"]'
-      MASS_SERVICE_INSTANCE_ID: 001
     command: "consume-events"
     volumes:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro

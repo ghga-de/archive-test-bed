@@ -33,4 +33,4 @@ def query_with_invalid_class(config: Config):
         "skip": 0,
     }
     url = f"{config.mass_url}/rpc/search"
-    return httpx.post(url=url, json=search_parameters, timeout=TIMEOUT)
+    return httpx.post(url, json=search_parameters, timeout=TIMEOUT)
