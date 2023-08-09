@@ -103,6 +103,10 @@ services:
   mass:
     image: ghga/mass:0.2.0
     depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
       mass-consumer:
         condition: service_started
     environment:
@@ -118,6 +122,11 @@ services:
 
   mass-consumer:
     image: ghga/mass:0.2.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
     restart: unless-stopped
     environment:
       MASS_HOST: 0.0.0.0
