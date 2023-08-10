@@ -90,13 +90,24 @@ services:
       WKVS_WPS_API_URL: http://wps:8080
 
   metldata:
-    image: ghga/metldata:0.3.7
+    image: ghga/metldata:0.4.0
     env_file: metldata.env
     environment:
       METLDATA_HOST: 0.0.0.0
       METLDATA_PORT: 8080
       METLDATA_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       METLDATA_DB_NAME: metldata
+      METLDATA_SERVICE_NAME: metldata
+      METLDATA_SERVICE_INSTANCE_ID: metldata-1
+      METLDATA_KAFKA_SERVERS: '["kafka:9092"]'
+      METLDATA_PRIMARY_ARTIFACT_NAME: embedded_public
+      METLDATA_PRIMARY_DATASET_NAME: EmbeddedDataset
+      METLDATA_RESOURCE_CHANGE_EVENT_TOPIC: searchable_resources
+      METLDATA_RESOURCE_DELETION_EVENT_TYPE: searchable_resource_deleted
+      METLDATA_RESOURCE_UPSERTION_TYPE: searchable_resource_upserted
+      METLDATA_DATASET_CHANGE_EVENT_TOPIC: metadata_datasets
+      METLDATA_DATASET_DELETION_TYPE: dataset_deleted
+      METLDATA_DATASET_UPSERTION_TYPE: dataset_created
     volumes:
       - ./metldata.yaml:/home/appuser/.metldata.yaml:ro
 
