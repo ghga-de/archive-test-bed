@@ -61,6 +61,7 @@ class Config(
         "metldata",
         "ucs",
         "wps",
+        "mass",
     ]
 
     # S3 config

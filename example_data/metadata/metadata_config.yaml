@@ -29,6 +29,7 @@ prefix_mapping:
 suffix_length: 14
 metadata_model_path: metadata_model.yaml
 submission_store_dir: submission_store
+artifact_model_dir: artifact_models
 workflow_config:
   normalize_model: {}
   aggregate_stats:
@@ -257,3 +258,15 @@ workflow_config:
             description: "Fully embedded sample file."
             embedded_references:
               sample: Sample
+          sequencing_process_files:
+            target_class: EmbeddedSequencingProcessFile
+            source_class: SequencingProcessFile
+            description: "Fully embedded sequencing process file."
+            embedded_references:
+              sequencing_process: SequencingProcess
+          analysis_process_output_files:
+            target_class: EmbeddedAnalysisProcessOutputFile
+            source_class: AnalysisProcessOutputFile
+            description: "Fully embedded analysis process output file."
+            embedded_references:
+              analysis_process: AnalysisProcess
