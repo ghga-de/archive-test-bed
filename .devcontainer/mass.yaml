@@ -1,0 +1,6 @@
+searchable_classes:
+  EmbeddedDataset:
+    description: Dataset grouping files under controlled access.
+    facetable_properties:
+      - key: alias
+        name: Alias

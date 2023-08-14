@@ -40,7 +40,7 @@ services:
       # MongoDb
       TB_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       TB_DB_NAME: "test-db"
-      TB_SERVICE_DB_NAMES: '["ars", "auth", "dcs", "ifrs", "metldata", "ucs", "wps"]'
+      TB_SERVICE_DB_NAMES: '["ars", "auth", "dcs", "ifrs", "metldata", "ucs", "wps", "mass"]'
       # S3
       TB_S3_ENDPOINT_URL: http://localstack:4566
       TB_S3_ACCESS_KEY_ID: testbed-key
@@ -71,10 +71,11 @@ services:
       # ifrs
       TB_IFRS_DB_NAME: "ifrs"
       TB_IFRS_METADATA_COLLECTION: "file_metadata"
-      # dskit
-      TB_DSK_TOKEN_PATHH: "/home/ghga_data_steward_token.txt"
       # notifications
       TB_MAILHOG_URL: "http://mailhog:8025"
+      # mass
+      TB_MASS_URL: "http://mass:8080"
+
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
@@ -87,15 +88,71 @@ services:
       WKVS_WPS_API_URL: http://wps:8080
 
   metldata:
-    image: ghga/metldata:0.3.7
+    image: ghga/metldata:0.4.1
     env_file: metldata.env
     environment:
       METLDATA_HOST: 0.0.0.0
       METLDATA_PORT: 8080
       METLDATA_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       METLDATA_DB_NAME: metldata
+      METLDATA_SERVICE_NAME: metldata
+      METLDATA_SERVICE_INSTANCE_ID: metldata-1
+      METLDATA_KAFKA_SERVERS: '["kafka:9092"]'
+      METLDATA_PRIMARY_ARTIFACT_NAME: embedded_public
+      METLDATA_PRIMARY_DATASET_NAME: EmbeddedDataset
+      METLDATA_RESOURCE_CHANGE_EVENT_TOPIC: searchable_resources
+      METLDATA_RESOURCE_DELETION_EVENT_TYPE: searchable_resource_deleted
+      METLDATA_RESOURCE_UPSERTION_TYPE: searchable_resource_upserted
+      METLDATA_DATASET_CHANGE_EVENT_TOPIC: metadata_datasets
+      METLDATA_DATASET_DELETION_TYPE: dataset_deleted
+      METLDATA_DATASET_UPSERTION_TYPE: dataset_created
     volumes:
       - ./metldata.yaml:/home/appuser/.metldata.yaml:ro
+
+  mass:
+    image: ghga/mass:0.2.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+      mass-consumer:
+        condition: service_started
+    environment:
+      MASS_HOST: 0.0.0.0
+      MASS_PORT: 8080
+      MASS_SERVICE_INSTANCE_ID: mass-rest-1
+      MASS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
+      MASS_DB_NAME: mass
+      MASS_KAFKA_SERVERS: '["kafka:9092"]'
+      MASS_RESOURCE_CHANGE_EVENT_TOPIC: searchable_resources
+      MASS_RESOURCE_DELETION_EVENT_TYPE: searchable_resource_deleted
+      MASS_RESOURCE_UPSERTION_EVENT_TYPE: searchable_resource_upserted
+    command: "run-rest"
+    volumes:
+      - ./mass.yaml:/home/appuser/.mass.yaml:ro
+
+  mass-consumer:
+    image: ghga/mass:0.2.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+    restart: unless-stopped
+    environment:
+      MASS_HOST: 0.0.0.0
+      MASS_PORT: 8080
+      MASS_SERVICE_INSTANCE_ID: mass-consumer-1
+      MASS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
+      MASS_DB_NAME: mass
+      MASS_KAFKA_SERVERS: '["kafka:9092"]'
+      MASS_RESOURCE_CHANGE_EVENT_TOPIC: searchable_resources
+      MASS_RESOURCE_DELETION_EVENT_TYPE: searchable_resource_deleted
+      MASS_RESOURCE_UPSERTION_EVENT_TYPE: searchable_resource_upserted
+    command: "consume-events"
+    volumes:
+      - ./mass.yaml:/home/appuser/.mass.yaml:ro
 
   ekss:
     image: ghga/encryption-key-store-service:0.3.5
