@@ -45,9 +45,6 @@ services:
       TB_S3_ENDPOINT_URL: http://localstack:4566
       TB_S3_ACCESS_KEY_ID: testbed-key
       TB_S3_SECRET_ACCESS_KEY: testbed-secret
-      # file services
-      TB_FILE_METADATA_EVENT_TOPIC: metadata
-      TB_FILE_METADATA_EVENT_TYPE: file_metadata_upserts
       # bucket names
       TB_INBOX_BUCKET: inbox
       TB_OUTBOX_BUCKET: outbox
@@ -75,7 +72,6 @@ services:
       TB_MAILHOG_URL: "http://mailhog:8025"
       # mass
       TB_MASS_URL: "http://mass:8080"
-
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
@@ -289,12 +285,14 @@ services:
       AUTH_SERVICE_DB_NAME: auth
 
   wps:
-    image: ghga/work-package-service:0.1.3
+    image: ghga/work-package-service:0.1.4
     restart: unless-stopped
     depends_on:
       kafka:
         condition: service_healthy
       mongodb:
+        condition: service_started
+      wps-consumer:
         condition: service_started
     env_file: wps.env
     environment:
@@ -302,14 +300,15 @@ services:
       WPS_SERVICE_INSTANCE_ID: wps-rest-1
       WPS_KAFKA_SERVERS: '["kafka:9092"]'
       WPS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      WPS_DATASET_OVERVIEW_EVENT_TOPIC: metadata
-      WPS_DATASET_OVERVIEW_EVENT_TYPE: metadata_dataset_overview
+      WPS_DATASET_CHANGE_EVENT_TOPIC: metadata_datasets
+      WPS_DATASET_DELETION_EVENT_TYPE: dataset_deleted
+      WPS_DATASET_UPSERTION_EVENT_TYPE: dataset_created
       WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
       WPS_DB_NAME: wps
     command: run-rest
 
   wps-consumer:
-    image: ghga/work-package-service:0.1.3
+    image: ghga/work-package-service:0.1.4
     restart: unless-stopped
     depends_on:
       kafka:
@@ -322,8 +321,9 @@ services:
       WPS_SERVICE_INSTANCE_ID: wps-consumer-1
       WPS_KAFKA_SERVERS: '["kafka:9092"]'
       WPS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      WPS_DATASET_OVERVIEW_EVENT_TOPIC: metadata
-      WPS_DATASET_OVERVIEW_EVENT_TYPE: metadata_dataset_overview
+      WPS_DATASET_CHANGE_EVENT_TOPIC: metadata_datasets
+      WPS_DATASET_DELETION_EVENT_TYPE: dataset_deleted
+      WPS_DATASET_UPSERTION_EVENT_TYPE: dataset_created
       WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
       WPS_DB_NAME: wps
     command: consume-events
@@ -378,7 +378,7 @@ services:
     environment:
       NS_NOTIFICATION_EVENT_TOPIC: notifications
       NS_NOTIFICATION_EVENT_TYPE: notification
-      NS_SERVICE_INSTANCE_ID: 001
+      NS_SERVICE_INSTANCE_ID: 1
       NS_KAFKA_SERVERS: '["kafka:9092"]'
       NS_PLAINTEXT_EMAIL_TEMPLATE: '"Dear $$recipient_name,\n\n$$plaintext_body\n\nWarm regards,\n\nThe GHGA Team"'
       NS_HTML_EMAIL_TEMPLATE: '<!DOCTYPE html><html><head></head><body style="color: #00393f;padding: 12px;"><h2>Dear $$recipient_name,</h2><p>$$plaintext_body</p><p>Warm regards,</p><h3>The GHGA Team</h3></body></html>'
@@ -419,7 +419,14 @@ services:
     depends_on:
       - zookeeper
     healthcheck:
-      test: [ "CMD", "kafka-topics", "--list", "--bootstrap-server", "localhost:9092" ]
+      test:
+        [
+          "CMD",
+          "kafka-topics",
+          "--list",
+          "--bootstrap-server",
+          "localhost:9092"
+        ]
       interval: 5s
       timeout: 5s
       start_period: 60s
