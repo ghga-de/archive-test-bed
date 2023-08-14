@@ -56,10 +56,7 @@ def run_the_load_command(fixtures: JointFixture):
         )
 
         assert not completed_upload.stdout
-        assert (
-            "ERROR" not in completed_upload.stderr
-            and "Error" not in completed_upload.stderr
-        )
+        assert not completed_upload.stderr
 
 
 @then("the test dataset exists as embedded dataset in the database")
