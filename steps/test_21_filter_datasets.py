@@ -23,7 +23,7 @@ from hexkit.custom_types import JsonObject
 
 from .conftest import TIMEOUT, Config, parse, scenarios, then, when
 
-scenarios("../features/21_browse_metadata.feature")
+scenarios("../features/21_filter_datasets.feature")
 
 
 def search_dataset_rpc(config: Config, filters: Dict[str, str], query: str = ""):

@@ -1,7 +1,7 @@
 
 @download @metadata
-Feature: 20 Browsing Metadata
-  As a user, I can browse the public metadata
+Feature: 21 Filter Datasets
+  As a user, I can filter the public datasets
 
   Background:
     Given we have the state "metadata has been loaded into the system"

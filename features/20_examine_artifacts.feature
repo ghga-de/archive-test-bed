@@ -1,7 +1,7 @@
 
 @download @metadata
-Feature: 21 Reviewing Metadata
-  As an entity, I can examine the public metadata
+Feature: 20 Examine Artifacts
+  As a user, I can examine the available artifacts
 
   Background:
     Given we have the state "metadata has been loaded into the system"

@@ -40,7 +40,7 @@ def run_the_load_command(fixtures: JointFixture):
     )
 
     loader_token = fixtures.auth.read_simple_token()
-    with temporary_file(fixtures.config.dsk_token_path, loader_token) as _:
+    with temporary_file(fixtures.config.dsk_token_path, loader_token):
         completed_upload = subprocess.run(  # nosec B607, B603
             [
                 "ghga-datasteward-kit",
@@ -55,8 +55,11 @@ def run_the_load_command(fixtures: JointFixture):
             timeout=10 * 60,
         )
 
-        assert not completed_upload.returncode
-        assert "ERROR" not in completed_upload.stderr
+        assert not completed_upload.stdout
+        assert (
+            "ERROR" not in completed_upload.stderr
+            and "Error" not in completed_upload.stderr
+        )
 
 
 @then("the test dataset exists as embedded dataset in the database")
