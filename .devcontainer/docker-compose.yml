@@ -35,7 +35,7 @@ services:
       GHGA_CONNECTOR_WKVS_API_URL: http://wkvs
       # Kafka
       TB_SERVICE_NAME: testbed_kafka
-      TB_SERVICE_INSTANCE_ID: testbed-app-1
+      TB_SERVICE_INSTANCE_ID: app-1
       TB_KAFKA_SERVERS: '["kafka:9092"]'
       # MongoDb
       TB_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
@@ -339,7 +339,7 @@ services:
     env_file: ars.env
     environment:
       ARS_HOST: 0.0.0.0
-      ARS_SERVICE_INSTANCE_ID: ars-rest-1
+      ARS_SERVICE_INSTANCE_ID: ars-1
       ARS_KAFKA_SERVERS: '["kafka:9092"]'
       ARS_NOTIFICATION_EVENT_TOPIC: notifications
       ARS_NOTIFICATION_EVENT_TYPE: notification
@@ -358,7 +358,7 @@ services:
     environment:
       FIS_HOST: 0.0.0.0
       FIS_PORT: 8080
-      FIS_SERVICE_INSTANCE_ID: testbed-fis-1
+      FIS_SERVICE_INSTANCE_ID: fis-1
       FIS_KAFKA_SERVERS: '["kafka:9092"]'
       FIS_PUBLISHER_TOPIC: interrogations
       FIS_PUBLISHER_TYPE: validation_success
@@ -378,7 +378,7 @@ services:
     environment:
       NS_NOTIFICATION_EVENT_TOPIC: notifications
       NS_NOTIFICATION_EVENT_TYPE: notification
-      NS_SERVICE_INSTANCE_ID: 1
+      NS_SERVICE_INSTANCE_ID: ns-1
       NS_KAFKA_SERVERS: '["kafka:9092"]'
       NS_PLAINTEXT_EMAIL_TEMPLATE: '"Dear $$recipient_name,\n\n$$plaintext_body\n\nWarm regards,\n\nThe GHGA Team"'
       NS_HTML_EMAIL_TEMPLATE: '<!DOCTYPE html><html><head></head><body style="color: #00393f;padding: 12px;"><h2>Dear $$recipient_name,</h2><p>$$plaintext_body</p><p>Warm regards,</p><h3>The GHGA Team</h3></body></html>'
