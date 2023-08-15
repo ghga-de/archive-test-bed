@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-""" Step definitions for metadata submission """
+"""Step definitions for submitting metadata with the datasteward-kit"""
 
 import glob
 import os

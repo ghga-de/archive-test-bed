@@ -14,8 +14,7 @@
 # limitations under the License.
 #
 
-
-"""Step definitions for metadata load tests"""
+"""Step definitions for loading metadata artifacts with the datasteward-kit"""
 
 import subprocess
 from collections import Counter
@@ -26,7 +25,7 @@ from steps.utils import load_config_as_file, temporary_file
 
 from .conftest import Config, JointFixture, MongoFixture, scenarios, then, when
 
-scenarios("../features/14_load_metadata.feature")
+scenarios("../features/13_load_metadata.feature")
 
 
 @when("metadata is loaded into the system")
@@ -65,70 +64,97 @@ def check_metldata_database(config: Config, mongo: MongoFixture):
     datasets = mongo.wait_for_documents(
         config.metldata_db_name, "art_embedded_public_class_EmbeddedDataset", {}
     )
-    assert datasets and len(datasets) == 2
-    datasets.sort(key=lambda x: x.get("content", {}).get("title", "None"))
-    for num_dataset, dataset in enumerate(datasets):
-        content = dataset.get("content")
-        assert isinstance(content, dict)
-        accession = content.get("accession")
-        assert isinstance(accession, str)
+    assert datasets
+    assert len(datasets) == 6  # 4 from minimal and 2 from complete example
+    simplified_datasets = {}
+    for dataset in datasets:
+        accession = dataset["_id"]
         assert accession.startswith("GHGAD")
-        assert content.get("alias") == f"DS_{num_dataset + 1}"
-        assert content.get("title") == f"The {num_dataset + 65:c} dataset"
-        assert (
-            content.get("description") == f"An interesting dataset {num_dataset + 65:c}"
-        )
-        analysis_files = content.get("analysis_process_output_files")
-        assert isinstance(analysis_files, list)
-        sequencing_files = content.get("sequencing_process_files")
-        assert isinstance(sequencing_files, list)
-        study_files = content.get("study_files")
-        assert isinstance(study_files, list)
-        if num_dataset == 1:
-            assert not study_files
-            assert len(analysis_files) == 6
-            assert len(sequencing_files) == 6
-        else:
-            assert study_files and len(study_files) == 1
-            study_file = study_files[0]
-            assert study_file.pop("accession").startswith("GHGAF")
-            assert study_file.pop("dataset") == accession
-            assert isinstance(study_file.pop("study"), dict)
-            assert study_file == {
-                "alias": "STUDY_FILE_1",
-                "checksum": "7a586609dd8c7d6f53cbc2e82e1165de"
-                "2c7aab6769c6dde9882b45048b0fdaa9",
-                "checksum_type": "SHA256",
-                "format": "FASTQ",
-                "forward_or_reverse": "REVERSE",
-                "name": "STUDY_1_SPECIMEN_1_FILE_1.fastq.gz",
-                "size": 106497,
-            }
-            assert len(analysis_files) == 3
+        content = dataset["content"]
+        assert content["accession"] == accession
+        simplified_dataset = {
+            "title": content["title"],
+            "description": content["description"],
+            "study_files": len(content["study_files"]),
+        }
+        simplified_datasets[content["alias"]] = simplified_dataset
+    assert simplified_datasets == {
+        "DS_1": {
+            "description": "An interesting dataset A",
+            "study_files": 16,
+            "title": "The A dataset",
+        },
+        "DS_2": {
+            "description": "An interesting dataset B",
+            "study_files": 6,
+            "title": "The B dataset",
+        },
+        "DS_3": {
+            "description": "An interesting dataset C",
+            "study_files": 20,
+            "title": "The C dataset",
+        },
+        "DS_4": {
+            "description": "An interesting dataset D",
+            "study_files": 10,
+            "title": "The D dataset",
+        },
+        "DS_A": {
+            "description": "An interesting dataset A of complete example set",
+            "study_files": 1,
+            "title": "The complete-A dataset",
+        },
+        "DS_B": {
+            "description": "An interesting dataset B of complete example set",
+            "study_files": 0,
+            "title": "The complete-B dataset",
+        },
+    }
 
 
 @then("the test datasets are known to the work package service")
 def check_wps_database(config: Config, mongo: MongoFixture):
     datasets = mongo.wait_for_documents(config.wps_db_name, "datasets", {})
-    assert datasets and len(datasets) == 2
-    datasets.sort(key=lambda x: x.get("title", "None"))
-    for num_dataset, dataset in enumerate(datasets):
+    assert datasets
+    assert len(datasets) == 6
+    simplified_datasets = {}
+    for dataset in datasets:
         accession = dataset.get("_id")
         assert isinstance(accession, str)
         assert accession.startswith("GHGAD")
-        assert dataset.get("title") == f"The {num_dataset + 65:c} dataset"
-        assert (
-            dataset.get("description") == f"An interesting dataset {num_dataset + 65:c}"
-        )
         assert dataset.get("stage") == "download"
+        title = dataset.get("title")
+        assert title
+        description = dataset.get("description")
         files = dataset.get("files")
         assert isinstance(files, list)
-        assert all(isinstance(file.get("id"), str) for file in files)
-        assert all(file["id"].startswith("GHGAF") for file in files)
-        found_extensions = Counter(file.get("extension") for file in files)
-        expected_extensions = (
-            {".fastq.gz": 6, ".vcf.gz": 6}
-            if num_dataset == 1
-            else {".fastq.gz": 4, ".vcf.gz": 3}
-        )
-        assert found_extensions == expected_extensions
+        assert all(isinstance(file_.get("id"), str) for file_ in files)
+        assert all(file_["id"].startswith("GHGAF") for file_ in files)
+        extensions = Counter(file.get("extension") for file in files)
+        simplified_datasets[title] = {"description": description, "files": extensions}
+    assert simplified_datasets == {
+        "The A dataset": {
+            "description": "An interesting dataset A",
+            "files": Counter({".fastq.gz": 16}),
+        },
+        "The B dataset": {
+            "description": "An interesting dataset B",
+            "files": Counter({".fastq.gz": 6}),
+        },
+        "The C dataset": {
+            "description": "An interesting dataset C",
+            "files": Counter({".fastq.gz": 20}),
+        },
+        "The D dataset": {
+            "description": "An interesting dataset D",
+            "files": Counter({".fastq.gz": 10}),
+        },
+        "The complete-A dataset": {
+            "description": "An interesting dataset A of complete example set",
+            "files": Counter({".fastq.gz": 4, ".vcf.gz": 3}),
+        },
+        "The complete-B dataset": {
+            "description": "An interesting dataset B of complete example set",
+            "files": Counter({".fastq.gz": 6, ".vcf.gz": 6}),
+        },
+    }

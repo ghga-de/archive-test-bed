@@ -14,8 +14,7 @@
 # limitations under the License.
 #
 
-
-""" Step definitions for file upload """
+"""Step definitions for uploading and ingesting files with the datasteward-kit"""
 
 import json
 import os

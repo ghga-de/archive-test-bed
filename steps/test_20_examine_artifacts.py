@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Step definitions for metadata browsing tests"""
-
+"""Step definitions for examining metadata artifacts in the frontend"""
 
 import httpx
 
@@ -81,7 +80,7 @@ def request_test_dataset_resource(config: Config, mongo: MongoFixture):
     datasets = mongo.find_documents(
         config.metldata_db_name, "art_embedded_public_class_Dataset", {}
     )
-    assert len(datasets) == 2
+    assert len(datasets) == 6
     accession = datasets[0]["_id"]
 
     url = (
