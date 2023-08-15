@@ -1,6 +1,7 @@
 @metadata @submission
 Feature: 10 Submit Metadata
-  As a data steward, I can submit research metadata into the local submission store
+  As a data steward, I can submit research metadata
+  into the local submission store
 
   Scenario: Starting the metadata submission
     Given we start on a clean slate
