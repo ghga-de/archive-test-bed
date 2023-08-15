@@ -17,6 +17,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+      mongodb:
+        condition: service_started
 
     init: true
     privileged: true
@@ -77,6 +79,7 @@ services:
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
+    restart: unless-stopped
     env_file: wkvs.env
     environment:
       WKVS_HOST: 0.0.0.0
@@ -87,6 +90,12 @@ services:
 
   metldata:
     image: ghga/metldata:0.4.1
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
     env_file: metldata.env
     environment:
       METLDATA_HOST: 0.0.0.0
@@ -109,9 +118,8 @@ services:
 
   mass:
     image: ghga/mass:0.2.0
+    restart: unless-stopped
     depends_on:
-      kafka:
-        condition: service_healthy
       mongodb:
         condition: service_started
       mass-consumer:
@@ -132,12 +140,12 @@ services:
 
   mass-consumer:
     image: ghga/mass:0.2.0
+    restart: unless-stopped
     depends_on:
       kafka:
         condition: service_healthy
       mongodb:
         condition: service_started
-    restart: unless-stopped
     environment:
       MASS_HOST: 0.0.0.0
       MASS_PORT: 8080
@@ -154,6 +162,7 @@ services:
 
   ekss:
     image: ghga/encryption-key-store-service:0.3.5
+    restart: unless-stopped
     depends_on:
       - vault
     env_file: ekss.env
@@ -168,9 +177,8 @@ services:
 
   dcs:
     image: ghga/download-controller-service:0.6.4
+    restart: unless-stopped
     depends_on:
-      kafka:
-        condition: service_healthy
       mongodb:
         condition: service_started
       dcs-consumer:
