@@ -4,3 +4,5 @@ searchable_classes:
     facetable_properties:
       - key: alias
         name: Alias
+      - key: title
+        name: Title

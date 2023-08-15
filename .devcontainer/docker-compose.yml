@@ -72,6 +72,8 @@ services:
       TB_MAILHOG_URL: "http://mailhog:8025"
       # mass
       TB_MASS_URL: "http://mass:8080"
+      TB_MASS_DB_NAME: "mass"
+      TB_MASS_COLLECTION: "EmbeddedDataset"
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
