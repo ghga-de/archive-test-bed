@@ -136,6 +136,8 @@ def search_dataset_rpc(
     filters: Optional[List[Dict[str, str]]] = None,
     query: str = "",
     class_name: str = "EmbeddedDataset",
+    limit: Optional[int] = None,
+    skip: int = 0,
 ):
     """Send a search request to the MASS"""
 
@@ -146,7 +148,10 @@ def search_dataset_rpc(
         "class_name": class_name,
         "query": query,
         "filters": filters,
-        "skip": 0,
+        "skip": skip,
     }
+    if limit:
+        search_parameters["limit"] = limit
+
     url = f"{config.mass_url}/rpc/search"
     return httpx.post(url, json=search_parameters, timeout=TIMEOUT)
