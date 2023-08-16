@@ -92,12 +92,20 @@ workflow_config:
             function: Count
             visit_only_once:
               - Study
-          - output_path: study_summary.stats.type
+          - output_path: study_summary.stats.accession
             input_paths:
-              - study_files.study.type
-              - sample_files.sample.condition.study.type
-              - sequencing_process_files.sequencing_process.sample.condition.study.type
-            function: Count
+              - study_files.study.accession
+              - sample_files.sample.condition.study.accession
+              - sequencing_process_files.sequencing_process.sample.condition.study.accession
+            function: StringListCopy
+            visit_only_once:
+              - Study
+          - output_path: study_summary.stats.title
+            input_paths:
+              - study_files.study.title
+              - sample_files.sample.condition.study.title
+              - sequencing_process_files.sequencing_process.sample.condition.study.title
+            function: StringListCopy
             visit_only_once:
               - Study
           - output_path: experiment_summary.count
