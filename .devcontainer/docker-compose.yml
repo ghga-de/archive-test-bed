@@ -1,7 +1,6 @@
-version: '3'
+version: "3"
 
 services:
-
   app:
     container_name: archive-test-bed
     build:
@@ -89,7 +88,7 @@ services:
       WKVS_WPS_API_URL: http://wps:8080
 
   metldata:
-    image: ghga/metldata:0.4.1
+    image: ghga/metldata:0.4.2
     restart: unless-stopped
     depends_on:
       kafka:
@@ -102,7 +101,6 @@ services:
       METLDATA_PORT: 8080
       METLDATA_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       METLDATA_DB_NAME: metldata
-      METLDATA_SERVICE_NAME: metldata
       METLDATA_SERVICE_INSTANCE_ID: metldata-1
       METLDATA_KAFKA_SERVERS: '["kafka:9092"]'
       METLDATA_PRIMARY_ARTIFACT_NAME: embedded_public
@@ -435,7 +433,7 @@ services:
           "kafka-topics",
           "--list",
           "--bootstrap-server",
-          "localhost:9092"
+          "localhost:9092",
         ]
       interval: 5s
       timeout: 5s
