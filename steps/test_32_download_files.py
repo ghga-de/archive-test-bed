@@ -120,16 +120,23 @@ def files_have_been_decrypted(fixtures: JointFixture):
     dataset_alias = get_state("dataset to be downloaded", fixtures.mongo)
     assert dataset_alias in datasets
     dataset = datasets[dataset_alias]
-    dataset_files = {v["accession"]: v for k, v in dataset["files"].items()}
+    dataset_files = {file["accession"]: file for file in dataset["files"].values()}
 
     files = get_state("files to be downloaded", fixtures.mongo)
+
     for file_ in files:
-        dataset_file = dataset_files[file_["id"]]
+        file_id = file_["id"]
+        file_extension = file_["extension"]
+
+        dataset_file = dataset_files[file_id]
+        checksum = dataset_file["checksum"]
+        size = dataset_file["size"]
+
         verify_named_file(
             target_dir=fixtures.connector.config.download_dir,
-            extension=file_["extension"],
-            name=file_["id"],
+            extension=file_extension,
+            name=file_id,
             encrypted=False,
-            checksum=dataset_file["checksum"],
-            size_in_bytes=dataset_file["size"],
+            checksum=checksum,
+            size_in_bytes=size,
         )

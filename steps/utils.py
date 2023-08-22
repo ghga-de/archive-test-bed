@@ -133,16 +133,20 @@ def verify_named_file(
     assert len(matching) == 1, f"File {name} was not found"
 
     if not encrypted:
+        if size_in_bytes is None:
+            raise ValueError("size_in_bytes must be provided for non-encrypted files")
+
+        if checksum is None:
+            raise ValueError("checksum must be provided for non-encrypted files")
+
         file_path = matching[0]
 
-        if size_in_bytes:
-            file_size_in_bytes = os.path.getsize(file_path)
-            assert file_size_in_bytes == size_in_bytes
+        file_size_in_bytes = file_path.stat().st_size
+        assert file_size_in_bytes == size_in_bytes
 
-        if checksum:
-            with open(file_path, "rb") as file:
-                file_checksum = calculate_checksum(file.read())
-            assert file_checksum == checksum
+        with open(file_path, "rb") as file:
+            file_checksum = calculate_checksum(file.read())
+        assert file_checksum == checksum
 
 
 def search_dataset_rpc(

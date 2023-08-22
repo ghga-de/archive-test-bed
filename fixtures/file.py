@@ -55,14 +55,14 @@ def create_named_file(
     alias = os.path.splitext(name)[0] if not alias else alias
 
     with open(file_path, "wb") as file:
-        first_line = name.encode() + b"\n"
-
+        first_line = f"{name}\n".encode()
         if file_size <= len(first_line):
             first_line = first_line[:file_size]
-
-        file.write(first_line)
-        remaining_bytes = file_size - len(first_line)
-        file.write(b"\0" * remaining_bytes)
+            file.write(first_line)
+        else:
+            remaining_bytes = file_size - len(first_line)
+            content = first_line + b"\0" * remaining_bytes
+            file.write(content)
 
     # Validate created file with given checksum
     if checksum:
@@ -70,9 +70,9 @@ def create_named_file(
             created_file_checksum = calculate_checksum(file.read())
         if checksum != created_file_checksum:
             raise RuntimeError(
-                f"Expected checksum {checksum}, \
-                                 but got {created_file_checksum} \
-                                 for file {file_path}."
+                f"Expected checksum {checksum}, "
+                f"but got {created_file_checksum} "
+                f"for file {file_path}."
             )
 
     file_object = FileObject(
