@@ -116,12 +116,20 @@ def run_the_decrypt_command(fixtures: JointFixture):
 
 @then("all downloaded files have been properly decrypted")
 def files_have_been_decrypted(fixtures: JointFixture):
-    files = get_state("files to be downloaded", fixtures.mongo)
+    datasets = get_state("all available datasets", fixtures.mongo)
+    dataset_alias = get_state("dataset to be downloaded", fixtures.mongo)
+    assert dataset_alias in datasets
+    dataset = datasets[dataset_alias]
+    dataset_files = {v["accession"]: v for k, v in dataset["files"].items()}
 
+    files = get_state("files to be downloaded", fixtures.mongo)
     for file_ in files:
+        dataset_file = dataset_files[file_["id"]]
         verify_named_file(
             target_dir=fixtures.connector.config.download_dir,
             extension=file_["extension"],
             name=file_["id"],
             encrypted=False,
+            checksum=dataset_file["checksum"],
+            size_in_bytes=dataset_file["size"],
         )
