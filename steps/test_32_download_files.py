@@ -118,7 +118,9 @@ def run_the_decrypt_command(fixtures: JointFixture):
 def files_have_been_decrypted(fixtures: JointFixture):
     datasets = get_state("all available datasets", fixtures.mongo)
     dataset_alias = get_state("dataset to be downloaded", fixtures.mongo)
+
     assert dataset_alias in datasets
+
     dataset = datasets[dataset_alias]
     dataset_files = {file["accession"]: file for file in dataset["files"].values()}
 
@@ -127,6 +129,9 @@ def files_have_been_decrypted(fixtures: JointFixture):
     for file_ in files:
         file_id = file_["id"]
         file_extension = file_["extension"]
+
+        assert file_id.startswith("GHGAF")
+        assert file_id in dataset_files
 
         dataset_file = dataset_files[file_id]
         checksum = dataset_file["checksum"]
