@@ -16,6 +16,7 @@
 """Step definitions for downloading files with the GHGA connector"""
 
 import subprocess
+from typing import Dict, List
 
 from .conftest import (
     Config,
@@ -25,6 +26,7 @@ from .conftest import (
     async_step,
     get_state,
     given,
+    parse,
     scenarios,
     then,
     when,
@@ -53,9 +55,9 @@ def keys_are_made_available(connector: ConnectorFixture, config: Config):
     )
 
 
-@when("I run the download command of the GHGA connector")
-def run_the_download_command(fixtures: JointFixture):
-    download_token = get_state("a download token has been created", fixtures.mongo)
+@when(parse('I run the GHGA connector download command for "{file_scope}" files'))
+def run_the_download_command(fixtures: JointFixture, file_scope: str):
+    download_token = get_state(f"download token for {file_scope} files", fixtures.mongo)
     assert download_token and isinstance(download_token, str)
     connector = fixtures.connector
     completed_download = subprocess.run(  # nosec B607, B603
@@ -79,17 +81,37 @@ def run_the_download_command(fixtures: JointFixture):
     assert not completed_download.stderr
 
 
-@then("all files announced in metadata have been downloaded")
-def files_are_downloaded(fixtures: JointFixture):
-    files = get_state("files to be downloaded", fixtures.mongo)
+@then(
+    parse('"{file_scope}" files announced in metadata have been downloaded'),
+    target_fixture="downloaded_files",
+)
+def files_are_downloaded(fixtures: JointFixture, file_scope: str):
+    files = get_state(f"{file_scope} files to be downloaded", fixtures.mongo)
+    dataset_alias = get_state("dataset to be downloaded", fixtures.mongo)
+    datasets = get_state("all available datasets", fixtures.mongo)
+
+    assert dataset_alias in datasets
+
+    dataset = datasets[dataset_alias]
+    dataset_file_accessions = set(
+        file["accession"] for file in dataset["files"].values()
+    )
 
     for file_ in files:
+        file_id = file_["id"]
+        file_extension = file_["extension"]
+
+        assert file_id.startswith("GHGAF")
+        assert file_id in dataset_file_accessions
+
         verify_named_file(
             target_dir=fixtures.connector.config.download_dir,
-            extension=file_["extension"],
-            name=file_["id"],
+            extension=file_extension,
+            name=file_id,
             encrypted=True,
         )
+
+    return files
 
 
 @when("I run the decrypt command of the GHGA connector")
@@ -115,7 +137,9 @@ def run_the_decrypt_command(fixtures: JointFixture):
 
 
 @then("all downloaded files have been properly decrypted")
-def files_have_been_decrypted(fixtures: JointFixture):
+def files_have_been_decrypted(
+    fixtures: JointFixture, downloaded_files: List[Dict[str, str]]
+):
     datasets = get_state("all available datasets", fixtures.mongo)
     dataset_alias = get_state("dataset to be downloaded", fixtures.mongo)
 
@@ -124,14 +148,9 @@ def files_have_been_decrypted(fixtures: JointFixture):
     dataset = datasets[dataset_alias]
     dataset_files = {file["accession"]: file for file in dataset["files"].values()}
 
-    files = get_state("files to be downloaded", fixtures.mongo)
-
-    for file_ in files:
+    for file_ in downloaded_files:
         file_id = file_["id"]
         file_extension = file_["extension"]
-
-        assert file_id.startswith("GHGAF")
-        assert file_id in dataset_files
 
         dataset_file = dataset_files[file_id]
         checksum = dataset_file["checksum"]

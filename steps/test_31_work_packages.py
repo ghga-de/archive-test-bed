@@ -38,7 +38,9 @@ scenarios("../features/31_work_packages.feature")
 @given("no work packages have been created yet")
 def wps_database_is_empty(config: Config, mongo: MongoFixture):
     mongo.empty_databases(config.wps_db_name, exclude_collections="datasets")
-    unset_state("a download token has been created", mongo)
+    unset_state("^a download token has been created for.*", mongo)
+    unset_state("dataset to be downloaded", mongo)
+    unset_state(".*files to be downloaded$", mongo)
 
 
 @given("the test datasets have been announced")
@@ -70,12 +72,17 @@ def check_dataset_in_list(
     files = dataset.get("files")
     assert files and isinstance(files, list)
     set_state("dataset to be downloaded", f"DS_{dataset_char}", fixtures.mongo)
-    set_state("files to be downloaded", files, fixtures.mongo)
 
 
-@when("a work package for the test dataset is created", target_fixture="response")
+@when(
+    parse('a work package for "{file_scope}" files in test dataset is created'),
+    target_fixture="response",
+)
 def create_work_package(
-    login: LoginFixture, fixtures: JointFixture, response: httpx.Response
+    login: LoginFixture,
+    fixtures: JointFixture,
+    response: httpx.Response,
+    file_scope: str,
 ):
     data = response.json()
     assert isinstance(data, list) and len(data) == 1
@@ -83,10 +90,24 @@ def create_work_package(
     assert isinstance(dataset, dict)
     dataset_id = dataset.get("id")
     assert dataset_id
+    files = dataset.get("files")
+    assert files and isinstance(files, list)
+
+    if file_scope == "all":
+        file_ids = None
+    elif file_scope in ["vcf", "fastq"]:
+        extension = f".{file_scope}.gz"
+        files = list(filter(lambda file: file["extension"] == extension, files))
+        file_ids = [file["id"] for file in files]
+    else:
+        raise ValueError("Unknown file_scope {file_scope}")
+
+    set_state(f"{file_scope} files to be downloaded", files, fixtures.mongo)
+
     data = {
         "dataset_id": dataset_id,
         "type": "download",
-        "file_ids": None,
+        "file_ids": file_ids,
         "user_public_crypt4gh_key": fixtures.config.user_public_crypt4gh_key,
     }
     url = f"{fixtures.config.wps_url}/work-packages"
@@ -94,11 +115,17 @@ def create_work_package(
     return response
 
 
-@then("the response contains a download token")
-def check_download_token(fixtures: JointFixture, response: httpx.Response):
+@then(parse('the response contains a download token for "{file_scope}" files'))
+def check_download_token(
+    fixtures: JointFixture, response: httpx.Response, file_scope: str
+):
     data = response.json()
     assert set(data) == {"id", "token"}
     id_, token = data["id"], data["token"]
     assert 20 <= len(id_) < 40 and 80 < len(token) < 120
     id_and_token = f"{id_}:{token}"
-    set_state("a download token has been created", id_and_token, fixtures.mongo)
+    set_state(
+        f"download token for {file_scope} files",
+        id_and_token,
+        fixtures.mongo,
+    )
