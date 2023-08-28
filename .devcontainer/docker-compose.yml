@@ -40,7 +40,6 @@ services:
       TB_KAFKA_SERVERS: '["kafka:9092"]'
       # MongoDb
       TB_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      TB_DB_NAME: "test-db"
       TB_SERVICE_DB_NAMES: '["ars", "auth", "dcs", "ifrs", "metldata", "ucs", "wps", "mass"]'
       # S3
       TB_S3_ENDPOINT_URL: http://localstack:4566
@@ -75,6 +74,8 @@ services:
       TB_MASS_URL: "http://mass:8080"
       TB_MASS_DB_NAME: "mass"
       TB_MASS_COLLECTION: "EmbeddedDataset"
+      # state storage
+      TB_USE_MEMORY_STORAGE: "true"
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
