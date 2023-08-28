@@ -116,6 +116,3 @@ class Config(
     mass_url: str = "http://mass:8080"
     mass_db_name: str = "mass"
     mass_collection: str = "EmbeddedDataset"
-
-    # state storage
-    use_memory_storage: bool = True

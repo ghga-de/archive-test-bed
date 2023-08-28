@@ -19,20 +19,28 @@
 import re
 from typing import Any
 
+from hexkit.config import config_from_yaml
+from pydantic import BaseSettings
 from pytest import fixture
 
-from fixtures.config import Config
 from fixtures.mongo import MongoFixture
 
 
+@config_from_yaml(prefix="state")
+class StateConfig(BaseSettings):
+    """Config for state storage"""
+
+    use_memory_storage: bool = True
+
+
 class StateStorage:
-    """State object for in-memory storage"""
+    """State storage object to store and manage state"""
 
     memory_storage: dict = {}
-    config: Config
+    config: StateConfig
     mongo: MongoFixture
 
-    def __init__(self, config: Config, mongo: MongoFixture):
+    def __init__(self, config: StateConfig, mongo: MongoFixture):
         self.config = config
         self.mongo = mongo
 
@@ -68,6 +76,7 @@ class StateStorage:
 
 
 @fixture(name="state", scope="session")
-def state_fixture(config: Config, mongo: MongoFixture) -> StateStorage:
+def state_fixture(mongo: MongoFixture) -> StateStorage:
     """Fixture that provides a state storage."""
+    config = StateConfig()
     return StateStorage(config=config, mongo=mongo)
