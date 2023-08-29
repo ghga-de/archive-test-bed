@@ -113,6 +113,8 @@ services:
       METLDATA_DATASET_UPSERTION_TYPE: dataset_created
     volumes:
       - ./metldata.yaml:/home/appuser/.metldata.yaml:ro
+    ports:
+      - 8002:8080
 
   mass:
     image: ghga/mass:0.2.0
@@ -135,6 +137,8 @@ services:
     command: "run-rest"
     volumes:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
+    ports:
+      - 8001:8080
 
   mass-consumer:
     image: ghga/mass:0.2.0
