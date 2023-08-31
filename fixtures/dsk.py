@@ -22,6 +22,7 @@ import tempfile
 from pathlib import Path
 from typing import Generator
 
+import yaml
 from pydantic import BaseSettings
 from pytest import fixture
 
@@ -55,6 +56,11 @@ class DskConfig(BaseSettings):
     file_metadata_dir: Path = submission_registry / "file_metadata"
     files_to_upload_tsv: Path = submission_registry / "files.tsv"
 
+    invalid_metadata_model_file = "invalid_metadata_model.yaml"
+    invalid_metadata_model_path: Path = metadata_dir / invalid_metadata_model_file
+    invalid_metadata_config_path: Path = metadata_dir / "invalid_metadata_config.yaml"
+    invalid_metadata_path: Path = metadata_dir / "invalid_metadata.json"
+
 
 class DskFixture:
     """Data Steward Kit fixture"""
@@ -79,8 +85,25 @@ class DskFixture:
             self.config.metadata_model_path,
             submission_registry_path / self.config.metadata_model_file,
         )
+
+        shutil.copyfile(
+            self.config.invalid_metadata_model_path,
+            submission_registry_path / self.config.invalid_metadata_model_file,
+        )
+
         if os.path.exists(self.config.files_to_upload_tsv):
             os.remove(self.config.files_to_upload_tsv)
+
+    def get_updated_config(self, config_key, new_value):
+        with open(self.config.metadata_config_path, "r", encoding="utf-8") as file:
+            config = yaml.safe_load(file)
+
+        config[config_key] = new_value
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_config_path:
+            yaml_data = yaml.safe_dump(config)
+            tmp_config_path.write(yaml_data.encode())
+
+        return Path(tmp_config_path.name)
 
 
 @fixture(name="dsk", scope="session")
