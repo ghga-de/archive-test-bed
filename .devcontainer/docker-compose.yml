@@ -117,7 +117,7 @@ services:
       - 8002:8080
 
   mass:
-    image: ghga/mass:0.2.0
+    image: ghga/mass:0.3.0
     restart: unless-stopped
     depends_on:
       mongodb:
