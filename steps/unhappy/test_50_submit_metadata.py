@@ -22,7 +22,7 @@ from pathlib import Path
 
 from ..conftest import TIMEOUT, JointFixture, given, parse, scenarios, then, when
 
-scenarios("../features/unhappy/51_alt_submit_metadata.feature")
+scenarios("../features/unhappy/50_submit_metadata.feature")
 
 
 @given(

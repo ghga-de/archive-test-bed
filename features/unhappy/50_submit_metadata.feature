@@ -1,5 +1,5 @@
 @metadata @submission @unhappy
-Feature: 51 Unhappy Submit Metadata
+Feature: 50 Unhappy Submit Metadata
   As a data steward, I cannot submit with invalid config
   or submit invalid research metadata into the local submission store.
 
