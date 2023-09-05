@@ -25,26 +25,6 @@ from ..conftest import TIMEOUT, JointFixture, given, parse, scenarios, then, whe
 scenarios("../features/unhappy/50_submit_metadata.feature")
 
 
-@given(
-    parse('we have the "{config_state}" config with "{model_state}" metadata model'),
-    target_fixture="metadata_config_path",
-)
-def metadata_config(config_state: str, model_state: str, fixtures: JointFixture):
-    config_path_lookup = {
-        "valid": fixtures.dsk.config.metadata_config_path,
-        "invalid": fixtures.dsk.config.invalid_metadata_config_path,
-    }
-    metadata_config_path = config_path_lookup[config_state]
-
-    if model_state == "invalid":
-        metadata_config_path = fixtures.dsk.get_updated_config(
-            config_key="metadata_model_path", new_value="invalid_metadata_model.yaml"
-        )
-
-    assert metadata_config_path.exists()
-    return metadata_config_path
-
-
 @given("we have an invalid research metadata JSON file")
 def invalid_metadata_json_exist(fixtures: JointFixture):
     invalid_metadata_path = fixtures.dsk.config.invalid_metadata_path
@@ -87,18 +67,18 @@ def submit_with_invalid_asset(
     return completed_submit
 
 
-@then(parse('I get the expected error for submission with "{asset}"'))
+@then(parse('I get the expected error for submission with invalid "{asset}"'))
 def check_submission_error(asset: str, completed_submit: subprocess.CompletedProcess):
     expected_errors = {
-        "invalid_config": [
+        "config": [
             "ValidationError: 1 validation error for MetadataConfig",
             "workflow_config -> embed_public",
             "field required (type=value_error.missing)",
         ],
-        "invalid_model": [
+        "model": [
             "MetadataModelAssumptionError: A Submission class is required but does not exist."
         ],
-        "invalid_metadata": [
+        "metadata": [
             "MetadataValidationError: Validation failed due to following issues: in field",
             "'data_access_committees' is a required property",
         ],

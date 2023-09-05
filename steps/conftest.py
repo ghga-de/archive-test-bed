@@ -179,3 +179,23 @@ def check_hit_count(count: int, response: httpx.Response):
 def check_received_item_count(response: httpx.Response, item_count):
     results = response.json()
     assert len(results["hits"]) == item_count
+
+
+@given(
+    parse('we have the "{config_state}" config with "{model_state}" metadata model'),
+    target_fixture="metadata_config_path",
+)
+def metadata_config(config_state: str, model_state: str, fixtures: JointFixture):
+    config_path_lookup = {
+        "valid": fixtures.dsk.config.metadata_config_path,
+        "invalid": fixtures.dsk.config.invalid_metadata_config_path,
+    }
+    metadata_config_path = config_path_lookup[config_state]
+
+    if model_state == "invalid":
+        metadata_config_path = fixtures.dsk.get_updated_config(
+            config_key="metadata_model_path", new_value="invalid_metadata_model.yaml"
+        )
+
+    assert metadata_config_path.exists()
+    return metadata_config_path

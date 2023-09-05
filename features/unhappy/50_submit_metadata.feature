@@ -8,22 +8,18 @@ Feature: 50 Unhappy Submit Metadata
     And we have the "invalid" config with "valid" metadata model
 
     When "minimal" metadata is submitted to the submission store
-    Then I get the expected error for submission with "invalid_config"
+    Then I get the expected error for submission with invalid "config"
 
   Scenario: Submitting with an invalid metadata model
-    Given we start on a clean slate
-    And we have the "valid" config with "invalid" metadata model
+    Given we have the "valid" config with "invalid" metadata model
 
     When "minimal" metadata is submitted to the submission store
-    Then I get the expected error for submission with "invalid_model"
+    Then I get the expected error for submission with invalid "model"
 
   Scenario: Submitting with an invalid research metadata
-    Given we start on a clean slate
-    And we have the "valid" config with "valid" metadata model
+    Given we have the "valid" config with "valid" metadata model
     And we have an invalid research metadata JSON file
 
     When "invalid" metadata is submitted to the submission store
-    Then I get the expected error for submission with "invalid_metadata"
-
-  Scenario: Finishing the unhappy metadata submission
-    Then set the state to "unhappy metadata submission is completed"
+    Then I get the expected error for submission with invalid "metadata"
+    And set the state to "unhappy metadata submission is completed"

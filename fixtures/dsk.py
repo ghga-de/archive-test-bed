@@ -38,6 +38,7 @@ class DskConfig(BaseSettings):
     submission_store: Path = submission_registry / "submission_store"
     accession_store: Path = submission_registry / "accession_store"
     embedded_public_event: Path = event_store / "artifact.embedded_public"
+    source_events_dir: Path = event_store / "source_events"
 
     metadata_dir: Path = BASE_DIR / "example_data" / "metadata"
     metadata_config_path: Path = metadata_dir / "metadata_config.yaml"
