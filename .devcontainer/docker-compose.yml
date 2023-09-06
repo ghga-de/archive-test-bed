@@ -117,7 +117,7 @@ services:
       - 8002:8080
 
   mass:
-    image: ghga/mass:0.3.0
+    image: ghga/mass:0.3.1
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -141,7 +141,7 @@ services:
       - 8001:8080
 
   mass-consumer:
-    image: ghga/mass:0.2.0
+    image: ghga/mass:0.3.1
     restart: unless-stopped
     depends_on:
       kafka:
@@ -161,6 +161,8 @@ services:
     command: "consume-events"
     volumes:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
+    ports:
+      - 8001:8080
 
   ekss:
     image: ghga/encryption-key-store-service:0.3.5
