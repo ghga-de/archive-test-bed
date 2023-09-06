@@ -122,8 +122,12 @@ def batch_file_fixture(
     temp_dir = Path(tempfile.gettempdir())
     metadata = json.loads(dsk.config.complete_metadata_path.read_text())
 
+    files_to_upload_tsv = (
+        dsk.config.submission_registry / dsk.config.files_to_upload_tsv
+    )
+
     created_files = []
-    with open(dsk.config.files_to_upload_tsv, "w", encoding="utf-8") as tsv_file:
+    with open(files_to_upload_tsv, "w", encoding="utf-8") as tsv_file:
         for file_field in dsk.config.metadata_file_fields:
             files = metadata[file_field]
             for file_ in files:
@@ -139,9 +143,11 @@ def batch_file_fixture(
                 created_files.append(file_object)
                 tsv_file.write(f"{file_object.file_path}\t{file_object.object_id}\n")
 
-    file_batch = FileBatch(
-        file_objects=created_files, tsv_file=dsk.config.files_to_upload_tsv
+    files_to_upload_tsv = (
+        dsk.config.submission_registry / dsk.config.files_to_upload_tsv
     )
+
+    file_batch = FileBatch(file_objects=created_files, tsv_file=files_to_upload_tsv)
 
     yield file_batch
 

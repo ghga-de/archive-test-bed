@@ -4,7 +4,7 @@ Feature: 50 Unhappy Submit Metadata
   or submit invalid research metadata into the local submission store.
 
   Scenario: Submitting with an invalid config file
-    Given we start on a clean slate
+    Given we start on a clean unhappy submission registry
     And we have the "invalid" config with "valid" metadata model
 
     When "minimal" metadata is submitted to the submission store

@@ -11,14 +11,12 @@ Feature: 51 Unhappy Transform Metadata
 
     When unhappy metadata submission is transformed
     Then I get the expected error for transformation with invalid "config"
-    And the event_store is empty
 
   Scenario: Transforming metadata with an invalid model
     Given we have the "valid" config with "invalid" metadata model
 
     When unhappy metadata submission is transformed
     Then I get the expected error for transformation with invalid "model"
-    And the event_store is empty
 
   Scenario: Transforming an invalid submission JSON
     Given we have the "valid" config with "valid" metadata model

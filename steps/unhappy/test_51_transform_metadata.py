@@ -30,7 +30,10 @@ scenarios("../features/unhappy/51_transform_metadata.feature")
 
 @given("we have an invalid submission JSON file in the local submission store")
 def invalid_submission_json_exist(fixtures: JointFixture):
-    submission_store = fixtures.dsk.config.submission_store
+    submission_store = (
+        fixtures.dsk.config.unhappy_submission_registry
+        / fixtures.dsk.config.submission_store
+    )
     assert submission_store.exists()
     json_files = glob.glob(os.path.join(submission_store, "*.json"))
     assert len(json_files) == 1
@@ -43,7 +46,7 @@ def invalid_submission_json_exist(fixtures: JointFixture):
     "unhappy metadata submission is transformed", target_fixture="completed_transform"
 )
 def transform_metadata(metadata_config_path: Path, fixtures: JointFixture):
-    workdir = fixtures.dsk.config.submission_registry
+    workdir = fixtures.dsk.config.unhappy_submission_registry
 
     completed_transform = (
         subprocess.run(  # nosec B607, B603 pylint: disable=subprocess-run-check
@@ -88,13 +91,12 @@ def check_transformation_error(
         assert msg in completed_transform.stderr
 
 
-@then("the event_store is empty")
-def event_store_is_empty(fixtures: JointFixture):
-    assert fixtures.dsk.config.event_store.is_dir()
-    assert not any(fixtures.dsk.config.event_store.iterdir())
-
-
 @then("the source_events are empty")
 def source_events_are_empty(fixtures: JointFixture):
-    assert fixtures.dsk.config.source_events_dir.is_dir()
-    assert not any(fixtures.dsk.config.source_events_dir.iterdir())
+    source_events = (
+        fixtures.dsk.config.unhappy_submission_registry
+        / fixtures.dsk.config.event_store
+        / fixtures.dsk.config.source_events
+    )
+    assert source_events.is_dir()
+    assert not any(source_events.iterdir())

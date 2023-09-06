@@ -34,11 +34,11 @@ class DskConfig(BaseSettings):
     """Config for metadata and related submissions"""
 
     submission_registry: Path = TMP_DIR / "submission"
-    event_store: Path = submission_registry / "event_store"
-    submission_store: Path = submission_registry / "submission_store"
-    accession_store: Path = submission_registry / "accession_store"
-    embedded_public_event: Path = event_store / "artifact.embedded_public"
-    source_events_dir: Path = event_store / "source_events"
+    event_store: str = "event_store"
+    submission_store: str = "submission_store"
+    accession_store: str = "accession_store"
+    embedded_public_event: str = "artifact.embedded_public"
+    source_events: str = "source_events"
 
     metadata_dir: Path = BASE_DIR / "example_data" / "metadata"
     metadata_config_path: Path = metadata_dir / "metadata_config.yaml"
@@ -54,9 +54,10 @@ class DskConfig(BaseSettings):
         "study_files",
     ]
 
-    file_metadata_dir: Path = submission_registry / "file_metadata"
-    files_to_upload_tsv: Path = submission_registry / "files.tsv"
+    file_metadata_dir: str = "file_metadata"
+    files_to_upload_tsv: str = "files.tsv"
 
+    unhappy_submission_registry: Path = TMP_DIR / "invalid_submission"
     invalid_metadata_model_file = "invalid_metadata_model.yaml"
     invalid_metadata_model_path: Path = metadata_dir / invalid_metadata_model_file
     invalid_metadata_config_path: Path = metadata_dir / "invalid_metadata_config.yaml"
@@ -71,29 +72,62 @@ class DskFixture:
     def __init__(self, config: DskConfig):
         self.config = config
 
-    def reset_work_dir(self):
+    def reset_unhappy_submission_registry(self):
+        unhappy_submission_registry = self.config.unhappy_submission_registry
+
+        if os.path.exists(unhappy_submission_registry):
+            shutil.rmtree(unhappy_submission_registry)
+
+        event_store = unhappy_submission_registry / self.config.event_store
+        submission_store = unhappy_submission_registry / self.config.submission_store
+        accession_store = unhappy_submission_registry / self.config.accession_store
+
+        unhappy_submission_registry.mkdir()
+        event_store.mkdir()
+        submission_store.mkdir()
+        accession_store.touch()
+
+        shutil.copyfile(
+            self.config.metadata_model_path,
+            unhappy_submission_registry / self.config.metadata_model_file,
+        )
+
+        shutil.copyfile(
+            self.config.invalid_metadata_model_path,
+            unhappy_submission_registry / self.config.invalid_metadata_model_file,
+        )
+
+        files_to_upload_tsv = (
+            unhappy_submission_registry / self.config.files_to_upload_tsv
+        )
+
+        if os.path.exists(files_to_upload_tsv):
+            os.remove(files_to_upload_tsv)
+
+    def reset_submission_dir(self):
         submission_registry_path = self.config.submission_registry
 
         if os.path.exists(submission_registry_path):
             shutil.rmtree(submission_registry_path)
 
+        event_store = submission_registry_path / self.config.event_store
+        submission_store = submission_registry_path / self.config.submission_store
+        accession_store = submission_registry_path / self.config.accession_store
+
         submission_registry_path.mkdir()
-        self.config.event_store.mkdir()
-        self.config.submission_store.mkdir()
-        self.config.accession_store.touch()
+        event_store.mkdir()
+        submission_store.mkdir()
+        accession_store.touch()
 
         shutil.copyfile(
             self.config.metadata_model_path,
             submission_registry_path / self.config.metadata_model_file,
         )
 
-        shutil.copyfile(
-            self.config.invalid_metadata_model_path,
-            submission_registry_path / self.config.invalid_metadata_model_file,
-        )
+        files_to_upload_tsv = submission_registry_path / self.config.files_to_upload_tsv
 
-        if os.path.exists(self.config.files_to_upload_tsv):
-            os.remove(self.config.files_to_upload_tsv)
+        if os.path.exists(files_to_upload_tsv):
+            os.remove(files_to_upload_tsv)
 
     def get_updated_config(self, config_key, new_value):
         with open(self.config.metadata_config_path, "r", encoding="utf-8") as file:

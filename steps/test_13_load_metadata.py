@@ -30,9 +30,12 @@ scenarios("../features/13_load_metadata.feature")
 
 @when("metadata is loaded into the system")
 def run_the_load_command(fixtures: JointFixture):
+    event_store_path = (
+        fixtures.dsk.config.submission_registry / fixtures.dsk.config.event_store
+    )
     load_config_path = load_config_as_file(
         LoadConfig(
-            event_store_path=fixtures.dsk.config.event_store,
+            event_store_path=event_store_path,
             artifact_topic_prefix="artifact",
             artifact_types=["embedded_public", "stats_public"],
             loader_api_root=fixtures.config.metldata_url,

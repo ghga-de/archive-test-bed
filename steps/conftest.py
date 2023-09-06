@@ -134,8 +134,15 @@ async def reset_state(fixtures: JointFixture):
     fixtures.kafka.delete_topics()  # empty event queues
     fixtures.mongo.empty_databases("tb")  # empty state database
     fixtures.mongo.empty_databases()  # empty service databases
-    fixtures.dsk.reset_work_dir()  # reset local submission registry
+    fixtures.dsk.reset_submission_dir()  # reset local submission registry
+    fixtures.dsk.reset_unhappy_submission_registry()  # reset local unhappy submission registry
     empty_mail_server(fixtures.config)  # reset mail server
+
+
+@given("we start on a clean unhappy submission registry", target_fixture="state")
+@async_step
+async def reset_unhappy_submission_registry(fixtures: JointFixture):
+    fixtures.dsk.reset_unhappy_submission_registry()  # reset local unhappy submission registry
 
 
 @given(parse('we have the state "{name}"'), target_fixture="state")

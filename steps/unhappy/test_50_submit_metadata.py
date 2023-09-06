@@ -38,7 +38,7 @@ def invalid_metadata_json_exist(fixtures: JointFixture):
 def submit_with_invalid_asset(
     name: str, metadata_config_path: Path, fixtures: JointFixture
 ):
-    workdir = fixtures.dsk.config.submission_registry
+    workdir = fixtures.dsk.config.unhappy_submission_registry
     metadata_json_path = fixtures.dsk.config.metadata_dir / f"{name}_metadata.json"
 
     completed_submit = (
