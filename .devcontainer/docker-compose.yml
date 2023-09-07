@@ -149,8 +149,6 @@ services:
       mongodb:
         condition: service_started
     environment:
-      MASS_HOST: 0.0.0.0
-      MASS_PORT: 8080
       MASS_SERVICE_INSTANCE_ID: mass-consumer-1
       MASS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       MASS_DB_NAME: mass
@@ -161,8 +159,6 @@ services:
     command: "consume-events"
     volumes:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
-    ports:
-      - 8001:8080
 
   ekss:
     image: ghga/encryption-key-store-service:0.3.5
