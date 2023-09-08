@@ -47,14 +47,15 @@ def reset_unhappy_file_metadata(dsk: DskFixture):
     target_fixture="file_object_upload",
 )
 def upload_files_individually(
-    fixtures: JointFixture, file_fixture: list[FileObject]
+    fixtures: JointFixture, unhappy_file_fixture: list[FileObject]
 ) -> tuple[FileObject, subprocess.CompletedProcess]:
     file_metadata_dir = (
-        fixtures.dsk.config.submission_registry / fixtures.dsk.config.file_metadata_dir
+        fixtures.dsk.config.unhappy_submission_registry
+        / fixtures.dsk.config.file_metadata_dir
     )
     file_metadata_dir.mkdir(exist_ok=True)
 
-    file_object = file_fixture[0]
+    file_object = unhappy_file_fixture[0]
 
     upload_config_path = upload_config_as_file(
         config=fixtures.config, file_metadata_dir=file_metadata_dir
@@ -173,7 +174,7 @@ def check_existing_file_error(
 
     expected_error = (
         "CRITICAL:s3_upload:Output file "
-        f"/tmp/submission/file_metadata/{file_object.object_id}.json "
+        f"/tmp/unhappy_submission/file_metadata/{file_object.object_id}.json "
         "already exists and cannot be overwritten.\n"
     )
 

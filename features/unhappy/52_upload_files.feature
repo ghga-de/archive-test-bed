@@ -5,15 +5,16 @@ Feature: 52 Unhappy Upload Files
 
   Background:
     Given we have the state "metadata submission is completed"
+    And we have no unhappy file metadata
 
   Scenario: Uploading already existing files individually
+    When the files for the unhappy metadata are uploaded individually
+    Then the file metadata for each uploaded unhappy file exists
 
     When the files for the minimal metadata are uploaded individually
     Then I get the expected existing file error
 
   Scenario: Ingesting files different than submission
-
-    Given we have no unhappy file metadata
 
     When the files for the unhappy metadata are uploaded individually
     Then the file metadata for each uploaded unhappy file exists
