@@ -53,7 +53,7 @@ EXPECTED_SUMMARIES = {
         },
         "files_summary": {
             "count": 20,
-            "stats": {"format": [{"value": "FASTQ", "count": 20}]},
+            "stats": {"format": [{"value": "FASTQ", "count": 20}], "size": 114708},
         },
     },
     "DS_A": {
@@ -84,7 +84,11 @@ EXPECTED_SUMMARIES = {
         "files_summary": {
             "count": 7,
             "stats": {
-                "format": [{"value": "FASTQ", "count": 4}, {"value": "VCF", "count": 3}]
+                "format": [
+                    {"value": "FASTQ", "count": 4},
+                    {"value": "VCF", "count": 3},
+                ],
+                "size": 1816,
             },
         },
     },

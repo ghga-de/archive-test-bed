@@ -138,6 +138,13 @@ workflow_config:
               - study_files.format
               - analysis_process_output_files.format
             function: StringElementCount
+          - output_path: files_summary.stats.size
+            input_paths:
+              - sequencing_process_files.size
+              - sample_files.size
+              - study_files.size
+              - analysis_process_output_files.size
+            function: IntegerSum
   add_accessions:
     accession_slot_name: accession
     accession_slot_description: The accession for an entity.
