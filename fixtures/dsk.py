@@ -57,11 +57,11 @@ class DskConfig(BaseSettings):
     file_metadata_dir: str = "file_metadata"
     files_to_upload_tsv: str = "files.tsv"
 
-    unhappy_submission_registry: Path = TMP_DIR / "invalid_submission"
-    invalid_metadata_model_file = "invalid_metadata_model.yaml"
-    invalid_metadata_model_path: Path = metadata_dir / invalid_metadata_model_file
-    invalid_metadata_config_path: Path = metadata_dir / "invalid_metadata_config.yaml"
-    invalid_metadata_path: Path = metadata_dir / "invalid_metadata.json"
+    unhappy_submission_registry: Path = TMP_DIR / "unhappy_submission"
+    unhappy_metadata_model_file = "unhappy_metadata_model.yaml"
+    unhappy_metadata_model_path: Path = metadata_dir / unhappy_metadata_model_file
+    unhappy_metadata_config_path: Path = metadata_dir / "unhappy_metadata_config.yaml"
+    unhappy_metadata_path: Path = metadata_dir / "unhappy_metadata.json"
 
 
 class DskFixture:
@@ -72,7 +72,7 @@ class DskFixture:
     def __init__(self, config: DskConfig):
         self.config = config
 
-    def reset_unhappy_submission_registry(self):
+    def reset_unhappy_submission_dir(self):
         unhappy_submission_registry = self.config.unhappy_submission_registry
 
         if os.path.exists(unhappy_submission_registry):
@@ -93,8 +93,8 @@ class DskFixture:
         )
 
         shutil.copyfile(
-            self.config.invalid_metadata_model_path,
-            unhappy_submission_registry / self.config.invalid_metadata_model_file,
+            self.config.unhappy_metadata_model_path,
+            unhappy_submission_registry / self.config.unhappy_metadata_model_file,
         )
 
         files_to_upload_tsv = (

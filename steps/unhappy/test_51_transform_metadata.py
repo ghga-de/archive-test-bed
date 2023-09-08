@@ -28,8 +28,8 @@ from ..conftest import TIMEOUT, JointFixture, given, parse, scenarios, then, whe
 scenarios("../features/unhappy/51_transform_metadata.feature")
 
 
-@given("we have an invalid submission JSON file in the local submission store")
-def invalid_submission_json_exist(fixtures: JointFixture):
+@given("we have an unhappy submission JSON file in the local submission store")
+def unhappy_submission_json_exist(fixtures: JointFixture):
     submission_store = (
         fixtures.dsk.config.unhappy_submission_registry
         / fixtures.dsk.config.submission_store
@@ -72,7 +72,7 @@ def transform_metadata(metadata_config_path: Path, fixtures: JointFixture):
     return completed_transform
 
 
-@then(parse('I get the expected error for transformation with invalid "{asset}"'))
+@then(parse('I get the expected error for transformation with unhappy "{asset}"'))
 def check_transformation_error(
     asset: str, completed_transform: subprocess.CompletedProcess
 ):

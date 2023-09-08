@@ -48,6 +48,7 @@ from fixtures import (  # noqa: F401; pylint: disable=unused-import
     kafka_fixture,
     mongo_fixture,
     s3_fixture,
+    unhappy_file_fixture,
 )
 
 TIMEOUT = 10
@@ -135,14 +136,14 @@ async def reset_state(fixtures: JointFixture):
     fixtures.mongo.empty_databases("tb")  # empty state database
     fixtures.mongo.empty_databases()  # empty service databases
     fixtures.dsk.reset_submission_dir()  # reset local submission registry
-    fixtures.dsk.reset_unhappy_submission_registry()  # reset local unhappy submission registry
+    fixtures.dsk.reset_unhappy_submission_dir()  # reset local unhappy submission registry
     empty_mail_server(fixtures.config)  # reset mail server
 
 
 @given("we start on a clean unhappy submission registry", target_fixture="state")
 @async_step
-async def reset_unhappy_submission_registry(fixtures: JointFixture):
-    fixtures.dsk.reset_unhappy_submission_registry()  # reset local unhappy submission registry
+async def reset_unhappy_submission_dir(fixtures: JointFixture):
+    fixtures.dsk.reset_unhappy_submission_dir()  # reset local unhappy submission registry
 
 
 @given(parse('we have the state "{name}"'), target_fixture="state")
@@ -195,13 +196,13 @@ def check_received_item_count(response: httpx.Response, item_count):
 def metadata_config(config_state: str, model_state: str, fixtures: JointFixture):
     config_path_lookup = {
         "valid": fixtures.dsk.config.metadata_config_path,
-        "invalid": fixtures.dsk.config.invalid_metadata_config_path,
+        "unhappy": fixtures.dsk.config.unhappy_metadata_config_path,
     }
     metadata_config_path = config_path_lookup[config_state]
 
-    if model_state == "invalid":
+    if model_state == "unhappy":
         metadata_config_path = fixtures.dsk.get_updated_config(
-            config_key="metadata_model_path", new_value="invalid_metadata_model.yaml"
+            config_key="metadata_model_path", new_value="unhappy_metadata_model.yaml"
         )
 
     assert metadata_config_path.exists()

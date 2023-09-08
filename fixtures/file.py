@@ -30,7 +30,13 @@ from fixtures.config import Config
 from fixtures.dsk import DskFixture
 from steps.utils import calculate_checksum
 
-__all__ = ["FileBatch", "FileObject", "batch_file_fixture", "file_fixture"]
+__all__ = [
+    "FileBatch",
+    "FileObject",
+    "batch_file_fixture",
+    "file_fixture",
+    "unhappy_file_fixture",
+]
 
 
 class FileBatch(BaseModel):
@@ -152,4 +158,32 @@ def batch_file_fixture(
     yield file_batch
 
     for file_object in file_batch.file_objects:
+        os.remove(file_object.file_path)
+
+
+@fixture(name="unhappy_file_fixture")
+def unhappy_file_fixture(
+    config: Config, dsk: DskFixture
+) -> Generator[List[FileObject], None, None]:
+    """File fixture that provides temporary files for the unhappy metadata."""
+
+    temp_dir = Path(tempfile.gettempdir())
+    metadata = json.loads(dsk.config.unhappy_metadata_path.read_text())
+
+    created_files = []
+    for file_field in dsk.config.metadata_file_fields:
+        files = metadata[file_field]
+        for file_ in files:
+            file_object = create_named_file(
+                target_dir=temp_dir,
+                config=config,
+                name=file_["name"],
+                alias=file_["alias"],
+            )
+
+            created_files.append(file_object)
+
+    yield created_files
+
+    for file_object in created_files:
         os.remove(file_object.file_path)

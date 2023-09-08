@@ -1,26 +1,26 @@
 @metadata @transformation @unhappy
 Feature: 51 Unhappy Transform Metadata
-  As a data steward, I cannot transform with an invalid config
-  or an invalid submission JSON
+  As a data steward, I cannot transform with an unhappy config
+  or an unhappy submission JSON
 
   Background:
     Given we have the state "unhappy metadata submission is completed"
 
-  Scenario: Transforming metadata with an invalid config
-    Given we have the "invalid" config with "valid" metadata model
+  Scenario: Transforming metadata with an unhappy config
+    Given we have the "unhappy" config with "valid" metadata model
 
     When unhappy metadata submission is transformed
-    Then I get the expected error for transformation with invalid "config"
+    Then I get the expected error for transformation with unhappy "config"
 
-  Scenario: Transforming metadata with an invalid model
-    Given we have the "valid" config with "invalid" metadata model
+  Scenario: Transforming metadata with an unhappy model
+    Given we have the "valid" config with "unhappy" metadata model
 
     When unhappy metadata submission is transformed
-    Then I get the expected error for transformation with invalid "model"
+    Then I get the expected error for transformation with unhappy "model"
 
-  Scenario: Transforming an invalid submission JSON
+  Scenario: Transforming an unhappy submission JSON
     Given we have the "valid" config with "valid" metadata model
-    And we have an invalid submission JSON file in the local submission store
+    And we have an unhappy submission JSON file in the local submission store
 
     When unhappy metadata submission is transformed
     Then the source_events are empty

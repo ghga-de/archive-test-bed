@@ -1,25 +1,25 @@
 @metadata @submission @unhappy
 Feature: 50 Unhappy Submit Metadata
-  As a data steward, I cannot submit with invalid config
-  or submit invalid research metadata into the local submission store.
+  As a data steward, I cannot submit with unhappy config
+  or submit unhappy research metadata into the local submission store.
 
-  Scenario: Submitting with an invalid config file
+  Scenario: Submitting with an unhappy config file
     Given we start on a clean unhappy submission registry
-    And we have the "invalid" config with "valid" metadata model
+    And we have the "unhappy" config with "valid" metadata model
 
     When "minimal" metadata is submitted to the submission store
-    Then I get the expected error for submission with invalid "config"
+    Then I get the expected error for submission with unhappy "config"
 
-  Scenario: Submitting with an invalid metadata model
-    Given we have the "valid" config with "invalid" metadata model
+  Scenario: Submitting with an unhappy metadata model
+    Given we have the "valid" config with "unhappy" metadata model
 
     When "minimal" metadata is submitted to the submission store
-    Then I get the expected error for submission with invalid "model"
+    Then I get the expected error for submission with unhappy "model"
 
-  Scenario: Submitting with an invalid research metadata
+  Scenario: Submitting with an unhappy research metadata
     Given we have the "valid" config with "valid" metadata model
-    And we have an invalid research metadata JSON file
+    And we have an unhappy research metadata JSON file
 
-    When "invalid" metadata is submitted to the submission store
-    Then I get the expected error for submission with invalid "metadata"
+    When "unhappy" metadata is submitted to the submission store
+    Then I get the expected error for submission with unhappy "metadata"
     And set the state to "unhappy metadata submission is completed"

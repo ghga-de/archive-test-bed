@@ -25,17 +25,17 @@ from ..conftest import TIMEOUT, JointFixture, given, parse, scenarios, then, whe
 scenarios("../features/unhappy/50_submit_metadata.feature")
 
 
-@given("we have an invalid research metadata JSON file")
-def invalid_metadata_json_exist(fixtures: JointFixture):
-    invalid_metadata_path = fixtures.dsk.config.invalid_metadata_path
-    assert invalid_metadata_path.exists()
+@given("we have an unhappy research metadata JSON file")
+def unhappy_metadata_json_exist(fixtures: JointFixture):
+    unhappy_metadata_path = fixtures.dsk.config.unhappy_metadata_path
+    assert unhappy_metadata_path.exists()
 
 
 @when(
     parse('"{name}" metadata is submitted to the submission store'),
     target_fixture="completed_submit",
 )
-def submit_with_invalid_asset(
+def submit_with_unhappy_asset(
     name: str, metadata_config_path: Path, fixtures: JointFixture
 ):
     workdir = fixtures.dsk.config.unhappy_submission_registry
@@ -48,9 +48,9 @@ def submit_with_invalid_asset(
                 "metadata",
                 "submit",
                 "--submission-title",
-                "Invalid Submission",
+                "Unhappy Submission",
                 "--submission-description",
-                "Invalid Submission Description",
+                "Unhappy Submission Description",
                 "--metadata-path",
                 metadata_json_path,
                 "--config-path",
@@ -67,7 +67,7 @@ def submit_with_invalid_asset(
     return completed_submit
 
 
-@then(parse('I get the expected error for submission with invalid "{asset}"'))
+@then(parse('I get the expected error for submission with unhappy "{asset}"'))
 def check_submission_error(asset: str, completed_submit: subprocess.CompletedProcess):
     expected_errors = {
         "config": [
