@@ -143,7 +143,7 @@ def run_the_decrypt_command(fixtures: JointFixture):
 
 @then("all downloaded files have been properly decrypted")
 def files_have_been_decrypted(
-        fixtures: JointFixture, downloaded_files: List[Dict[str, str]]
+    fixtures: JointFixture, downloaded_files: List[Dict[str, str]]
 ):
     datasets = fixtures.state.get_state("all available datasets")
     dataset_alias = fixtures.state.get_state("dataset to be downloaded")
