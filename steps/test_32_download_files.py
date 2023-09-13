@@ -100,9 +100,7 @@ def files_are_downloaded(fixtures: JointFixture, file_scope: str):
 
     download_dir = fixtures.connector.config.download_dir
 
-    file_count = sum(
-        1 for item in os.listdir(download_dir) if not os.path.isdir(item)
-    )
+    file_count = sum(1 for item in os.listdir(download_dir) if not os.path.isdir(item))
     assert len(files) == file_count
 
     for file_ in files:
