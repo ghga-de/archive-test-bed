@@ -75,7 +75,7 @@ services:
       TB_MASS_DB_NAME: "mass"
       TB_MASS_COLLECTION: "EmbeddedDataset"
       # state storage
-      STATE_USE_MEMORY_STORAGE: "true"
+      STATE_USE_MEMORY_STORAGE: "false"
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
