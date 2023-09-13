@@ -97,7 +97,7 @@ def create_work_package(
         file_ids = None
     elif file_scope in ["vcf", "fastq"]:
         extension = f".{file_scope}.gz"
-        files = list(filter(lambda file: file["extension"] == extension, files))
+        files = [file for file in files if file["extension"] == extension]
         file_ids = [file["id"] for file in files]
     else:
         raise ValueError("Unknown file_scope {file_scope}")

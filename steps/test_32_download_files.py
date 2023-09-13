@@ -15,6 +15,7 @@
 
 """Step definitions for downloading files with the GHGA connector"""
 
+import os
 import subprocess
 from typing import Dict, List
 
@@ -97,6 +98,13 @@ def files_are_downloaded(fixtures: JointFixture, file_scope: str):
         file["accession"] for file in dataset["files"].values()
     )
 
+    download_dir = fixtures.connector.config.download_dir
+
+    file_count = len(
+        [item for item in os.listdir(download_dir) if not os.path.isdir(item)]
+    )
+    assert len(files) == file_count
+
     for file_ in files:
         file_id = file_["id"]
         file_extension = file_["extension"]
@@ -105,7 +113,7 @@ def files_are_downloaded(fixtures: JointFixture, file_scope: str):
         assert file_id in dataset_file_accessions
 
         verify_named_file(
-            target_dir=fixtures.connector.config.download_dir,
+            target_dir=download_dir,
             extension=file_extension,
             name=file_id,
             encrypted=True,
