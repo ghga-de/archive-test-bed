@@ -25,7 +25,6 @@ from .conftest import (
     JointFixture,
     S3Fixture,
     async_step,
-    get_state,
     given,
     parse,
     scenarios,
@@ -58,7 +57,7 @@ def keys_are_made_available(connector: ConnectorFixture, config: Config):
 
 @when(parse('I run the GHGA connector download command for "{file_scope}" files'))
 def run_the_download_command(fixtures: JointFixture, file_scope: str):
-    download_token = get_state(f"download token for {file_scope} files", fixtures.mongo)
+    download_token = fixtures.state.get_state(f"download token for {file_scope} files")
     assert download_token and isinstance(download_token, str)
     connector = fixtures.connector
     completed_download = subprocess.run(  # nosec B607, B603
@@ -87,9 +86,9 @@ def run_the_download_command(fixtures: JointFixture, file_scope: str):
     target_fixture="downloaded_files",
 )
 def files_are_downloaded(fixtures: JointFixture, file_scope: str):
-    files = get_state(f"{file_scope} files to be downloaded", fixtures.mongo)
-    dataset_alias = get_state("dataset to be downloaded", fixtures.mongo)
-    datasets = get_state("all available datasets", fixtures.mongo)
+    files = fixtures.state.get_state(f"{file_scope} files to be downloaded")
+    dataset_alias = fixtures.state.get_state("dataset to be downloaded")
+    datasets = fixtures.state.get_state("all available datasets")
 
     assert dataset_alias in datasets
 
@@ -144,10 +143,10 @@ def run_the_decrypt_command(fixtures: JointFixture):
 
 @then("all downloaded files have been properly decrypted")
 def files_have_been_decrypted(
-    fixtures: JointFixture, downloaded_files: List[Dict[str, str]]
+        fixtures: JointFixture, downloaded_files: List[Dict[str, str]]
 ):
-    datasets = get_state("all available datasets", fixtures.mongo)
-    dataset_alias = get_state("dataset to be downloaded", fixtures.mongo)
+    datasets = fixtures.state.get_state("all available datasets")
+    dataset_alias = fixtures.state.get_state("dataset to be downloaded")
 
     assert dataset_alias in datasets
 

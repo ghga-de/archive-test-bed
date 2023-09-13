@@ -23,12 +23,11 @@ from .conftest import (
     JointFixture,
     LoginFixture,
     MongoFixture,
+    StateStorage,
     given,
     parse,
     scenarios,
-    set_state,
     then,
-    unset_state,
     when,
 )
 
@@ -36,11 +35,11 @@ scenarios("../features/31_work_packages.feature")
 
 
 @given("no work packages have been created yet")
-def wps_database_is_empty(config: Config, mongo: MongoFixture):
+def wps_database_is_empty(config: Config, mongo: MongoFixture, state: StateStorage):
     mongo.empty_databases(config.wps_db_name, exclude_collections="datasets")
-    unset_state("^a download token has been created for.*", mongo)
-    unset_state("dataset to be downloaded", mongo)
-    unset_state(".*files to be downloaded$", mongo)
+    state.unset_state("^a download token has been created for.*")
+    state.unset_state("dataset to be downloaded")
+    state.unset_state(".*files to be downloaded$")
 
 
 @given("the test datasets have been announced")
@@ -71,7 +70,7 @@ def check_dataset_in_list(
     assert dataset.get("title") == f"The complete-{dataset_char} dataset"
     files = dataset.get("files")
     assert files and isinstance(files, list)
-    set_state("dataset to be downloaded", f"DS_{dataset_char}", fixtures.mongo)
+    fixtures.state.set_state("dataset to be downloaded", f"DS_{dataset_char}")
 
 
 @when(
@@ -102,7 +101,7 @@ def create_work_package(
     else:
         raise ValueError("Unknown file_scope {file_scope}")
 
-    set_state(f"{file_scope} files to be downloaded", files, fixtures.mongo)
+    fixtures.state.set_state(f"{file_scope} files to be downloaded", files)
 
     data = {
         "dataset_id": dataset_id,
@@ -124,8 +123,7 @@ def check_download_token(
     id_, token = data["id"], data["token"]
     assert 20 <= len(id_) < 40 and 80 < len(token) < 120
     id_and_token = f"{id_}:{token}"
-    set_state(
+    fixtures.state.set_state(
         f"download token for {file_scope} files",
         id_and_token,
-        fixtures.mongo,
     )
