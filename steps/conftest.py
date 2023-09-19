@@ -93,14 +93,15 @@ class LoginFixture(NamedTuple):
 @given(parse('I am logged in as "{name}"'), target_fixture="login")
 def access_as_user(name: str, fixtures: JointFixture) -> LoginFixture:
     # Create user dictionary
-    if name.startswith(("Prof. ", "Dr. ")):
-        title, name = name.split(None, 1)
+    if name.startswith(("Prof.", "Dr.")):
+        title, name = name.split(".", 1)
+        title += "."
+        name = name.lstrip()
     else:
         title = None
     user_id = "id-of-" + name.lower().replace(" ", "-")
-    ext_id = f"{user_id}@lifescience-ri.eu"
     email = name.lower().replace(" ", ".") + "@home.org"
-    role = "data_steward" if "steward" in name.lower() else None
+    ext_id = f"{user_id}@lifescience-ri.eu"
     user: dict[str, Any] = {
         "_id": user_id,
         "status": "active",
@@ -111,13 +112,11 @@ def access_as_user(name: str, fixtures: JointFixture) -> LoginFixture:
         "registration_date": 1688472000,
     }
     # Add the user to the auth database. This is needed
-    # because users are not registered as part of the test.
+    # because users are not (yet) registered as part of the test.
     fixtures.mongo.replace_document(
-        fixtures.config.auth_db_name, fixtures.config.auth_users_collection, user
+        fixtures.config.ums_db_name, fixtures.config.ums_users_collection, user
     )
-    headers = fixtures.auth.generate_headers(
-        id_=user_id, name=name, email=email, title=title, role=role
-    )
+    headers = fixtures.auth.generate_headers(name=name, email=email)
     return LoginFixture(user, headers)
 
 

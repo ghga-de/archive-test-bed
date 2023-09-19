@@ -47,7 +47,7 @@ def ars_database_is_empty(config: Config, mongo: MongoFixture, state: StateStora
 
 @given("the claims repository is empty")
 def claims_repository_is_empty(config: Config, mongo: MongoFixture):
-    mongo.empty_databases(config.auth_db_name)
+    mongo.empty_databases(config.ums_db_name)
 
 
 @when(

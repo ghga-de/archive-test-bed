@@ -34,6 +34,8 @@ services:
       # GHGA connector
       GHGA_CONNECTOR_PART_SIZE: 8589934592
       GHGA_CONNECTOR_WKVS_API_URL: http://wkvs
+      # operation modes
+      TB_KEEP_STATE_IN_DB: true
       # Kafka
       TB_SERVICE_NAME: testbed_kafka
       TB_SERVICE_INSTANCE_ID: app-1
@@ -50,6 +52,9 @@ services:
       TB_OUTBOX_BUCKET: outbox
       TB_STAGING_BUCKET: staging
       TB_PERMANENT_BUCKET: permanent
+      # auth
+      TB_AUTH_KEY_FILE: ".devcontainer/auth.env"
+      TB_AUTH_ADAPTER_URL: http://auth:8080
       # file ingest
       TB_FILE_INGEST_URL: http://fis:8080/ingest
       # metldata
@@ -58,24 +63,23 @@ services:
       # ars
       TB_ARS_DB_NAME: "ars"
       TB_ARS_URL: "http://ars:8080"
-      #auth
-      TB_AUTH_DB_NAME: "auth"
-      TB_AUTH_USERS_COLLECTION: "users"
-      TB_AUTH_KEY_FILE: ".devcontainer/auth.env"
+      # ums
+      TB_UMS_DB_NAME: "auth"
+      TB_UMS_USERS_COLLECTION: "users"
       # wps
       TB_WPS_DB_NAME: "wps"
       TB_WPS_URL: "http://wps:8080"
       # ifrs
       TB_IFRS_DB_NAME: "ifrs"
       TB_IFRS_METADATA_COLLECTION: "file_metadata"
-      # notifications
-      TB_MAILHOG_URL: "http://mailhog:8025"
       # mass
       TB_MASS_URL: "http://mass:8080"
       TB_MASS_DB_NAME: "mass"
       TB_MASS_COLLECTION: "EmbeddedDataset"
-      # state storage
-      STATE_USE_MEMORY_STORAGE: "false"
+      # notifications
+      TB_MAILHOG_URL: "http://mailhog:8025"
+      # test OP
+      TB_OP_URL: "http://op.test"
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
@@ -89,7 +93,7 @@ services:
       WKVS_WPS_API_URL: http://wps:8080
 
   metldata:
-    image: ghga/metldata:0.4.3
+    image: ghga/metldata:0.4.4
     restart: unless-stopped
     depends_on:
       kafka:
@@ -279,19 +283,47 @@ services:
       IFRS_S3_ACCESS_KEY_ID: testbed-key
       IFRS_S3_SECRET_ACCESS_KEY: testbed-secret
 
-  crs:
+  # user management service
+  ums:
     image: ghga/auth-service:0.5.1
     restart: unless-stopped
     depends_on:
       mongodb:
         condition: service_started
-    env_file: crs.env
+    env_file: ums.env
     environment:
       AUTH_SERVICE_HOST: 0.0.0.0
-      AUTH_SERVICE_INCLUDE_APIS: '["claims"]'
+      AUTH_SERVICE_INCLUDE_APIS: '["users", "claims"]'
       AUTH_SERVICE_ADD_AS_DATA_STEWARDS: '["id-of-data-steward"]'
       AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongodb
       AUTH_SERVICE_DB_NAME: auth
+
+  # auth adapter
+  auth:
+    image: ghga/auth-service:0.5.1
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_started
+    env_file: auth.env
+    environment:
+      AUTH_SERVICE_HOST: 0.0.0.0
+      AUTH_SERVICE_INCLUDE_APIS: '[]'
+      AUTH_SERVICE_RUN_AUTH_ADAPTER: true
+      AUTH_SERVICE_OIDC_AUTHORITY_URL: http://op.test
+      AUTH_SERVICE_OIDC_USERINFO_ENDPOINT: http://op.test/userinfo
+      AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongodb
+      AUTH_SERVICE_DB_NAME: auth
+
+  # test OpenID Connect provider
+  op.test:
+    image: ghga/test-oidc-provider:0.2.1
+    restart: unless-stopped
+    environment:
+      TOP_HOST: 0.0.0.0
+      TOP_PORT: 80
+      TOP_ISSUER: http://op.test
+      TOP_SERVICE_URL: http://op.test
 
   wps:
     image: ghga/work-package-service:0.1.4
@@ -312,7 +344,7 @@ services:
       WPS_DATASET_CHANGE_EVENT_TOPIC: metadata_datasets
       WPS_DATASET_DELETION_EVENT_TYPE: dataset_deleted
       WPS_DATASET_UPSERTION_EVENT_TYPE: dataset_created
-      WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
+      WPS_DOWNLOAD_ACCESS_URL: http://ums:8080/download-access
       WPS_DB_NAME: wps
     command: run-rest
 
@@ -333,7 +365,7 @@ services:
       WPS_DATASET_CHANGE_EVENT_TOPIC: metadata_datasets
       WPS_DATASET_DELETION_EVENT_TYPE: dataset_deleted
       WPS_DATASET_UPSERTION_EVENT_TYPE: dataset_created
-      WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
+      WPS_DOWNLOAD_ACCESS_URL: http://ums:8080/download-access
       WPS_DB_NAME: wps
     command: consume-events
 
@@ -354,7 +386,7 @@ services:
       ARS_NOTIFICATION_EVENT_TYPE: notification
       ARS_DATA_STEWARD_EMAIL: "helpdesk@ghga.de"
       ARS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      ARS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
+      ARS_DOWNLOAD_ACCESS_URL: http://ums:8080/download-access
       ARS_DB_NAME: ars
 
   fis:

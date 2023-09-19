@@ -1,4 +1,3 @@
-# Copyright 2021 - 2023 Universität Tübingen, DKFZ, EMBL, and Universität zu Köln
 # for the German Human Genome-Phenome Archive (GHGA)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,18 +19,10 @@ import re
 from abc import ABC, abstractmethod
 from typing import Any
 
-from hexkit.config import config_from_yaml
-from pydantic import BaseSettings
 from pytest import fixture
 
+from fixtures.config import Config
 from fixtures.mongo import MongoFixture
-
-
-@config_from_yaml(prefix="state")
-class StateConfig(BaseSettings):
-    """Config for state storage"""
-
-    use_memory_storage: bool = False
 
 
 class StateStorage(ABC):
@@ -112,13 +103,12 @@ class MongoStateStorage(StateStorage):
 
 
 @fixture(name="state", scope="session")
-def state_fixture(mongo: MongoFixture) -> StateStorage:
+def state_fixture(config: Config, mongo: MongoFixture) -> StateStorage:
     """Fixture that provides a state storage."""
-    config = StateConfig()
     storage = (
-        MemoryStateStorage()
-        if config.use_memory_storage
-        else MongoStateStorage(mongo=mongo)
+        MongoStateStorage(mongo=mongo)
+        if config.keep_state_in_db
+        else MemoryStateStorage()
     )
 
     return storage
