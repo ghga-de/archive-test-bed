@@ -35,7 +35,7 @@ services:
       GHGA_CONNECTOR_PART_SIZE: 8589934592
       GHGA_CONNECTOR_WKVS_API_URL: http://wkvs
       # operation modes
-      TB_KEEP_STATE_IN_DB: true
+      TB_KEEP_STATE_IN_DB: "true"
       # Kafka
       TB_SERVICE_NAME: testbed_kafka
       TB_SERVICE_INSTANCE_ID: app-1
@@ -315,7 +315,7 @@ services:
     environment:
       AUTH_SERVICE_HOST: 0.0.0.0
       AUTH_SERVICE_INCLUDE_APIS: '[]'
-      AUTH_SERVICE_RUN_AUTH_ADAPTER: true
+      AUTH_SERVICE_RUN_AUTH_ADAPTER: "true"
       AUTH_SERVICE_OIDC_AUTHORITY_URL: http://op.test
       AUTH_SERVICE_OIDC_USERINFO_ENDPOINT: http://op.test/userinfo
       AUTH_SERVICE_OIDC_CLIENT_ID: test-client
