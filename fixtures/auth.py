@@ -30,7 +30,6 @@ __all__ = ["auth_fixture"]
 
 DEFAULT_VALID_SECONDS = 60 * 60  # 10 mins
 DEFAULT_USER_STATUS = "active"
-DEFAULT_OP_DOMAIN = "lifescience-ri.eu"
 TIMEOUT = 10
 
 
@@ -41,11 +40,13 @@ class TokenGenerator:
     use_auth_adapter: bool
     auth_adapter_url: str
     op_url: str
+    op_issuer: str
 
     def __init__(self, config: Config):
         self.use_auth_adapter = config.use_auth_adapter
         self.key_file = config.auth_key_file
         self.op_url = config.op_url
+        self.op_issuer = config.op_issuer
         self.auth_adapter_url = config.auth_adapter_url
 
     def external_access_token_from_name(
@@ -81,9 +82,10 @@ class TokenGenerator:
         headers = {"Authorization": f"Bearer {token}"}
         response = method(url, headers=headers, timeout=TIMEOUT)
         assert response.status_code == 200
+        assert not response.json()
         authorization = response.headers.get("Authorization")
         assert authorization and authorization.startswith("Bearer ")
-        token = authorization.remove_prefix("Bearer ")
+        token = authorization.split(None, 1)[-1]
         assert token and token.count(".") == 2
         return token
 
@@ -125,13 +127,15 @@ class TokenGenerator:
         name: str,
         email: Optional[str],
         for_registration: bool = False,
-        op_domain: str = DEFAULT_OP_DOMAIN,
         valid_seconds: int = DEFAULT_VALID_SECONDS,
     ) -> dict[str, str]:
         """Generate headers with internal auth token with specified claims."""
         if for_registration:
             user_name = name.lower().replace(" ", "-")
             user_id = f"id-of-{user_name}"
+            op_domain = ".".join(
+                self.op_issuer.split("://", 1)[-1].split("/", 1)[0].rsplit(".", 2)[-2:]
+            )
             sub = f"{user_id}@{op_domain}"
         else:
             sub = None

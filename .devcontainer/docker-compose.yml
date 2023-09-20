@@ -285,7 +285,7 @@ services:
 
   # user management service
   ums:
-    image: ghga/auth-service:0.5.1
+    image: ghga/auth-service:0.5.2
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -294,13 +294,19 @@ services:
     environment:
       AUTH_SERVICE_HOST: 0.0.0.0
       AUTH_SERVICE_INCLUDE_APIS: '["users", "claims"]'
-      AUTH_SERVICE_ADD_AS_DATA_STEWARDS: '["id-of-data-steward"]'
+      AUTH_SERVICE_ADD_AS_DATA_STEWARDS: >
+        [{
+          "ext_id": "id-of-data-steward@ghga.de",
+          "name": "Data Steward",
+          "email": "data.steward@home.org"
+        }]
       AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongodb
       AUTH_SERVICE_DB_NAME: auth
+      AUTH_SERVICE_LOG_LEVEL: debug
 
   # auth adapter
   auth:
-    image: ghga/auth-service:0.5.1
+    image: ghga/auth-service:0.5.2
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -312,17 +318,19 @@ services:
       AUTH_SERVICE_RUN_AUTH_ADAPTER: true
       AUTH_SERVICE_OIDC_AUTHORITY_URL: http://op.test
       AUTH_SERVICE_OIDC_USERINFO_ENDPOINT: http://op.test/userinfo
+      AUTH_SERVICE_OIDC_CLIENT_ID: test-client
       AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongodb
       AUTH_SERVICE_DB_NAME: auth
+      AUTH_SERVICE_LOG_LEVEL: debug
 
-  # test OpenID Connect provider
+  # fake OpenID Connect provider
   op.test:
     image: ghga/test-oidc-provider:0.2.1
     restart: unless-stopped
     environment:
       TOP_HOST: 0.0.0.0
       TOP_PORT: 80
-      TOP_ISSUER: http://op.test
+      TOP_ISSUER: https://test-aai.ghga.de
       TOP_SERVICE_URL: http://op.test
 
   wps:

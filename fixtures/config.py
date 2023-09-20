@@ -83,7 +83,7 @@ class Config(
 
     # auth
     auth_key_file = Path(__file__).parent.parent / ".devcontainer/auth.env"
-    auth_adapter_url = "http://auth:8080"
+    auth_adapter_url: str = "http://auth:8080"
 
     # connector
     user_private_crypt4gh_key: str
@@ -107,6 +107,7 @@ class Config(
     # ums
     ums_db_name: str = "auth"
     ums_users_collection: str = "users"
+    ums_claims_collection: str = "claims"
 
     # wps
     wps_db_name: str = "wps"
@@ -126,3 +127,4 @@ class Config(
 
     # test OP
     op_url: str = "http://op.test"
+    op_issuer: str = "https://test-aai.ghga.de"

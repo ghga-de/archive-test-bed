@@ -101,21 +101,27 @@ def access_as_user(name: str, fixtures: JointFixture) -> LoginFixture:
         title = None
     user_id = "id-of-" + name.lower().replace(" ", "-")
     email = name.lower().replace(" ", ".") + "@home.org"
-    ext_id = f"{user_id}@lifescience-ri.eu"
-    user: dict[str, Any] = {
-        "_id": user_id,
-        "status": "active",
-        "name": name,
-        "email": email,
-        "title": title,
-        "ext_id": ext_id,
-        "registration_date": 1688472000,
-    }
-    # Add the user to the auth database. This is needed
-    # because users are not (yet) registered as part of the test.
-    fixtures.mongo.replace_document(
-        fixtures.config.ums_db_name, fixtures.config.ums_users_collection, user
+    ext_id = f"{user_id}@ghga.de"
+    user = fixtures.mongo.find_document(
+        fixtures.config.ums_db_name,
+        fixtures.config.ums_users_collection,
+        {"ext_id": ext_id},
     )
+    if not user:
+        user = {
+            "_id": user_id,
+            "status": "active",
+            "name": name,
+            "email": email,
+            "title": title,
+            "ext_id": ext_id,
+            "registration_date": 1688472000,
+        }
+        # Add the user to the auth database. This is needed
+        # because users are not (yet) registered as part of the test.
+        fixtures.mongo.replace_document(
+            fixtures.config.ums_db_name, fixtures.config.ums_users_collection, user
+        )
     headers = fixtures.auth.generate_headers(name=name, email=email)
     return LoginFixture(user, headers)
 
@@ -128,13 +134,49 @@ def check_status_code(code: int, response: httpx.Response):
 # Global test bed state memory
 
 
+def save_data_steward(fixtures: JointFixture) -> tuple[Any, Any]:
+    data_steward_claim = fixtures.mongo.find_document(
+        fixtures.config.ums_db_name,
+        fixtures.config.ums_claims_collection,
+        {"visa_value": "data_steward@ghga.de"},
+    )
+    data_steward = (
+        fixtures.mongo.find_document(
+            fixtures.config.ums_db_name,
+            fixtures.config.ums_users_collection,
+            {"_id": data_steward_claim["user_id"]},
+        )
+        if data_steward_claim
+        else None
+    )
+    return data_steward, data_steward_claim
+
+
+def restore_data_steward(state: tuple[Any, Any], fixtures: JointFixture) -> None:
+    data_steward, data_steward_claim = state
+    if data_steward:
+        fixtures.mongo.replace_document(
+            fixtures.config.ums_db_name,
+            fixtures.config.ums_users_collection,
+            data_steward,
+        )
+    if data_steward_claim:
+        fixtures.mongo.replace_document(
+            fixtures.config.ums_db_name,
+            fixtures.config.ums_claims_collection,
+            data_steward_claim,
+        )
+
+
 @given("we start on a clean slate")
 @async_step
 async def reset_state(fixtures: JointFixture):
     await fixtures.s3.empty_buckets()  # empty object storage
     fixtures.kafka.delete_topics()  # empty event queues
     fixtures.state.reset_state()  # empty state database
+    saved_data_steward = save_data_steward(fixtures)
     fixtures.mongo.empty_databases()  # empty service databases
+    restore_data_steward(saved_data_steward, fixtures)
     fixtures.dsk.reset_work_dir()  # reset local submission registry
     empty_mail_server(fixtures.config)  # reset mail server
 
