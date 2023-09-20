@@ -80,7 +80,7 @@ class TokenGenerator:
         url = self.auth_adapter_url + "/users"
         method = httpx.post if for_registration else httpx.get
         headers = {"Authorization": f"Bearer {token}"}
-        response = method(url, headers=headers, timeout=TIMEOUT)
+        response = method(url, headers=headers, timeout=TIMEOUT)  # type: ignore
         assert response.status_code == 200
         assert not response.json()
         authorization = response.headers.get("Authorization")
