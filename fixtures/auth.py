@@ -93,15 +93,12 @@ class TokenGenerator:
         self,
         name: str,
         email: Optional[str] = None,
+        title: Optional[str] = None,
         sub: Optional[str] = None,
         status: Optional[str] = None,
         valid_seconds: Optional[int] = None,
     ) -> str:
         """Create an internal access token for the given name and email address."""
-        if name.startswith(("Prof. ", "Dr. ")):
-            title, name = name.split(None, 1)
-        else:
-            title = None
         user_id = "id-of-" + name.lower().replace(" ", "-")
         email = name.lower().replace(" ", ".") + "@home.org"
         role = "data_steward" if "steward" in name.lower() else None
@@ -126,6 +123,7 @@ class TokenGenerator:
         *,
         name: str,
         email: Optional[str],
+        title: Optional[str],
         for_registration: bool = False,
         valid_seconds: int = DEFAULT_VALID_SECONDS,
     ) -> dict[str, str]:
@@ -140,8 +138,6 @@ class TokenGenerator:
         else:
             sub = None
         if self.use_auth_adapter:
-            if name.startswith(("Dr.", "Prof.")):
-                name = name.split(".", 1)[-1].lstrip()
             token = self.external_access_token_from_name(
                 name=name, email=email, sub=sub, valid_seconds=valid_seconds
             )
@@ -150,7 +146,11 @@ class TokenGenerator:
             )
         else:
             token = self.internal_access_token_from_name(
-                name=name, email=email, sub=sub, valid_seconds=valid_seconds
+                name=name,
+                email=email,
+                title=title,
+                sub=sub,
+                valid_seconds=valid_seconds,
             )
         return {"Authorization": f"Bearer {token}"}
 

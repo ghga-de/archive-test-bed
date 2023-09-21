@@ -122,7 +122,7 @@ def access_as_user(name: str, fixtures: JointFixture) -> LoginFixture:
         fixtures.mongo.replace_document(
             fixtures.config.ums_db_name, fixtures.config.ums_users_collection, user
         )
-    headers = fixtures.auth.generate_headers(name=name, email=email)
+    headers = fixtures.auth.generate_headers(name=name, email=email, title=title)
     return LoginFixture(user, headers)
 
 
