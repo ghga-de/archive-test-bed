@@ -134,7 +134,8 @@ def check_status_code(code: int, response: httpx.Response):
 # Global test bed state memory
 
 
-def save_data_steward(fixtures: JointFixture) -> tuple[Any, Any]:
+def fetch_data_stewardship(fixtures: JointFixture) -> tuple[Any, Any]:
+    """Fetch the data steward and the corresponding claim from the database."""
     data_steward_claim = fixtures.mongo.find_document(
         fixtures.config.ums_db_name,
         fixtures.config.ums_claims_collection,
@@ -152,7 +153,8 @@ def save_data_steward(fixtures: JointFixture) -> tuple[Any, Any]:
     return data_steward, data_steward_claim
 
 
-def restore_data_steward(state: tuple[Any, Any], fixtures: JointFixture) -> None:
+def restore_data_stewardship(state: tuple[Any, Any], fixtures: JointFixture) -> None:
+    """Put the data steward and the corresponding claim back into the database."""
     data_steward, data_steward_claim = state
     if data_steward:
         fixtures.mongo.replace_document(
@@ -174,9 +176,9 @@ async def reset_state(fixtures: JointFixture):
     await fixtures.s3.empty_buckets()  # empty object storage
     fixtures.kafka.delete_topics()  # empty event queues
     fixtures.state.reset_state()  # empty state database
-    saved_data_steward = save_data_steward(fixtures)
+    saved_data_steward = fetch_data_stewardship(fixtures)
     fixtures.mongo.empty_databases()  # empty service databases
-    restore_data_steward(saved_data_steward, fixtures)
+    restore_data_stewardship(saved_data_steward, fixtures)
     fixtures.dsk.reset_work_dir()  # reset local submission registry
     empty_mail_server(fixtures.config)  # reset mail server
 

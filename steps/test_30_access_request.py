@@ -29,10 +29,10 @@ from .conftest import (
     JointFixture,
     LoginFixture,
     StateStorage,
+    fetch_data_stewardship,
     given,
     parse,
-    restore_data_steward,
-    save_data_steward,
+    restore_data_stewardship,
     scenarios,
     then,
     when,
@@ -50,9 +50,9 @@ def ars_database_is_empty(fixtures: JointFixture):
 @given("the claims repository is empty")
 def claims_repository_is_empty(fixtures: JointFixture):
     """Remove all claims except for the data steward claim."""
-    saved_data_steward = save_data_steward(fixtures)
+    saved_data_steward = fetch_data_stewardship(fixtures)
     fixtures.mongo.empty_databases(fixtures.config.ums_db_name)
-    restore_data_steward(saved_data_steward, fixtures)
+    restore_data_stewardship(saved_data_steward, fixtures)
 
 
 @when(
