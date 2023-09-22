@@ -22,7 +22,7 @@ from hexkit.config import config_from_yaml
 from hexkit.providers.akafka import KafkaConfig
 from hexkit.providers.mongodb import MongoDbConfig
 from hexkit.providers.s3 import S3Config
-from pydantic import SecretStr, root_validator
+from pydantic import Field, SecretStr, root_validator
 
 
 @config_from_yaml(prefix="tb")
@@ -34,9 +34,15 @@ class Config(
     """Config class for the test app."""
 
     # operation modes
-    use_api_gateway = False
-    use_auth_adapter = True
-    keep_state_in_db = True
+    use_api_gateway: bool = Field(
+        False, description="set to True for black-box testing"
+    )
+    use_auth_adapter: bool = Field(
+        True, description="set to True for token exchange via auth adapter"
+    )
+    keep_state_in_db: bool = Field(
+        True, description="set to True for saving state permanently"
+    )
 
     # directories
     base_dir: Path = Path(__file__).parent.parent
