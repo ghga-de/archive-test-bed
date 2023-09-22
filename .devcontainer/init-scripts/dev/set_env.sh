@@ -40,7 +40,7 @@ if ! grep -q "JWK_2_PRIV=" $KEYS ||
   exit 1
 fi
 
-sed -n "s/^JWK_1_PRIV=/AUTH_KEY=/p" $KEYS > auth.env
+sed -n "s/^JWK_1_PRIV=/AUTH_SERVICE_AUTH_KEY=/p" $KEYS > auth.env
 sed -n 's/^TOKEN=\(.*\)/SIMPLE_TOKEN="\1"/p' $KEYS >> auth.env
 
 sed -n "s/^C4GH_1_PUB=/WKVS_CRYPT4GH_PUBLIC_KEY=/p" $KEYS > wkvs.env
@@ -57,7 +57,7 @@ sed -n "s/^C4GH_3_PUB=/TB_USER_PUBLIC_CRYPT4GH_KEY=/p" $KEYS >> tb.env
 sed -n "s/^C4GH_1_PRIV=/EKSS_SERVER_PRIVATE_KEY=/p" $KEYS > ekss.env
 sed -n "s/^C4GH_1_PUB=/EKSS_SERVER_PUBLIC_KEY=/p" $KEYS >> ekss.env
 
-sed -n "s/^JWK_1_PUB=/AUTH_SERVICE_AUTH_KEY=/p" $KEYS > crs.env
+sed -n "s/^JWK_1_PUB=/AUTH_SERVICE_AUTH_KEY=/p" $KEYS > ums.env
 
 sed -n "s/^JWK_1_PUB=/ARS_AUTH_KEY=/p" $KEYS > ars.env
 
