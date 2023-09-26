@@ -67,7 +67,7 @@ class MemoryStateStorage(StateStorage):
     def unset_state(self, state_regex: str):
         regex = re.compile(state_regex)
         for state_name, _ in self.memory_storage.items():
-            if regex.match(state_name):
+            if regex.search(state_name):
                 del self.memory_storage[state_name]
 
     def reset_state(self):
