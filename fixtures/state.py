@@ -108,7 +108,7 @@ def state_fixture(config: Config, mongo: MongoFixture) -> StateStorage:
     """Fixture that provides a state storage."""
     storage = (
         MongoStateStorage(mongo=mongo)
-        if config.keep_state_in_db
+        if config.keep_state_in_db or config.use_api_gateway
         else MemoryStateStorage()
     )
 

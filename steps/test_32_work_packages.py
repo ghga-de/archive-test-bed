@@ -36,6 +36,10 @@ scenarios("../features/32_work_packages.feature")
 
 @given("no work packages have been created yet")
 def wps_database_is_empty(config: Config, mongo: MongoFixture, state: StateStorage):
+    if config.use_api_gateway:
+        # black-box testing: cannot empty service database
+        assert not state.get_state("dataset to be downloaded")
+        return
     mongo.empty_databases(config.wps_db_name, exclude_collections="datasets")
     state.unset_state("^a download token has been created for.*")
     state.unset_state("dataset to be downloaded")
@@ -44,6 +48,9 @@ def wps_database_is_empty(config: Config, mongo: MongoFixture, state: StateStora
 
 @given("the test datasets have been announced")
 def announce_dataset(config: Config, mongo: MongoFixture):
+    if config.use_api_gateway:
+        # black-box testing: cannot look into service database
+        return
     datasets = mongo.wait_for_documents(config.wps_db_name, "datasets", {}, number=2)
     assert datasets
     assert len(datasets) == 6
