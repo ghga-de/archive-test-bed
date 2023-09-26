@@ -174,16 +174,15 @@ def restore_data_stewardship(state: tuple[Any, Any], fixtures: JointFixture) -> 
 async def reset_state(fixtures: JointFixture):
     """Reset all state used by the Archive Test Bed."""
     fixtures.state.reset_state()  # empty state database
-    if fixtures.config.use_api_gateway:
+    if not fixtures.config.use_api_gateway:
         # When running the tests externally using the API gateway,
         # we do not have access permissions to the state databases,
         # so we rely on the deployment to start with a clean slate.
-        return
-    await fixtures.s3.empty_buckets()  # empty object storage
-    fixtures.kafka.delete_topics()  # empty event queues
-    saved_data_steward = fetch_data_stewardship(fixtures)
-    fixtures.mongo.empty_databases()  # empty service databases
-    restore_data_stewardship(saved_data_steward, fixtures)
+        await fixtures.s3.empty_buckets()  # empty object storage
+        fixtures.kafka.delete_topics()  # empty event queues
+        saved_data_steward = fetch_data_stewardship(fixtures)
+        fixtures.mongo.empty_databases()  # empty service databases
+        restore_data_stewardship(saved_data_steward, fixtures)
     fixtures.dsk.reset_work_dir()  # reset local submission registry
     empty_mail_server(fixtures.config)  # reset mail server
 

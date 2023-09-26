@@ -39,11 +39,15 @@ def wps_database_is_empty(config: Config, mongo: MongoFixture, state: StateStora
     if config.use_api_gateway:
         # black-box testing: cannot empty service database
         assert not state.get_state("dataset to be downloaded")
+        assert not state.get_state("all files to be downloaded")
+        assert not state.get_state("vcf files to be downloaded")
+        assert not state.get_state("download token for all files")
+        assert not state.get_state("download token for vcf files")
         return
     mongo.empty_databases(config.wps_db_name, exclude_collections="datasets")
-    state.unset_state("^a download token has been created for.*")
+    state.unset_state("download token for")
     state.unset_state("dataset to be downloaded")
-    state.unset_state(".*files to be downloaded$")
+    state.unset_state("files to be downloaded")
 
 
 @given("the test datasets have been announced")
