@@ -320,6 +320,7 @@ services:
       AUTH_SERVICE_HOST: 0.0.0.0
       AUTH_SERVICE_INCLUDE_APIS: '[]'
       AUTH_SERVICE_RUN_AUTH_ADAPTER: "true"
+      AUTH_SERVICE_API_EXT_PATH: ''
       AUTH_SERVICE_OIDC_AUTHORITY_URL: http://op.test
       AUTH_SERVICE_OIDC_USERINFO_ENDPOINT: http://op.test/userinfo
       AUTH_SERVICE_OIDC_CLIENT_ID: test-client
