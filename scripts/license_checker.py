@@ -71,10 +71,12 @@ EXCLUDE = [
     ".mandatory_files_ignore",
     ".deprecated_files",
     ".deprecated_files_ignore",
+    ".idea",
 ]
 
 # exclude file by file ending from license header check:
 EXCLUDE_ENDINGS = [
+    "feature",
     "html",
     "in",
     "ini",
