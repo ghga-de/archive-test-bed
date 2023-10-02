@@ -17,7 +17,7 @@
 
 import os
 import subprocess
-from typing import Dict, List
+from typing import Dict, List  # noqa: UP035
 
 from .conftest import (
     Config,
@@ -143,7 +143,7 @@ def run_the_decrypt_command(fixtures: JointFixture):
 
 @then("all downloaded files have been properly decrypted")
 def files_have_been_decrypted(
-    fixtures: JointFixture, downloaded_files: List[Dict[str, str]]
+    fixtures: JointFixture, downloaded_files: list[dict[str, str]]
 ):
     datasets = fixtures.state.get_state("all available datasets")
     dataset_alias = fixtures.state.get_state("dataset to be downloaded")

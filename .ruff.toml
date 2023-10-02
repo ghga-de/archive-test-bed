@@ -14,11 +14,17 @@ ignore = [
     "N818", # Errors need to have Error suffix
     "B008", # function call in arg defaults,
     "PLR2004", # magic numbers should be constants
+    "PLR0913", # Too many arguments to function call
     "D205", # blank-line-after-summary
     "D400", # first doc line ends in period
     "D401", # non-imperative-mood
     "D107", # missing docstring in __init__
     "F401", # unused-import
+    "S101", # Use of `assert` detected
+    "D102", # Missing docstring in function
+    "D103", # Missing docstring in method
+    "SIM212",
+
 ]
 
 line-length = 88
