@@ -35,6 +35,8 @@ services:
       GHGA_CONNECTOR_PART_SIZE: 8589934592
       GHGA_CONNECTOR_WKVS_API_URL: http://wkvs
       # operation modes
+      TB_USE_API_GATEWAY: "false"
+      TB_USE_AUTH_ADAPTER: "true"
       TB_KEEP_STATE_IN_DB: "true"
       # Kafka
       TB_SERVICE_NAME: testbed_kafka
@@ -122,7 +124,7 @@ services:
       - 8002:8080
 
   mass:
-    image: ghga/mass:0.3.1
+    image: ghga/mass:0.3.2
     restart: unless-stopped
     depends_on:
       mongodb:
