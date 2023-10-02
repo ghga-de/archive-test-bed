@@ -20,7 +20,7 @@ import os
 import tempfile
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Dict, List, Optional  # noqa: UP035
+from typing import Optional
 
 import httpx
 import yaml

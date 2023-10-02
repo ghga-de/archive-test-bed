@@ -19,8 +19,9 @@
 import json
 import os
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator, List, Optional  # noqa: UP035
+from typing import Optional
 
 from hexkit.providers.s3.testutils import FileObject
 from pydantic import BaseModel

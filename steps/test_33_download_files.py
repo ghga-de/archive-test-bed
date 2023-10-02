@@ -17,7 +17,6 @@
 
 import os
 import subprocess
-from typing import Dict, List  # noqa: UP035
 
 from .conftest import (
     Config,
