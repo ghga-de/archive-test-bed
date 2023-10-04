@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-"""Metadata related  fixture"""
+"""Metadata related fixture"""
 
 import base64
 import os
