@@ -59,6 +59,7 @@ EXCLUDE = [
     "LICENSE",  # is checked but not for the license header
     ".pre-commit-config.yaml",
     "docs",
+    ".idea",
     ".vscode",
     ".mypy_cache",
     ".mypy.ini",
@@ -74,6 +75,7 @@ EXCLUDE = [
 
 # exclude file by file ending from license header check:
 EXCLUDE_ENDINGS = [
+    "feature",
     "html",
     "in",
     "ini",
