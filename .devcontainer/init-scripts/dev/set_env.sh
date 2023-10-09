@@ -45,7 +45,7 @@ pk() {
 }
 
 pk "s/^JWK_1_PRIV=/AUTH_SERVICE_AUTH_KEY=/p" > auth.env
-pk 's/^TOKEN_=\(.*\)/SIMPLE_TOKEN="\1"/p' >> auth.env
+pk 's/^TOKEN=\(.*\)/SIMPLE_TOKEN="\1"/p' >> auth.env
 
 pk "s/^C4GH_1_PUB=/WKVS_CRYPT4GH_PUBLIC_KEY=/p" > wkvs.env
 
