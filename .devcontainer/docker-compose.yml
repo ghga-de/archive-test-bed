@@ -312,7 +312,7 @@ services:
 
   # auth adapter
   auth:
-    image: ghga/auth-service:0.5.2
+    image: ghga/auth-service:0.5.3
     restart: unless-stopped
     depends_on:
       mongodb:
