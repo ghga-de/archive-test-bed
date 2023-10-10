@@ -15,7 +15,6 @@
 
 """Utilities used in step functions"""
 
-
 from pathlib import Path
 from typing import Optional
 

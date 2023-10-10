@@ -45,7 +45,7 @@ def http_fixture(config: Config) -> Generator[HttpClient, None, None]:
         """Add Basic Authentication if necessary and log request."""
         headers = request.headers
         url = str(request.url)
-        auth = headers.pop("Authorization", None)
+        auth = headers.get("Authorization")
         if basic_auth:
             headers["Authorization"] = basic_auth
             auth_methods = "with basic"
