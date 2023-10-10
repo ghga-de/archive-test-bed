@@ -31,57 +31,7 @@ services:
     user: vscode
     env_file: tb.env
     environment:
-      # GHGA connector
-      GHGA_CONNECTOR_PART_SIZE: 8589934592
-      GHGA_CONNECTOR_WKVS_API_URL: http://wkvs
-      # operation modes
-      TB_USE_API_GATEWAY: "false"
-      TB_USE_AUTH_ADAPTER: "true"
-      TB_KEEP_STATE_IN_DB: "true"
-      # Kafka
-      TB_SERVICE_NAME: testbed_kafka
-      TB_SERVICE_INSTANCE_ID: app-1
-      TB_KAFKA_SERVERS: '["kafka:9092"]'
-      # MongoDb
-      TB_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      TB_SERVICE_DB_NAMES: '["ars", "auth", "dcs", "ifrs", "metldata", "ucs", "wps", "mass"]'
-      # S3
-      TB_S3_ENDPOINT_URL: http://localstack:4566
-      TB_S3_ACCESS_KEY_ID: testbed-key
-      TB_S3_SECRET_ACCESS_KEY: testbed-secret
-      # bucket names
-      TB_INBOX_BUCKET: inbox
-      TB_OUTBOX_BUCKET: outbox
-      TB_STAGING_BUCKET: staging
-      TB_PERMANENT_BUCKET: permanent
-      # auth
-      TB_AUTH_KEY_FILE: ".devcontainer/auth.env"
-      TB_AUTH_ADAPTER_URL: http://auth:8080
-      # file ingest
-      TB_FILE_INGEST_URL: http://fis:8080/ingest
-      # metldata
-      TB_METLDATA_DB_NAME: "metldata"
-      TB_METLDATA_URL: "http://metldata:8080"
-      # ars
-      TB_ARS_DB_NAME: "ars"
-      TB_ARS_URL: "http://ars:8080"
-      # ums
-      TB_UMS_DB_NAME: "auth"
-      TB_UMS_USERS_COLLECTION: "users"
-      # wps
-      TB_WPS_DB_NAME: "wps"
-      TB_WPS_URL: "http://wps:8080"
-      # ifrs
-      TB_IFRS_DB_NAME: "ifrs"
-      TB_IFRS_METADATA_COLLECTION: "file_metadata"
-      # mass
-      TB_MASS_URL: "http://mass:8080"
-      TB_MASS_DB_NAME: "mass"
-      TB_MASS_COLLECTION: "EmbeddedDataset"
-      # notifications
-      TB_MAILHOG_URL: "http://mailhog:8025"
-      # test OP
-      TB_OP_URL: "http://op.test"
+      TB_CONFIG_YAML: /workspace/.devcontainer/tb.yaml
 
   wkvs:
     image: ghga/well-known-value-service:0.1.1
