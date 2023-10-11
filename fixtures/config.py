@@ -87,7 +87,7 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
 
     # external base URL
     external_base_url: str = ""
-    external_apis: tuple[str, ...] = (
+    external_apis: list[str] = [  # noqa: RUF012
         "wkvs",
         "fis",
         "metldata",
@@ -97,7 +97,7 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
         "mass",
         "mail",
         "op",
-    )
+    ]
 
     # auth
     auth_basic: str = ""
