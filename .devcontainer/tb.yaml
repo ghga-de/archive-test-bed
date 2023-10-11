@@ -33,7 +33,8 @@ permanent_bucket: permanent
 wkvs_url: "http://wkvs"
 
 # file ingest
-file_ingest_url: http://fis:8080/ingest
+fis_url: http://fis:8080
+file_ingest_endpoint: /ingest
 
 # metldata
 metldata_db_name: "metldata"
@@ -63,3 +64,6 @@ mailhog_url: "http://mailhog:8025"
 
 # test OP
 op_url: "http://op.test"
+
+# ekss
+ekss_url: str = "http://ekss"

@@ -21,6 +21,7 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
+from urllib.parse import urljoin
 
 from fixtures.config import Config
 from fixtures.file import FileBatch, FileObject
@@ -209,8 +210,11 @@ async def check_uploaded_files_in_storage(
 
 @when("the file metadata is ingested", target_fixture="ingest_config")
 def ingest_file_metadata(fixtures: JointFixture) -> IngestConfig:
+    file_ingest_url = urljoin(
+        fixtures.config.fis_url, fixtures.config.file_ingest_endpoint
+    )
     ingest_config = IngestConfig(
-        file_ingest_url=fixtures.config.file_ingest_url,
+        file_ingest_url=file_ingest_url,
         file_ingest_pubkey=fixtures.config.file_ingest_pubkey,
         input_dir=fixtures.dsk.config.file_metadata_dir,
         submission_store_dir=fixtures.dsk.config.submission_store,

@@ -14,11 +14,13 @@
 # limitations under the License.
 #
 
-"""Step definitions for service health check using health endpoint"""
+"""Step definition for service health check using health endpoint"""
+
+from urllib.parse import urljoin
 
 import httpx
 from fixtures import Config
-from fixtures.auth import TIMEOUT
+from fixtures.http import TIMEOUT
 from pytest_bdd import given, scenarios
 
 scenarios("../features/01_health_check.feature")
@@ -27,14 +29,13 @@ scenarios("../features/01_health_check.feature")
 @given("all the service APIs respond as expected")
 def check_health_endpoints(config: Config):
     """Check 'health' endpoint of all service APIs"""
-    health_endpoints = config.service_health_endpoints
-
-    for endpoint in health_endpoints:
-        response = httpx.get(endpoint, timeout=TIMEOUT)
+    for service_url in config.service_api_urls:
+        health_endpoint = urljoin(service_url, "health")
+        response = httpx.get(health_endpoint, timeout=TIMEOUT)
         if config.use_api_gateway:
             # black-box testing: cannot reach service APIs directly
             assert (
                 response.status_code == 404
-            ), f"[black-box] Internal service is reachable: {endpoint}"
+            ), f"[black-box] Internal service is reachable: {service_url}"
             return
-        assert response.status_code == 200, f"Service is not reachable: {endpoint}"
+        assert response.status_code == 200, f"Service is not reachable: {service_url}"

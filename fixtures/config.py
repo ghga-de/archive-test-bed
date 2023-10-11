@@ -102,7 +102,8 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     dsk_token_path: Path = Path.home() / ".ghga_data_steward_token.txt"
 
     # file ingest
-    file_ingest_url: str = "http://fis:8080/ingest"
+    fis_url: str = "http://fis:8080"
+    file_ingest_endpoint: str = "/ingest"
     file_ingest_pubkey: str
 
     # metldata
@@ -137,25 +138,21 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     op_url: str = "http://op.test"
     op_issuer: str = "https://test-aai.ghga.de"
 
-    # wkvs
-    wkvs_url: str = "http://wkvs:80"
-
     # ekss
-    ekss_url: str = "http://ekss:80"
+    ekss_url: str = "http://ekss"
 
-    # service APIs
-    service_health_endpoints: list = [
-        urljoin(auth_adapter_url, "health"),
-        urljoin(ars_url, "health"),
-        urljoin(ums_url, "health"),
-        urljoin(wps_url, "health"),
-        urljoin(op_url, "health"),
-        mailhog_url,
-        # file_ingest_url,
+    # url list of services with API
+    service_api_urls: list = [  # noqa: RUF012
+        auth_adapter_url,
+        ars_url,
+        ums_url,
+        wps_url,
+        op_url,
+        fis_url,
+        mass_url,
+        wkvs_url,
+        ekss_url,
         # metldata_url,
-        # mass_url,
-        # wkvs_url,
-        # ekss_url,
     ]
 
     @root_validator(pre=False)
