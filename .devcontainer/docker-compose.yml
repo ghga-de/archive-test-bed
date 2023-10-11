@@ -31,6 +31,7 @@ services:
     user: vscode
     env_file: tb.env
     environment:
+      # you can override the testbed configuration here
       TB_CONFIG_YAML: /workspace/.devcontainer/tb.yaml
 
   wkvs:
