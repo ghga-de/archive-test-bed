@@ -115,7 +115,7 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     dsk_token_path: Path = Path.home() / ".ghga_data_steward_token.txt"
 
     # file ingest
-    fis_url: str = "http://fis:8080/ingest"
+    fis_url: str = "http://fis:8080"
     fis_pubkey: str
 
     # metldata
