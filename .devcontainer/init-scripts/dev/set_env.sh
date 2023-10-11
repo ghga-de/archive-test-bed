@@ -26,8 +26,8 @@ if [ -s $KEYS ]; then
 else
   echo "Creating new testing keys..."
   if ! docker run --rm \
-      ghga/auth-km-jobs:main generate-test-keys --num-jwk=2 --num-c4gh=3 \
-      > $KEYS; then
+      ghga/auth-km-jobs:main generate-test-keys \
+      --num-jwk=2 --num-c4gh=3 > $KEYS; then
     echo "Error: Testing keys could not be created."
     exit 1
   fi
@@ -40,30 +40,34 @@ if ! grep -q "JWK_2_PRIV=" $KEYS ||
   exit 1
 fi
 
-sed -n "s/^JWK_1_PRIV=/AUTH_SERVICE_AUTH_KEY=/p" $KEYS > auth.env
-sed -n 's/^TOKEN=\(.*\)/SIMPLE_TOKEN="\1"/p' $KEYS >> auth.env
+pk() {
+  sed -n $1 $KEYS
+}
 
-sed -n "s/^C4GH_1_PUB=/WKVS_CRYPT4GH_PUBLIC_KEY=/p" $KEYS > wkvs.env
+pk "s/^JWK_1_PRIV=/AUTH_SERVICE_AUTH_KEY=/p" > auth.env
+pk 's/^TOKEN=\(.*\)/SIMPLE_TOKEN="\1"/p' >> auth.env
 
-sed -n 's/^TOKEN_HASH=\(.*\)/METLDATA_LOADER_TOKEN_HASHES=["\1"]/p' $KEYS > metldata.env
+pk "s/^C4GH_1_PUB=/WKVS_CRYPT4GH_PUBLIC_KEY=/p" > wkvs.env
 
-sed -n 's/^TOKEN_HASH=\(.*\)/FIS_TOKEN_HASHES=["\1"]/p' $KEYS > fis.env
-sed -n "s/^C4GH_2_PRIV=/FIS_PRIVATE_KEY=/p" $KEYS >> fis.env
+pk 's/^TOKEN_HASH=\(.*\)/METLDATA_LOADER_TOKEN_HASHES=["\1"]/p' > metldata.env
 
-sed -n "s/^C4GH_2_PUB=/TB_FILE_INGEST_PUBKEY=/p" $KEYS > tb.env
-sed -n "s/^C4GH_3_PRIV=/TB_USER_PRIVATE_CRYPT4GH_KEY=/p" $KEYS >> tb.env
-sed -n "s/^C4GH_3_PUB=/TB_USER_PUBLIC_CRYPT4GH_KEY=/p" $KEYS >> tb.env
+pk 's/^TOKEN_HASH=\(.*\)/FIS_TOKEN_HASHES=["\1"]/p' > fis.env
+pk "s/^C4GH_2_PRIV=/FIS_PRIVATE_KEY=/p" >> fis.env
 
-sed -n "s/^C4GH_1_PRIV=/EKSS_SERVER_PRIVATE_KEY=/p" $KEYS > ekss.env
-sed -n "s/^C4GH_1_PUB=/EKSS_SERVER_PUBLIC_KEY=/p" $KEYS >> ekss.env
+pk "s/^C4GH_2_PUB=/TB_FILE_INGEST_PUBKEY=/p" > tb.env
+pk "s/^C4GH_3_PRIV=/TB_USER_PRIVATE_CRYPT4GH_KEY=/p" >> tb.env
+pk "s/^C4GH_3_PUB=/TB_USER_PUBLIC_CRYPT4GH_KEY=/p" >> tb.env
 
-sed -n "s/^JWK_1_PUB=/AUTH_SERVICE_AUTH_KEY=/p" $KEYS > ums.env
+pk "s/^C4GH_1_PRIV=/EKSS_SERVER_PRIVATE_KEY=/p" > ekss.env
+pk "s/^C4GH_1_PUB=/EKSS_SERVER_PUBLIC_KEY=/p" >> ekss.env
 
-sed -n "s/^JWK_1_PUB=/ARS_AUTH_KEY=/p" $KEYS > ars.env
+pk "s/^JWK_1_PUB=/AUTH_SERVICE_AUTH_KEY=/p" > ums.env
 
-sed -n "s/^JWK_1_PUB=/WPS_AUTH_KEY=/p" $KEYS > wps.env
-sed -n "s/^JWK_2_PRIV=/WPS_WORK_PACKAGE_SIGNING_KEY=/p" $KEYS >> wps.env
+pk "s/^JWK_1_PUB=/ARS_AUTH_KEY=/p" > ars.env
 
-sed -n "s/^JWK_2_PUB=/DCS_AUTH_KEY=/p" $KEYS > dcs.env
+pk "s/^JWK_1_PUB=/WPS_AUTH_KEY=/p" > wps.env
+pk "s/^JWK_2_PRIV=/WPS_WORK_PACKAGE_SIGNING_KEY=/p" >> wps.env
+
+pk "s/^JWK_2_PUB=/DCS_AUTH_KEY=/p" > dcs.env
 
 echo "Container envs have been created."

@@ -47,13 +47,14 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     test_dir = base_dir / "test_data"
 
     # constants used in testing
-    part_size = 1024
-    file_size: int = 20 * part_size**2
+    upload_part_size: int = 1024
+    download_part_size: int = 8589934592
+    default_file_size: int = 20 * upload_part_size**2
 
     # Kafka config
     service_name: str = "testbed_kafka"
     service_instance_id: str = "testbed-app-1"
-    kafka_servers: list[str] = ["kafka:9092"]
+    kafka_servers: list[str] = ["kafka:9092"]  # noqa: RUF012
 
     # MongoDb config
     db_connection_str: SecretStr = SecretStr(
@@ -61,7 +62,7 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     )
     db_name: str = "test-db"
     # databases that shall be dropped when running from scratch
-    service_db_names: list[str] = [
+    service_db_names: list[str] = [  # noqa: RUF012
         "ars",
         "auth",
         "dcs",
@@ -86,8 +87,12 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     object_id: str = "testbed-event-object"
 
     # auth
+    auth_basic: str = ""
     auth_key_file = Path(__file__).parent.parent / ".devcontainer/auth.env"
     auth_adapter_url: str = "http://auth:8080"
+
+    # wkvs
+    wkvs_url: str = "http://wkvs"
 
     # connector
     user_private_crypt4gh_key: str
@@ -124,8 +129,6 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
 
     # mass
     mass_url: str = "http://mass:8080"
-    mass_db_name: str = "mass"
-    mass_collection: str = "EmbeddedDataset"
 
     # notifications
     mailhog_url: str = "http://mailhog:8025"
@@ -163,8 +166,8 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
             if values["use_api_gateway"]:
                 if not values["use_auth_adapter"]:
                     raise ValueError("API gateway always uses auth adapter")
-                if values["keep_state_in_db"]:
-                    raise ValueError("Cannot use database when using API gateway")
+            elif values["auth_basic"]:
+                raise ValueError("Basic auth must only be used with API gateway")
         except (KeyError, ValueError) as error:
             raise ValueError(f"Check operation modes: {error}") from error
         return values
