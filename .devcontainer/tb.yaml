@@ -12,8 +12,6 @@ kafka_servers: ["kafka:9092"]
 
 # MongoDb
 db_connection_str: mongodb://testbed_user:testbed_key@mongodb
-service_db_names:
-  ["ars", "auth", "dcs", "ifrs", "metldata", "ucs", "wps", "mass"]
 
 # S3
 s3_endpoint_url: http://localstack:4566
