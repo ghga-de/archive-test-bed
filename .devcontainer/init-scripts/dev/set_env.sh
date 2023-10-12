@@ -54,7 +54,7 @@ pk 's/^TOKEN_HASH=\(.*\)/METLDATA_LOADER_TOKEN_HASHES=["\1"]/p' > metldata.env
 pk 's/^TOKEN_HASH=\(.*\)/FIS_TOKEN_HASHES=["\1"]/p' > fis.env
 pk "s/^C4GH_2_PRIV=/FIS_PRIVATE_KEY=/p" >> fis.env
 
-pk "s/^C4GH_2_PUB=/TB_FILE_INGEST_PUBKEY=/p" > tb.env
+pk "s/^C4GH_2_PUB=/TB_FIS_PUBKEY=/p" > tb.env
 pk "s/^C4GH_3_PRIV=/TB_USER_PRIVATE_CRYPT4GH_KEY=/p" >> tb.env
 pk "s/^C4GH_3_PUB=/TB_USER_PUBLIC_CRYPT4GH_KEY=/p" >> tb.env
 
