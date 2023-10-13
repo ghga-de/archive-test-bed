@@ -62,6 +62,3 @@ mail_url: "http://mailhog:8025"
 
 # test OP
 op_url: "http://op.test"
-
-# ekss
-ekss_url: str = "http://ekss"

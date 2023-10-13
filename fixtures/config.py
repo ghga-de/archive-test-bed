@@ -100,6 +100,9 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
         "op",
     ]
 
+    # internal APIs
+    internal_apis: list[str] = ["ekss", "dcs", "auth_adapter"]  # noqa: RUF012
+
     # auth
     auth_basic: str = ""
     auth_key_file = Path(__file__).parent.parent / ".devcontainer/auth.env"
@@ -154,19 +157,8 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     # ekss
     ekss_url: str = "http://ekss"
 
-    # url list of services with API
-    service_api_urls: list = [  # noqa: RUF012
-        auth_adapter_url,
-        ars_url,
-        ums_url,
-        wps_url,
-        op_url,
-        fis_url,
-        mass_url,
-        wkvs_url,
-        ekss_url,
-        # metldata_url,
-    ]
+    # dcs
+    dcs_url: str = "http://dcs:8080"
 
     @root_validator(pre=False)
     @classmethod
