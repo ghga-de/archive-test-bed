@@ -35,7 +35,7 @@ services:
       TB_CONFIG_YAML: /workspace/.devcontainer/tb.yaml
 
   wkvs:
-    image: ghga/well-known-value-service:0.1.1
+    image: ghga/well-known-value-service:0.1.2
     restart: unless-stopped
     env_file: wkvs.env
     environment:
@@ -46,7 +46,7 @@ services:
       WKVS_WPS_API_URL: http://wps:8080
 
   metldata:
-    image: ghga/metldata:0.4.4
+    image: ghga/metldata:0.4.5
     restart: unless-stopped
     depends_on:
       kafka:
@@ -75,7 +75,7 @@ services:
       - 8002:8080
 
   mass:
-    image: ghga/mass:0.3.2
+    image: ghga/mass:0.3.4
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -121,7 +121,7 @@ services:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
 
   ekss:
-    image: ghga/encryption-key-store-service:0.3.5
+    image: ghga/encryption-key-store-service:0.3.7
     restart: unless-stopped
     depends_on:
       - vault
@@ -356,7 +356,7 @@ services:
       ARS_DB_NAME: ars
 
   fis:
-    image: ghga/file-ingest-service:0.1.3
+    image: ghga/file-ingest-service:0.1.4
     restart: unless-stopped
     depends_on:
       kafka:
