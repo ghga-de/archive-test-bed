@@ -12,7 +12,6 @@ kafka_servers: ["kafka:9092"]
 
 # MongoDb
 db_connection_str: mongodb://testbed_user:testbed_key@mongodb
-service_db_names: ["ars", "auth", "dcs", "ifrs", "metldata", "ucs", "wps", "mass"]
 
 # S3
 s3_endpoint_url: http://localstack:4566
@@ -34,7 +33,6 @@ wkvs_url: "http://wkvs"
 
 # file ingest
 fis_url: http://fis:8080
-file_ingest_endpoint: /ingest
 
 # metldata
 metldata_db_name: "metldata"
@@ -60,7 +58,7 @@ ifrs_metadata_collection: "file_metadata"
 mass_url: "http://mass:8080"
 
 # notifications
-mailhog_url: "http://mailhog:8025"
+mail_url: "http://mailhog:8025"
 
 # test OP
 op_url: "http://op.test"
