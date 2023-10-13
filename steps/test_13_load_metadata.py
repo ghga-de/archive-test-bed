@@ -50,17 +50,11 @@ def run_the_load_command(fixtures: JointFixture):
                 load_config_path,
             ],
             capture_output=True,
-            check=False,
+            check=True,
             encoding="utf-8",
             text=True,
             timeout=10 * 60,
         )
-
-        print("STDOUT")
-        print(completed_upload.stdout)
-
-        print("STDERR")
-        print(completed_upload.stderr)
 
         assert not completed_upload.stdout
         assert not completed_upload.stderr
