@@ -45,7 +45,6 @@ pk() {
 }
 
 pk "s/^JWK_1_PRIV=/AUTH_SERVICE_AUTH_KEY=/p" > auth.env
-pk 's/^TOKEN=\(.*\)/SIMPLE_TOKEN="\1"/p' >> auth.env
 
 pk "s/^C4GH_1_PUB=/WKVS_CRYPT4GH_PUBLIC_KEY=/p" > wkvs.env
 
@@ -57,6 +56,7 @@ pk "s/^C4GH_2_PRIV=/FIS_PRIVATE_KEY=/p" >> fis.env
 pk "s/^C4GH_2_PUB=/TB_FIS_PUBKEY=/p" > tb.env
 pk "s/^C4GH_3_PRIV=/TB_USER_PRIVATE_CRYPT4GH_KEY=/p" >> tb.env
 pk "s/^C4GH_3_PUB=/TB_USER_PUBLIC_CRYPT4GH_KEY=/p" >> tb.env
+pk 's/^TOKEN=\(.*\)/TB_UPLOAD_TOKEN=\1/p' >> tb.env
 
 pk "s/^C4GH_1_PRIV=/EKSS_SERVER_PRIVATE_KEY=/p" > ekss.env
 pk "s/^C4GH_1_PUB=/EKSS_SERVER_PUBLIC_KEY=/p" >> ekss.env

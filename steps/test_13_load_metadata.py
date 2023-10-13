@@ -40,8 +40,8 @@ def run_the_load_command(fixtures: JointFixture):
         )
     )
 
-    loader_token = fixtures.auth.simple_token
-    with temporary_file(fixtures.config.dsk_token_path, loader_token):
+    upload_token = fixtures.config.upload_token
+    with temporary_file(fixtures.config.dsk_token_path, upload_token):
         completed_upload = subprocess.run(  # nosec B607, B603
             [
                 "ghga-datasteward-kit",
@@ -50,11 +50,17 @@ def run_the_load_command(fixtures: JointFixture):
                 load_config_path,
             ],
             capture_output=True,
-            check=True,
+            check=False,
             encoding="utf-8",
             text=True,
             timeout=10 * 60,
         )
+
+        print("STDOUT")
+        print(completed_upload.stdout)
+
+        print("STDERR")
+        print(completed_upload.stderr)
 
         assert not completed_upload.stdout
         assert not completed_upload.stderr

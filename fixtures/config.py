@@ -100,9 +100,10 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     ]
 
     # auth
-    auth_basic: str = ""
     auth_key_file = Path(__file__).parent.parent / ".devcontainer/auth.env"
     auth_adapter_url: str = "http://auth:8080"
+    auth_basic: str = ""  # for Basic Authentication
+    upload_token: str = ""  # simple token for uploading metadata
 
     # wkvs
     wkvs_url: str = "http://wkvs"
