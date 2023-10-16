@@ -56,7 +56,7 @@ def check_api_is_healthy(api: str, fixtures: JointFixture):
 
 @given("all the service APIs respond as expected")
 def check_service_health(fixtures: JointFixture):
-    """Check 'health' endpoint of all service APIs"""
+    """Check health of all service APIs depending on the test mode."""
     config = fixtures.config
     for api in config.external_apis + config.internal_apis:
         check_api_is_healthy(api, fixtures)
