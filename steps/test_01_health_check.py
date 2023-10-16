@@ -23,9 +23,11 @@ from .conftest import JointFixture
 scenarios("../features/01_health_check.feature")
 
 
-def check_api_is_healthy(api: str, fixtures: JointFixture, is_internal: bool = False):
+def check_api_is_healthy(api: str, fixtures: JointFixture):
     """Check that service API is healthy or not reachable if internal."""
-    health_endpoint = getattr(fixtures.config, f"{api}_url").rstrip("/")
+    config = fixtures.config
+    is_internal = config.use_api_gateway and api in config.internal_apis
+    health_endpoint = getattr(config, f"{api}_url").rstrip("/")
     if api == "mail":
         health_endpoint += "/api/v2/messages"
     else:
@@ -56,14 +58,5 @@ def check_api_is_healthy(api: str, fixtures: JointFixture, is_internal: bool = F
 def check_service_health(fixtures: JointFixture):
     """Check 'health' endpoint of all service APIs"""
     config = fixtures.config
-    if config.use_api_gateway:
-        # black-box testing: external APIs are accessible, internal APIs are not
-        for ext_api in config.external_apis:
-            check_api_is_healthy(ext_api, fixtures)
-        for int_api in config.internal_apis:
-            check_api_is_healthy(int_api, fixtures, is_internal=False)
-    else:
-        # white-box testing: all of the APIs are accessible
-        all_apis = config.external_apis + config.internal_apis
-        for api in all_apis:
-            check_api_is_healthy(api, fixtures)
+    for api in config.external_apis + config.internal_apis:
+        check_api_is_healthy(api, fixtures)
