@@ -16,9 +16,9 @@
 
 """Step definition for service health check using health endpoint"""
 
-from pytest_bdd import given, scenarios
+from pytest_bdd import scenarios, then, when
 
-from .conftest import JointFixture
+from .conftest import Config, JointFixture
 
 scenarios("../features/01_health_check.feature")
 
@@ -56,9 +56,15 @@ def check_api_is_healthy(api: str, fixtures: JointFixture):
     assert not msg, f"Health check at endpoint {health_endpoint}: {msg}"
 
 
-@given("all the service APIs respond as expected")
-def check_service_health(fixtures: JointFixture):
+@when("all service APIs are checked", target_fixture="apis")
+def list_of_all_service_apis(config: Config) -> list[str]:
+    return config.external_apis + config.internal_apis
+
+
+@then("they report as being healthy")
+def check_service_health(apis: list[str], fixtures: JointFixture):
     """Check health of all service APIs depending on the test mode."""
-    config = fixtures.config
-    for api in config.external_apis + config.internal_apis:
+    fixtures.state.unset_state("Upfront health check")
+    for api in apis:
         check_api_is_healthy(api, fixtures)
+    fixtures.state.set_state("Upfront health check", "successful")
