@@ -47,6 +47,8 @@ def check_api_is_healthy(api: str, fixtures: JointFixture):
             msg = "does not return JSON object"
         if api == "mail":
             ok = "total" in ret
+        elif api == "auth_adapter":
+            ok = not ret
         else:
             ok = ret.get("status") == "OK"
         if not ok:
