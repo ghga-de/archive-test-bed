@@ -64,7 +64,5 @@ def list_of_all_service_apis(config: Config) -> list[str]:
 @then("they report as being healthy")
 def check_service_health(apis: list[str], fixtures: JointFixture):
     """Check health of all service APIs depending on the test mode."""
-    fixtures.state.unset_state("Upfront health check")
     for api in apis:
         check_api_is_healthy(api, fixtures)
-    fixtures.state.set_state("Upfront health check", "successful")
