@@ -90,6 +90,7 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     external_base_url: str = ""
     external_apis: list[str] = [  # noqa: RUF012
         "wkvs",
+        "dcs",
         "fis",
         "metldata",
         "ars",
@@ -101,7 +102,7 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     ]
 
     # internal APIs
-    internal_apis: list[str] = ["ekss", "dcs", "auth_adapter"]  # noqa: RUF012
+    internal_apis: list[str] = ["ekss", "auth_adapter"]  # noqa: RUF012
 
     # auth
     auth_key_file = Path(__file__).parent.parent / ".devcontainer/auth.env"
@@ -184,13 +185,13 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
         external base URL to avoid repetition in the external mode configuration.
         """
         base_url = values["external_base_url"]
-        external_apis = values["external_apis"]
-        if base_url and external_apis:
+        apis = values["external_apis"] + values["internal_apis"]
+        if base_url and apis:
             if not base_url.startswith(("http://", "https://")):
                 raise ValueError("External base URL must be absolute")
             base_url = base_url.rstrip("/")
 
-            for api in external_apis:
+            for api in apis:
                 key = f"{api}_url"
                 try:
                     url = values[key]
@@ -200,5 +201,5 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
                     raise ValueError(f"Missing value for {key}") from error
                 if "://" not in url:
                     url = base_url + "/" + url.lstrip("/")
-                values[key] = url
+                    values[key] = url
         return values
