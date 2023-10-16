@@ -179,10 +179,10 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     @root_validator(pre=False)
     @classmethod
     def add_external_base_url(cls, values):
-        """Add external base URL for all external APIs.
+        """Add base URL to all APIs.
 
-        This allows the external URLs to be specified as paths relative to the
-        external base URL to avoid repetition in the external mode configuration.
+        This allows the URLs to be specified as paths relative to the external base URL
+        to avoid repetition in the external mode configuration.
         """
         base_url = values["external_base_url"]
         apis = values["external_apis"] + values["internal_apis"]
