@@ -23,32 +23,37 @@ from .conftest import JointFixture
 scenarios("../features/01_health_check.feature")
 
 
-def is_frontend(text: str) -> bool:
-    """Check if the given response text is produced by the frontend."""
-    return (
-        text.startswith("<!doctype html>")
-        and "<title>GHGA" in text
-        and "<script" in text
-    )
-
-
-def check_api_health(
+def check_api_is_healthy(
     api: str,
-    expected_status_code: int,
     fixtures: JointFixture,
-) -> None:
-    """Check service API returns expected status code"""
-    health_endpoint = getattr(fixtures.config, f"{api}_url")
-    if api != "mail":  # mailhog has no /health endpoint
-        health_endpoint = health_endpoint.rstrip("/") + "/health"
+    expected_healthy: bool = True,
+):
+    """Check service API health, return error message if unhealthy."""
+    health_endpoint = getattr(fixtures.config, f"{api}_url").rstrip("/")
+    if api == "mail":
+        health_endpoint += "/api/v2/messages"
+    else:
+        health_endpoint += "/health"
     response = fixtures.http.get(health_endpoint)
     status_code = response.status_code
-    if status_code == 200 and is_frontend(response.text):
-        status_code = 404  # can only reach the frontend, treat it as 404
-    assert status_code == expected_status_code, (
-        f"Expected status {expected_status_code}"
-        f" instead of {status_code} at {health_endpoint}"
-    )
+    if status_code == 200 and response.text.startswith("<!doctype html>"):
+        # count response from frontend as "not found"
+        status_code = 404
+    expected_status = 200 if expected_healthy else 404
+    msg = None
+    if status_code != expected_status:
+        msg = f"status should be {expected_status}, but is {status_code}"
+    elif expected_healthy:
+        ret = response.json()
+        if not isinstance(ret, dict):
+            msg = "does not return JSON object"
+        if api == "mail":
+            ok = "total" in ret
+        else:
+            ok = ret.get("status") == "OK"
+        if not ok:
+            msg = f"unexpected response: {ret}"
+    assert not msg, f"Health check at endpoint {health_endpoint}: {msg}"
 
 
 @given("all the service APIs respond as expected")
@@ -58,11 +63,11 @@ def check_service_health(fixtures: JointFixture):
     if config.use_api_gateway:
         # black-box testing: external APIs are accessible, internal APIs are not
         for ext_api in config.external_apis:
-            check_api_health(ext_api, 200, fixtures)
+            check_api_is_healthy(ext_api, fixtures)
         for int_api in config.internal_apis:
-            check_api_health(int_api, 404, fixtures)
+            check_api_is_healthy(int_api, fixtures, expected_healthy=False)
     else:
         # white-box testing: all of the APIs are accessible
         all_apis = config.external_apis + config.internal_apis
         for api in all_apis:
-            check_api_health(api, 200, fixtures)
+            check_api_is_healthy(api, fixtures)
