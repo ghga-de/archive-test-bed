@@ -99,7 +99,7 @@ services:
       - 8001:8080
 
   mass-consumer:
-    image: ghga/mass:0.3.1
+    image: ghga/mass:0.3.4
     restart: unless-stopped
     depends_on:
       kafka:
@@ -242,7 +242,7 @@ services:
 
   # user management service
   ums:
-    image: ghga/auth-service:0.5.2
+    image: ghga/auth-service:0.5.4
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -263,7 +263,7 @@ services:
 
   # auth adapter
   auth:
-    image: ghga/auth-service:0.5.3
+    image: ghga/auth-service:0.5.4
     restart: unless-stopped
     depends_on:
       mongodb:
