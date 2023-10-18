@@ -242,7 +242,7 @@ services:
 
   # user management service
   ums:
-    image: ghga/auth-service:0.5.4
+    image: ghga/auth-service:0.5.6
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -263,7 +263,7 @@ services:
 
   # auth adapter
   auth:
-    image: ghga/auth-service:0.5.4
+    image: ghga/auth-service:0.5.6
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -283,7 +283,7 @@ services:
 
   # fake OpenID Connect provider
   op.test:
-    image: ghga/test-oidc-provider:0.2.1
+    image: ghga/test-oidc-provider:0.2.2
     restart: unless-stopped
     environment:
       TOP_HOST: 0.0.0.0
@@ -432,7 +432,7 @@ services:
           "kafka-topics",
           "--list",
           "--bootstrap-server",
-          "localhost:9092",
+          "localhost:9092"
         ]
       interval: 5s
       timeout: 5s
