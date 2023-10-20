@@ -75,7 +75,7 @@ services:
       - 8002:8080
 
   mass:
-    image: ghga/mass:0.3.4
+    image: ghga/mass:0.3.5
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -99,7 +99,7 @@ services:
       - 8001:8080
 
   mass-consumer:
-    image: ghga/mass:0.3.4
+    image: ghga/mass:0.3.5
     restart: unless-stopped
     depends_on:
       kafka:
