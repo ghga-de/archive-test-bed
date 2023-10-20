@@ -336,7 +336,7 @@ services:
     command: consume-events
 
   ars:
-    image: ghga/access-request-service:0.1.1
+    image: ghga/access-request-service:0.1.2
     restart: unless-stopped
     depends_on:
       kafka:
