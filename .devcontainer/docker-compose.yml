@@ -253,7 +253,7 @@ services:
       AUTH_SERVICE_INCLUDE_APIS: '["users", "claims"]'
       AUTH_SERVICE_ADD_AS_DATA_STEWARDS: >
         [{
-          "ext_id": "id-of-data-steward@ghga.de",
+          "ext_id": "id-of-data-steward@ghga.dev",
           "name": "Data Steward",
           "email": "data.steward@home.org"
         }]
@@ -288,7 +288,7 @@ services:
     environment:
       TOP_HOST: 0.0.0.0
       TOP_PORT: 80
-      TOP_ISSUER: https://test-aai.ghga.de
+      TOP_ISSUER: https://test-aai.ghga.dev
       TOP_SERVICE_URL: http://op.test
 
   wps:
