@@ -116,8 +116,8 @@ def call_data_steward_kit_ingest(ingest_config_path: str, dsk_token_path: Path, 
             timeout=10 * 60,
         )
 
-        assert not completed_ingest.returncode
-        assert "ERROR" not in completed_ingest.stderr
+        assert not completed_ingest.stdout
+        assert not completed_ingest.stderr
 
 
 @given("the staging bucket is empty")
