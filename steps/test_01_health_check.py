@@ -76,9 +76,14 @@ def check_user_management_apis_are_healthy(fixtures: JointFixture):
     response = fixtures.http.get(endpoint)
     status_code = response.status_code
     if fixtures.config.use_api_gateway:
-        assert status_code == 404
+        assert status_code == 404, (
+            "The claims repository should bot be reachable from outside,"
+            f" but responds with status code {status_code}"
+        )
     else:
-        assert status_code == 200
+        assert (
+            status_code == 200
+        ), f"Error {status_code} when requesting claims for {name}"
         ret = response.json()
         if not (
             isinstance(ret, list)
