@@ -121,7 +121,7 @@ services:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
 
   ekss:
-    image: ghga/encryption-key-store-service:0.3.8
+    image: ghga/encryption-key-store-service:0.3.9
     restart: unless-stopped
     depends_on:
       - vault
