@@ -121,7 +121,7 @@ services:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
 
   ekss:
-    image: ghga/encryption-key-store-service:0.3.7
+    image: ghga/encryption-key-store-service:0.3.9
     restart: unless-stopped
     depends_on:
       - vault
@@ -129,9 +129,7 @@ services:
     environment:
       EKSS_HOST: 0.0.0.0
       EKSS_PORT: 80
-      EKSS_DEBUG_VAULT: "true"
-      EKSS_VAULT_HOST: vault
-      EKSS_VAULT_PORT: 8200
+      EKSS_VAULT_URL: http://vault:8200
       EKSS_VAULT_ROLE_ID: 9f03d595-c964-441c-a68e-2e1534f2bb56
       EKSS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
 
@@ -356,7 +354,7 @@ services:
       ARS_DB_NAME: ars
 
   fis:
-    image: ghga/file-ingest-service:0.1.4
+    image: ghga/file-ingest-service:0.1.5
     restart: unless-stopped
     depends_on:
       kafka:
@@ -370,9 +368,7 @@ services:
       FIS_PUBLISHER_TOPIC: interrogations
       FIS_PUBLISHER_TYPE: validation_success
       FIS_SOURCE_BUCKET_ID: staging
-      FIS_DEBUG_VAULT: "true"
-      FIS_VAULT_HOST: vault
-      FIS_VAULT_PORT: 8200
+      FIS_VAULT_URL: http://vault:8200
       FIS_VAULT_ROLE_ID: 9f03d595-c964-441c-a68e-2e1534f2bb56
       FIS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
 
