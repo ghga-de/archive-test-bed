@@ -1,0 +1,64 @@
+### Test Bed Configuration ###
+
+# operation modes
+use_api_gateway: false
+use_auth_adapter: true
+keep_state_in_db: true
+
+# Kafka
+service_name: testbed_kafka
+service_instance_id: app-1
+kafka_servers: ["kafka:9092"]
+
+# MongoDb
+db_connection_str: mongodb://testbed_user:testbed_key@mongodb
+
+# S3
+s3_endpoint_url: http://localstack:4566
+s3_access_key_id: testbed-key
+s3_secret_access_key: testbed-secret
+
+# auth
+auth_key_file: ".devcontainer/auth.env"
+auth_adapter_url: http://auth:8080
+
+# bucket names
+inbox_bucket: inbox
+outbox_bucket: outbox
+staging_bucket: staging
+permanent_bucket: permanent
+
+# wkvs
+wkvs_url: "http://wkvs"
+
+# file ingest
+fis_url: http://fis:8080
+
+# metldata
+metldata_db_name: "metldata"
+metldata_url: "http://metldata:8080"
+
+# ars
+ars_db_name: "ars"
+ars_url: "http://ars:8080"
+
+# ums
+ums_db_name: "auth"
+ums_users_collection: "users"
+
+# wps
+wps_db_name: "wps"
+wps_url: "http://wps:8080"
+
+# ifrs
+ifrs_db_name: "ifrs"
+ifrs_metadata_collection: "file_metadata"
+
+# mass
+mass_url: "http://mass:8080"
+
+# notifications
+mail_url: "http://mailhog:8025"
+
+# test OP
+op_url: "http://op.test"

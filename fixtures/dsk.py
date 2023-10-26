@@ -19,8 +19,8 @@
 import os
 import shutil
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 import yaml
 from pydantic import BaseSettings
@@ -130,7 +130,7 @@ class DskFixture:
             os.remove(files_to_upload_tsv)
 
     def get_updated_config(self, config_key, new_value):
-        with open(self.config.metadata_config_path, "r", encoding="utf-8") as file:
+        with open(self.config.metadata_config_path, encoding="utf-8") as file:
             config = yaml.safe_load(file)
 
         config[config_key] = new_value

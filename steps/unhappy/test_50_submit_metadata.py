@@ -20,7 +20,7 @@
 import subprocess
 from pathlib import Path
 
-from ..conftest import TIMEOUT, JointFixture, given, parse, scenarios, then, when
+from ..conftest import JointFixture, given, parse, scenarios, then, when
 
 scenarios("../features/unhappy/50_submit_metadata.feature")
 
@@ -59,7 +59,7 @@ def submit_with_unhappy_asset(
             capture_output=True,
             encoding="utf-8",
             text=True,
-            timeout=TIMEOUT * 60,
+            timeout=10 * 60,
             cwd=workdir,
         )
     )

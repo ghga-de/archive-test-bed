@@ -16,12 +16,13 @@
 
 """Fixture for testing code that uses the MongoDbDaoFactory provider."""
 
+from collections.abc import Generator, Mapping
 from time import sleep
-from typing import Any, Generator, Mapping, Optional, Union
+from typing import Any, Optional, Union
 
 from hexkit.providers.mongodb.provider import MongoDbDaoFactory
 from hexkit.providers.mongodb.testutils import MongoDbFixture as BaseMongoFixture
-from pymongo import TEXT, MongoClient
+from pymongo import MongoClient
 from pymongo.errors import ExecutionTimeout, OperationFailure
 from pytest import fixture
 
@@ -157,19 +158,10 @@ class MongoFixture(BaseMongoFixture):
         collection = db.get_collection(collection_name)
         collection.delete_many(document)
 
-    def index_collection(self, db_name: str, collection_name: str):
-        db = self.client[db_name]
-        indexes = db[collection_name].list_indexes()
-        for index in indexes:
-            if index["name"] == "$**_text":
-                return
-        db[collection_name].create_index(keys=[("$**", TEXT)])
-
 
 @fixture(name="mongo", scope="session")
 def mongo_fixture(config: Config) -> Generator[MongoFixture, None, None]:
     """Pytest fixture for tests depending on the Mongo database."""
-
     dao_factory = MongoDbDaoFactory(config=config)
     db_connection_str = str(config.db_connection_str.get_secret_value())
     client: MongoClient = MongoClient(db_connection_str)

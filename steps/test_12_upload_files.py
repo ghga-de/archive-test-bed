@@ -21,13 +21,15 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
-
-from ghga_datasteward_kit.file_ingest import IngestConfig, alias_to_accession
-from metldata.submission_registry.submission_store import SubmissionStore
+from urllib.parse import urljoin
 
 from fixtures.config import Config
 from fixtures.file import FileBatch, FileObject
-from steps.utils import ingest_config_as_file, temporary_file, upload_config_as_file
+from fixtures.utils import temporary_file
+from ghga_datasteward_kit.file_ingest import IngestConfig, alias_to_accession
+from metldata.submission_registry.submission_store import SubmissionStore
+
+from steps.utils import ingest_config_as_file, upload_config_as_file
 
 from .conftest import JointFixture, async_step, given, parse, scenarios, then, when
 
@@ -38,7 +40,6 @@ def call_data_steward_kit_upload(
     file_object: FileObject, config: Config, file_metadata_dir: Path
 ):
     """Call DSKit upload command to upload a file"""
-
     upload_config_path = upload_config_as_file(
         config=config, file_metadata_dir=file_metadata_dir
     )
@@ -70,7 +71,6 @@ def call_data_steward_kit_batch_upload(
     batch_files_tsv: Path, config: Config, file_metadata_dir: Path
 ):
     """Call DSKit batch-upload command to upload listed files in TSV file"""
-
     upload_config_path = upload_config_as_file(
         config=config, file_metadata_dir=file_metadata_dir
     )
@@ -100,7 +100,6 @@ def call_data_steward_kit_batch_upload(
 
 def call_data_steward_kit_ingest(ingest_config_path: str, dsk_token_path: Path, token):
     """Call DSKit file_ingest command to ingest file"""
-
     with temporary_file(dsk_token_path, token) as _:
         completed_ingest = subprocess.run(  # nosec B607, B603
             [
@@ -117,14 +116,18 @@ def call_data_steward_kit_ingest(ingest_config_path: str, dsk_token_path: Path, 
             timeout=10 * 60,
         )
 
-        assert not completed_ingest.returncode
-        assert "ERROR" not in completed_ingest.stderr
+        assert (
+            completed_ingest.stdout.strip()
+            == "Sucessfully sent all file upload metadata for ingest."
+        )
+        assert not completed_ingest.stderr
 
 
 @given("the staging bucket is empty")
 @async_step
 async def staging_bucket_is_empty(fixtures: JointFixture):
-    await fixtures.s3.empty_given_buckets(["staging"])
+    config = fixtures.config
+    await fixtures.s3.empty_given_buckets([config.staging_bucket])
 
 
 @given("no file metadata exists")
@@ -204,6 +207,9 @@ async def check_uploaded_files_in_storage(
     fixtures: JointFixture, uploaded_file_uuids: set[str]
 ):
     """Check that the uploaded files exist in the given bucket."""
+    if fixtures.config.use_api_gateway:
+        # black-box testing: cannot check staging bucket
+        return
     bucket_id = fixtures.config.staging_bucket
     for object_id in uploaded_file_uuids:
         assert await fixtures.s3.storage.does_object_exist(
@@ -220,8 +226,8 @@ def ingest_file_metadata(fixtures: JointFixture) -> IngestConfig:
         fixtures.dsk.config.submission_registry / fixtures.dsk.config.submission_store
     )
     ingest_config = IngestConfig(
-        file_ingest_url=fixtures.config.file_ingest_url,
-        file_ingest_pubkey=fixtures.config.file_ingest_pubkey,
+        file_ingest_url=fixtures.config.fis_url + "/ingest",
+        file_ingest_pubkey=fixtures.config.fis_pubkey,
         input_dir=file_metadata_dir,
         submission_store_dir=submission_store,
         map_files_fields=fixtures.dsk.config.metadata_file_fields,
@@ -232,7 +238,7 @@ def ingest_file_metadata(fixtures: JointFixture) -> IngestConfig:
     call_data_steward_kit_ingest(
         dsk_token_path=fixtures.config.dsk_token_path,
         ingest_config_path=ingest_config_path,
-        token=fixtures.auth.read_simple_token(),
+        token=fixtures.config.upload_token,
     )
 
     return ingest_config
@@ -259,6 +265,13 @@ def check_metadata_documents(
             )
             accessions.add(accession)
 
+    assert accessions
+
+    if fixtures.config.use_api_gateway:
+        # if we use the API gateway, we cannot access the database directly
+        # and therefore just return the accessions
+        return accessions
+
     documents = fixtures.mongo.wait_for_documents(
         db_name=fixtures.config.ifrs_db_name,
         collection_name=fixtures.config.ifrs_metadata_collection,
@@ -273,6 +286,9 @@ def check_metadata_documents(
 @async_step
 async def check_ingested_files_in_storage(fixtures: JointFixture, object_ids: set[str]):
     """Check that the ingested files exist in the permanent bucket."""
+    if fixtures.config.use_api_gateway:
+        # black-box testing: cannot check permanent bucket
+        return
     for object_id in object_ids:
         assert await fixtures.s3.storage.does_object_exist(
             bucket_id=fixtures.config.permanent_bucket, object_id=object_id

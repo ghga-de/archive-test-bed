@@ -31,53 +31,11 @@ services:
     user: vscode
     env_file: tb.env
     environment:
-      # GHGA connector
-      GHGA_CONNECTOR_PART_SIZE: 8589934592
-      GHGA_CONNECTOR_WKVS_API_URL: http://wkvs
-      # Kafka
-      TB_SERVICE_NAME: testbed_kafka
-      TB_SERVICE_INSTANCE_ID: app-1
-      TB_KAFKA_SERVERS: '["kafka:9092"]'
-      # MongoDb
-      TB_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      TB_DB_NAME: "test-db"
-      TB_SERVICE_DB_NAMES: '["ars", "auth", "dcs", "ifrs", "metldata", "ucs", "wps", "mass"]'
-      # S3
-      TB_S3_ENDPOINT_URL: http://localstack:4566
-      TB_S3_ACCESS_KEY_ID: testbed-key
-      TB_S3_SECRET_ACCESS_KEY: testbed-secret
-      # bucket names
-      TB_INBOX_BUCKET: inbox
-      TB_OUTBOX_BUCKET: outbox
-      TB_STAGING_BUCKET: staging
-      TB_PERMANENT_BUCKET: permanent
-      # file ingest
-      TB_FILE_INGEST_URL: http://fis:8080/ingest
-      # metldata
-      TB_METLDATA_DB_NAME: "metldata"
-      TB_METLDATA_URL: "http://metldata:8080"
-      # ars
-      TB_ARS_DB_NAME: "ars"
-      TB_ARS_URL: "http://ars:8080"
-      #auth
-      TB_AUTH_DB_NAME: "auth"
-      TB_AUTH_USERS_COLLECTION: "users"
-      TB_AUTH_KEY_FILE: ".devcontainer/auth.env"
-      # wps
-      TB_WPS_DB_NAME: "wps"
-      TB_WPS_URL: "http://wps:8080"
-      # ifrs
-      TB_IFRS_DB_NAME: "ifrs"
-      TB_IFRS_METADATA_COLLECTION: "file_metadata"
-      # notifications
-      TB_MAILHOG_URL: "http://mailhog:8025"
-      # mass
-      TB_MASS_URL: "http://mass:8080"
-      TB_MASS_DB_NAME: "mass"
-      TB_MASS_COLLECTION: "EmbeddedDataset"
+      # you can override the testbed configuration here
+      TB_CONFIG_YAML: /workspace/.devcontainer/tb.yaml
 
   wkvs:
-    image: ghga/well-known-value-service:0.1.1
+    image: ghga/well-known-value-service:0.1.2
     restart: unless-stopped
     env_file: wkvs.env
     environment:
@@ -88,7 +46,7 @@ services:
       WKVS_WPS_API_URL: http://wps:8080
 
   metldata:
-    image: ghga/metldata:0.4.3
+    image: ghga/metldata:0.4.5
     restart: unless-stopped
     depends_on:
       kafka:
@@ -113,9 +71,11 @@ services:
       METLDATA_DATASET_UPSERTION_TYPE: dataset_created
     volumes:
       - ./metldata.yaml:/home/appuser/.metldata.yaml:ro
+    ports:
+      - 8002:8080
 
   mass:
-    image: ghga/mass:0.2.0
+    image: ghga/mass:0.3.5
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -135,9 +95,11 @@ services:
     command: "run-rest"
     volumes:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
+    ports:
+      - 8001:8080
 
   mass-consumer:
-    image: ghga/mass:0.2.0
+    image: ghga/mass:0.3.5
     restart: unless-stopped
     depends_on:
       kafka:
@@ -159,7 +121,7 @@ services:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
 
   ekss:
-    image: ghga/encryption-key-store-service:0.3.5
+    image: ghga/encryption-key-store-service:0.3.9
     restart: unless-stopped
     depends_on:
       - vault
@@ -167,9 +129,7 @@ services:
     environment:
       EKSS_HOST: 0.0.0.0
       EKSS_PORT: 80
-      EKSS_DEBUG_VAULT: "true"
-      EKSS_VAULT_HOST: vault
-      EKSS_VAULT_PORT: 8200
+      EKSS_VAULT_URL: http://vault:8200
       EKSS_VAULT_ROLE_ID: 9f03d595-c964-441c-a68e-2e1534f2bb56
       EKSS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
 
@@ -278,19 +238,56 @@ services:
       IFRS_S3_ACCESS_KEY_ID: testbed-key
       IFRS_S3_SECRET_ACCESS_KEY: testbed-secret
 
-  crs:
-    image: ghga/auth-service:0.5.1
+  # user management service
+  ums:
+    image: ghga/auth-service:0.5.6
     restart: unless-stopped
     depends_on:
       mongodb:
         condition: service_started
-    env_file: crs.env
+    env_file: ums.env
     environment:
       AUTH_SERVICE_HOST: 0.0.0.0
-      AUTH_SERVICE_INCLUDE_APIS: '["claims"]'
-      AUTH_SERVICE_ADD_AS_DATA_STEWARDS: '["id-of-data-steward"]'
+      AUTH_SERVICE_INCLUDE_APIS: '["users", "claims"]'
+      AUTH_SERVICE_ADD_AS_DATA_STEWARDS: >
+        [{
+          "ext_id": "id-of-data-steward@ghga.dev",
+          "name": "Data Steward",
+          "email": "data.steward@home.org"
+        }]
       AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongodb
       AUTH_SERVICE_DB_NAME: auth
+      AUTH_SERVICE_LOG_LEVEL: debug
+
+  # auth adapter
+  auth:
+    image: ghga/auth-service:0.5.6
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_started
+    env_file: auth.env
+    environment:
+      AUTH_SERVICE_HOST: 0.0.0.0
+      AUTH_SERVICE_INCLUDE_APIS: '[]'
+      AUTH_SERVICE_RUN_AUTH_ADAPTER: "true"
+      AUTH_SERVICE_API_EXT_PATH: ''
+      AUTH_SERVICE_OIDC_AUTHORITY_URL: http://op.test
+      AUTH_SERVICE_OIDC_USERINFO_ENDPOINT: http://op.test/userinfo
+      AUTH_SERVICE_OIDC_CLIENT_ID: test-client
+      AUTH_SERVICE_DB_URL: mongodb://testbed_user:testbed_key@mongodb
+      AUTH_SERVICE_DB_NAME: auth
+      AUTH_SERVICE_LOG_LEVEL: debug
+
+  # fake OpenID Connect provider
+  op.test:
+    image: ghga/test-oidc-provider:0.2.2
+    restart: unless-stopped
+    environment:
+      TOP_HOST: 0.0.0.0
+      TOP_PORT: 80
+      TOP_ISSUER: https://test-aai.ghga.dev
+      TOP_SERVICE_URL: http://op.test
 
   wps:
     image: ghga/work-package-service:0.1.4
@@ -311,7 +308,7 @@ services:
       WPS_DATASET_CHANGE_EVENT_TOPIC: metadata_datasets
       WPS_DATASET_DELETION_EVENT_TYPE: dataset_deleted
       WPS_DATASET_UPSERTION_EVENT_TYPE: dataset_created
-      WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
+      WPS_DOWNLOAD_ACCESS_URL: http://ums:8080/download-access
       WPS_DB_NAME: wps
     command: run-rest
 
@@ -332,12 +329,12 @@ services:
       WPS_DATASET_CHANGE_EVENT_TOPIC: metadata_datasets
       WPS_DATASET_DELETION_EVENT_TYPE: dataset_deleted
       WPS_DATASET_UPSERTION_EVENT_TYPE: dataset_created
-      WPS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
+      WPS_DOWNLOAD_ACCESS_URL: http://ums:8080/download-access
       WPS_DB_NAME: wps
     command: consume-events
 
   ars:
-    image: ghga/access-request-service:0.1.1
+    image: ghga/access-request-service:0.1.2
     restart: unless-stopped
     depends_on:
       kafka:
@@ -353,11 +350,11 @@ services:
       ARS_NOTIFICATION_EVENT_TYPE: notification
       ARS_DATA_STEWARD_EMAIL: "helpdesk@ghga.de"
       ARS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      ARS_DOWNLOAD_ACCESS_URL: http://crs:8080/download-access
+      ARS_DOWNLOAD_ACCESS_URL: http://ums:8080/download-access
       ARS_DB_NAME: ars
 
   fis:
-    image: ghga/file-ingest-service:0.1.3
+    image: ghga/file-ingest-service:0.1.5
     restart: unless-stopped
     depends_on:
       kafka:
@@ -371,9 +368,7 @@ services:
       FIS_PUBLISHER_TOPIC: interrogations
       FIS_PUBLISHER_TYPE: validation_success
       FIS_SOURCE_BUCKET_ID: staging
-      FIS_DEBUG_VAULT: "true"
-      FIS_VAULT_HOST: vault
-      FIS_VAULT_PORT: 8200
+      FIS_VAULT_URL: http://vault:8200
       FIS_VAULT_ROLE_ID: 9f03d595-c964-441c-a68e-2e1534f2bb56
       FIS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
 
@@ -433,7 +428,7 @@ services:
           "kafka-topics",
           "--list",
           "--bootstrap-server",
-          "localhost:9092",
+          "localhost:9092"
         ]
       interval: 5s
       timeout: 5s

@@ -19,8 +19,9 @@
 import json
 import os
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator, List, Optional
+from typing import Optional
 
 from hexkit.providers.s3.testutils import FileObject
 from pydantic import BaseModel
@@ -28,7 +29,7 @@ from pytest import fixture
 
 from fixtures.config import Config
 from fixtures.dsk import DskFixture
-from steps.utils import calculate_checksum
+from fixtures.utils import calculate_checksum
 
 __all__ = [
     "FileBatch",
@@ -42,7 +43,7 @@ __all__ = [
 class FileBatch(BaseModel):
     """File batch model"""
 
-    file_objects: List[FileObject]
+    file_objects: list[FileObject]
     tsv_file: Path
 
 
@@ -57,8 +58,10 @@ def create_named_file(
     """Create a file with given parameters"""
     file_path = target_dir / name
 
-    file_size = config.file_size if not file_size else file_size
-    alias = os.path.splitext(name)[0] if not alias else alias
+    if not file_size:
+        file_size = config.default_file_size
+    if not alias:
+        alias = os.path.splitext(name)[0]
 
     with open(file_path, "wb") as file:
         first_line = f"{name}\n".encode()
@@ -92,9 +95,8 @@ def create_named_file(
 @fixture(name="file_fixture")
 def file_fixture(
     config: Config, dsk: DskFixture
-) -> Generator[List[FileObject], None, None]:
+) -> Generator[list[FileObject], None, None]:
     """File fixture that provides temporary files for the minimal metadata."""
-
     temp_dir = Path(tempfile.gettempdir())
     metadata = json.loads(dsk.config.minimal_metadata_path.read_text())
 
@@ -124,7 +126,6 @@ def batch_file_fixture(
     config: Config, dsk: DskFixture
 ) -> Generator[FileBatch, None, None]:
     """Batch file fixture that provides temporary files for the complete metadata."""
-
     temp_dir = Path(tempfile.gettempdir())
     metadata = json.loads(dsk.config.complete_metadata_path.read_text())
 
@@ -164,9 +165,8 @@ def batch_file_fixture(
 @fixture(name="unhappy_file_fixture")
 def unhappy_file_fixture(
     config: Config, dsk: DskFixture
-) -> Generator[List[FileObject], None, None]:
+) -> Generator[list[FileObject], None, None]:
     """File fixture that provides temporary files for the unhappy metadata."""
-
     temp_dir = Path(tempfile.gettempdir())
     metadata = json.loads(dsk.config.unhappy_metadata_path.read_text())
 

@@ -17,13 +17,11 @@
 
 import re
 
-import httpx
-
 from .conftest import (
-    TIMEOUT,
     Config,
-    MongoFixture,
-    get_state,
+    HttpClient,
+    Response,
+    StateStorage,
     parse,
     scenarios,
     then,
@@ -36,9 +34,9 @@ scenarios("../features/27_dataset_details.feature")
 
 @when(parse('I request the details of "{alias}" dataset'), target_fixture="response")
 def request_dataset_details(
-    alias: str, config: Config, mongo: MongoFixture
-) -> httpx.Response:
-    datasets = get_state("all available datasets", mongo)
+    alias: str, config: Config, http: HttpClient, state: StateStorage
+) -> Response:
+    datasets = state.get_state("all available datasets")
     if alias == "non-existing":
         resource_id = alias
     else:
@@ -48,15 +46,15 @@ def request_dataset_details(
         f"{config.metldata_url}/artifacts/"
         f"embedded_public/classes/EmbeddedDataset/resources/{resource_id}"
     )
-    return httpx.get(url, timeout=TIMEOUT)
+    return http.get(url)
 
 
 @then(parse('I get the details of "{alias}" dataset'))
-def check_dataset_details(alias: str, response: httpx.Response, mongo: MongoFixture):
+def check_dataset_details(alias: str, response: Response, state: StateStorage):
     result = response.json()
     assert result
     assert alias == result.get("alias")
-    datasets = get_state("all available datasets", mongo)
+    datasets = state.get_state("all available datasets")
     assert alias in datasets
     overview = get_dataset_overview(result)
     assert overview == datasets[alias]
@@ -64,8 +62,8 @@ def check_dataset_details(alias: str, response: httpx.Response, mongo: MongoFixt
 
 @when(parse("I request an associated sample resource"), target_fixture="response")
 def request_one_associated_samples(
-    config: Config, response: httpx.Response
-) -> httpx.Response:
+    config: Config, http: HttpClient, response: Response
+) -> Response:
     result = response.json()
     match = re.search("'sample': '(GHGAN[0-9]+)'", repr(result))
     assert match
@@ -74,11 +72,11 @@ def request_one_associated_samples(
         f"{config.metldata_url}/artifacts/"
         f"embedded_public/classes/Sample/resources/{resource_id}"
     )
-    return httpx.get(url, timeout=TIMEOUT)
+    return http.get(url)
 
 
 @then("I get a sample resource")
-def check_one_sample_resource(response: httpx.Response):
+def check_one_sample_resource(response: Response):
     result = response.json()
     assert isinstance(result, dict)
     assert sorted(result) == [

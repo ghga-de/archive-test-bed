@@ -14,17 +14,20 @@
 # limitations under the License.
 #
 
-""" Metadata related  fixture """
+"""Metadata related fixture"""
 
 import base64
 import os
 import shutil
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator, Literal
+from typing import Literal
 
 from pydantic import BaseSettings
 from pytest import fixture
+
+from fixtures.config import Config
 
 BASE_DIR = Path(__file__).parent.parent
 TMP_DIR = Path(tempfile.gettempdir())
@@ -69,8 +72,18 @@ class ConnectorFixture:
 
     config: ConnectorConfig
 
-    def __init__(self, config: ConnectorConfig):
-        self.config = config
+    def __init__(self, config: Config, connector_config: ConnectorConfig):
+        self.config = connector_config
+        wkvs_url = config.wkvs_url
+        if wkvs_url:
+            self.set_env("wkvs_api_url", wkvs_url)
+        part_size = config.download_part_size
+        if part_size:
+            self.set_env("part_size", str(part_size))
+
+    @staticmethod
+    def set_env(key: str, value: str):
+        os.environ[f"ghga_connector_{key}".upper()] = value
 
     def reset_work_dir(self):
         """Reset the working director for the GHGA connector."""
@@ -89,7 +102,7 @@ class ConnectorFixture:
 
 
 @fixture(name="connector", scope="session")
-def connector_fixture() -> Generator[ConnectorFixture, None, None]:
+def connector_fixture(config: Config) -> Generator[ConnectorFixture, None, None]:
     """Pytest fixture for tests using the GHGA Connector."""
-    config = ConnectorConfig()
-    yield ConnectorFixture(config=config)
+    connector_config = ConnectorConfig()
+    yield ConnectorFixture(config, connector_config)

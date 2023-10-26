@@ -50,6 +50,7 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
+.ruff_cache/
 prof/
 
 # Translations
@@ -110,6 +111,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Local configuration
+*.local.yaml
 
 # Spyder project settings
 .spyderproject

@@ -15,34 +15,44 @@
 
 """Step definitions for creating work package tests in the frontend"""
 
-import httpx
-
 from .conftest import (
-    TIMEOUT,
     Config,
     JointFixture,
     LoginFixture,
     MongoFixture,
+    Response,
+    StateStorage,
     given,
     parse,
     scenarios,
-    set_state,
     then,
-    unset_state,
     when,
 )
 
-scenarios("../features/31_work_packages.feature")
+scenarios("../features/32_work_packages.feature")
 
 
 @given("no work packages have been created yet")
-def wps_database_is_empty(config: Config, mongo: MongoFixture):
+def wps_database_is_empty(config: Config, mongo: MongoFixture, state: StateStorage):
+    if config.use_api_gateway:
+        # black-box testing: cannot empty service database
+        assert not state.get_state("dataset to be downloaded")
+        assert not state.get_state("all files to be downloaded")
+        assert not state.get_state("vcf files to be downloaded")
+        assert not state.get_state("download token for all files")
+        assert not state.get_state("download token for vcf files")
+        return
     mongo.empty_databases(config.wps_db_name, exclude_collections="datasets")
-    unset_state("a download token has been created", mongo)
+    state.unset_state("download token for")
+    state.unset_state("dataset to be downloaded")
+    state.unset_state("files to be downloaded")
 
 
 @given("the test datasets have been announced")
 def announce_dataset(config: Config, mongo: MongoFixture):
+    if config.use_api_gateway:
+        # black-box testing: cannot look into service database
+        return
     datasets = mongo.wait_for_documents(config.wps_db_name, "datasets", {}, number=2)
     assert datasets
     assert len(datasets) == 6
@@ -51,15 +61,15 @@ def announce_dataset(config: Config, mongo: MongoFixture):
 
 
 @when("the list of datasets is queried", target_fixture="response")
-def query_datasets(config: Config, login: LoginFixture):
-    user_id = login.user["_id"]
-    url = f"{config.wps_url}/users/{user_id}/datasets"
-    return httpx.get(url, headers=login.headers, timeout=TIMEOUT)
+def query_datasets(fixtures: JointFixture, login: LoginFixture):
+    user_id = login.user.id
+    url = f"{fixtures.config.wps_url}/users/{user_id}/datasets"
+    return fixtures.http.get(url, headers=login.headers)
 
 
 @then(parse('only the test dataset "{dataset_char}" is returned'))
 def check_dataset_in_list(
-    dataset_char: str, fixtures: JointFixture, response: httpx.Response
+    dataset_char: str, fixtures: JointFixture, response: Response
 ):
     data = response.json()
     assert isinstance(data, list) and len(data) == 1
@@ -69,13 +79,15 @@ def check_dataset_in_list(
     assert dataset.get("title") == f"The complete-{dataset_char} dataset"
     files = dataset.get("files")
     assert files and isinstance(files, list)
-    set_state("dataset to be downloaded", f"DS_{dataset_char}", fixtures.mongo)
-    set_state("files to be downloaded", files, fixtures.mongo)
+    fixtures.state.set_state("dataset to be downloaded", f"DS_{dataset_char}")
 
 
-@when("a work package for the test dataset is created", target_fixture="response")
+@when(
+    parse('a work package for "{file_scope}" files in test dataset is created'),
+    target_fixture="response",
+)
 def create_work_package(
-    login: LoginFixture, fixtures: JointFixture, response: httpx.Response
+    login: LoginFixture, fixtures: JointFixture, response: Response, file_scope: str
 ):
     data = response.json()
     assert isinstance(data, list) and len(data) == 1
@@ -83,22 +95,38 @@ def create_work_package(
     assert isinstance(dataset, dict)
     dataset_id = dataset.get("id")
     assert dataset_id
+    files = dataset.get("files")
+    assert files and isinstance(files, list)
+
+    if file_scope == "all":
+        file_ids = None
+    elif file_scope in ["vcf", "fastq"]:
+        extension = f".{file_scope}.gz"
+        files = [file for file in files if file["extension"] == extension]
+        file_ids = [file["id"] for file in files]
+    else:
+        raise ValueError("Unknown file_scope {file_scope}")
+
+    fixtures.state.set_state(f"{file_scope} files to be downloaded", files)
+
     data = {
         "dataset_id": dataset_id,
         "type": "download",
-        "file_ids": None,
+        "file_ids": file_ids,
         "user_public_crypt4gh_key": fixtures.config.user_public_crypt4gh_key,
     }
     url = f"{fixtures.config.wps_url}/work-packages"
-    response = httpx.post(url, headers=login.headers, json=data, timeout=TIMEOUT)
-    return response
+    return fixtures.http.post(url, headers=login.headers, json=data)
 
 
-@then("the response contains a download token")
-def check_download_token(fixtures: JointFixture, response: httpx.Response):
+@then(parse('the response contains a download token for "{file_scope}" files'))
+def check_download_token(fixtures: JointFixture, response: Response, file_scope: str):
     data = response.json()
     assert set(data) == {"id", "token"}
     id_, token = data["id"], data["token"]
     assert 20 <= len(id_) < 40 and 80 < len(token) < 120
     id_and_token = f"{id_}:{token}"
-    set_state("a download token has been created", id_and_token, fixtures.mongo)
+    fixtures.state.set_state(
+        f"download token for {file_scope} files",
+        id_and_token,
+    )

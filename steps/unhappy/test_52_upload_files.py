@@ -21,11 +21,12 @@ import os
 import shutil
 import subprocess
 
+from fixtures.file import FileObject
+from fixtures.utils import temporary_file
 from ghga_datasteward_kit.file_ingest import IngestConfig
 
-from fixtures.file import FileObject
 from steps.test_12_upload_files import call_data_steward_kit_upload
-from steps.utils import ingest_config_as_file, temporary_file, upload_config_as_file
+from steps.utils import ingest_config_as_file, upload_config_as_file
 
 from ..conftest import DskFixture, JointFixture, given, parse, scenarios, then, when
 
@@ -119,9 +120,10 @@ def ingest_unhappy_file_metadata(fixtures: JointFixture) -> subprocess.Completed
     submission_store = (
         fixtures.dsk.config.submission_registry / fixtures.dsk.config.submission_store
     )
+
     ingest_config = IngestConfig(
-        file_ingest_url=fixtures.config.file_ingest_url,
-        file_ingest_pubkey=fixtures.config.file_ingest_pubkey,
+        file_ingest_url=fixtures.config.fis_url + "/ingest",
+        file_ingest_pubkey=fixtures.config.fis_pubkey,
         input_dir=unhappy_file_metadata_dir,
         submission_store_dir=submission_store,
         map_files_fields=fixtures.dsk.config.metadata_file_fields,
@@ -129,7 +131,7 @@ def ingest_unhappy_file_metadata(fixtures: JointFixture) -> subprocess.Completed
 
     ingest_config_path = ingest_config_as_file(config=ingest_config)
     dsk_token_path = fixtures.config.dsk_token_path
-    token = fixtures.auth.read_simple_token()
+    token = fixtures.config.upload_token
 
     with temporary_file(dsk_token_path, token) as _:
         completed_unhappy_ingest = (

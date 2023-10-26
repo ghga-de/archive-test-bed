@@ -19,9 +19,10 @@
 import subprocess
 from collections import Counter
 
+from fixtures.utils import temporary_file
 from ghga_datasteward_kit.loading import LoadConfig
 
-from steps.utils import load_config_as_file, temporary_file
+from steps.utils import load_config_as_file
 
 from .conftest import Config, JointFixture, MongoFixture, scenarios, then, when
 
@@ -42,8 +43,8 @@ def run_the_load_command(fixtures: JointFixture):
         )
     )
 
-    loader_token = fixtures.auth.read_simple_token()
-    with temporary_file(fixtures.config.dsk_token_path, loader_token):
+    upload_token = fixtures.config.upload_token
+    with temporary_file(fixtures.config.dsk_token_path, upload_token):
         completed_upload = subprocess.run(  # nosec B607, B603
             [
                 "ghga-datasteward-kit",
@@ -64,6 +65,9 @@ def run_the_load_command(fixtures: JointFixture):
 
 @then("the stats for the datasets exist in the database")
 def check_stats_in_metldata_database(config: Config, mongo: MongoFixture):
+    if config.use_api_gateway:
+        # black-box testing: skip checking the database directly
+        return
     datasets = mongo.wait_for_documents(
         config.metldata_db_name, "art_stats_public_class_DatasetStats", {}
     )
@@ -77,8 +81,8 @@ def check_stats_in_metldata_database(config: Config, mongo: MongoFixture):
         assert content["accession"] == accession
         simplified_dataset = {
             "types": ", ".join(content["types"]),
-            "files": content["file_summary"]["count"],
-            "studies": content["study_summary"]["count"],
+            "files": content["files_summary"]["count"],
+            "studies": content["studies_summary"]["count"],
         }
         simplified_datasets[content["title"]] = simplified_dataset
     assert simplified_datasets == {
@@ -105,6 +109,9 @@ def check_stats_in_metldata_database(config: Config, mongo: MongoFixture):
 
 @then("the test datasets exist as embedded dataset in the database")
 def check_datasets_in_metldata_database(config: Config, mongo: MongoFixture):
+    if config.use_api_gateway:
+        # black-box testing: skip checking the database directly
+        return
     datasets = mongo.wait_for_documents(
         config.metldata_db_name, "art_embedded_public_class_EmbeddedDataset", {}
     )
@@ -158,6 +165,9 @@ def check_datasets_in_metldata_database(config: Config, mongo: MongoFixture):
 
 @then("the test datasets are known to the work package service")
 def check_datasets_in_wps_database(config: Config, mongo: MongoFixture):
+    if config.use_api_gateway:
+        # black-box testing: skip checking the database directly
+        return
     datasets = mongo.wait_for_documents(config.wps_db_name, "datasets", {})
     assert datasets
     assert len(datasets) == 6

@@ -23,7 +23,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from ..conftest import TIMEOUT, JointFixture, given, parse, scenarios, then, when
+from ..conftest import JointFixture, given, parse, scenarios, then, when
 
 scenarios("../features/unhappy/51_transform_metadata.feature")
 
@@ -60,7 +60,7 @@ def transform_metadata(metadata_config_path: Path, fixtures: JointFixture):
             capture_output=True,
             encoding="utf-8",
             text=True,
-            timeout=TIMEOUT * 60,
+            timeout=10 * 60,
             cwd=workdir,
         )
     )
