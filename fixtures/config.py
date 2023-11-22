@@ -17,7 +17,6 @@
 """The configuration for the test app."""
 
 from pathlib import Path
-from urllib.parse import urljoin
 
 from hexkit.config import config_from_yaml
 from hexkit.providers.akafka import KafkaConfig
@@ -43,8 +42,8 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
 
     # directories
     base_dir: Path = Path(__file__).parent.parent
-    data_dir = base_dir / "example_data"
-    test_dir = base_dir / "test_data"
+    data_dir: Path = base_dir / "example_data"
+    test_dir: Path = base_dir / "test_data"
 
     # constants used in testing
     upload_part_size: int = 1024
@@ -105,7 +104,7 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     internal_apis: list[str] = ["ekss", "auth_adapter"]  # noqa: RUF012
 
     # auth
-    auth_key_file = Path(__file__).parent.parent / ".devcontainer/auth.env"
+    auth_key_file: Path = Path(__file__).parent.parent / ".devcontainer/auth.env"
     auth_adapter_url: str = "http://auth:8080"
     auth_basic: str = ""  # for Basic Authentication
     upload_token: str = ""  # simple token for uploading metadata
