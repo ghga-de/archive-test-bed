@@ -212,11 +212,11 @@ async def check_uploaded_files_in_storage(
 @when("the file metadata is ingested", target_fixture="ingest_config")
 def ingest_file_metadata(fixtures: JointFixture) -> IngestConfig:
     ingest_config = IngestConfig(
-        file_ingest_url=fixtures.config.fis_url + "/legacy/ingest",
+        file_ingest_baseurl=fixtures.config.fis_url,
         file_ingest_pubkey=fixtures.config.fis_pubkey,
         input_dir=fixtures.dsk.config.file_metadata_dir,
         submission_store_dir=fixtures.dsk.config.submission_store,
-        map_files_fields=fixtures.dsk.config.metadata_file_fields,
+        map_files_fields=list(fixtures.dsk.config.metadata_file_fields),
     )
 
     ingest_config_path = ingest_config_as_file(config=ingest_config)
