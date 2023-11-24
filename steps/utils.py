@@ -69,6 +69,8 @@ def upload_config_as_file(config: Config, file_metadata_dir: Path):
         "bucket_id": config.staging_bucket,
         "part_size": str(config.upload_part_size),
         "output_dir": str(file_metadata_dir),
+        "secret_ingest_baseurl": config.fis_url,
+        "secret_ingest_pubkey": config.fis_pubkey,
     }
 
     return write_data_to_yaml(data=upload_config)

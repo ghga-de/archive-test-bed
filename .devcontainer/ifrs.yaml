@@ -1,0 +1,29 @@
+file_deleted_event_topic: internal_registrations
+file_deleted_event_type: internal_file_deleted
+file_registered_event_topic: internal_registrations
+file_registered_event_type: internal_file_registered
+file_staged_event_topic: internal_registrations
+file_staged_event_type: internal_file_staged
+files_to_delete_topic: purges
+files_to_delete_type: files_to_delete
+files_to_register_topic: interrogations
+files_to_register_type: validation_success
+files_to_stage_topic: downloads
+files_to_stage_type: unstaged_drs_object_requested
+db_connection_str: "**********"
+db_name: dev_db
+kafka_security_protocol: PLAINTEXT
+kafka_servers:
+  - kafka:9092
+kafka_ssl_cafile: ""
+kafka_ssl_certfile: ""
+kafka_ssl_keyfile: ""
+kafka_ssl_password: ""
+object_storages:
+  test:
+    bucket: permanent
+    credentials:
+      s3_endpoint_url: http://ifrs:4566
+      s3_access_key_id: testbed-key
+      s3_secret_access_key: testbed-secret
+service_instance_id: "1"

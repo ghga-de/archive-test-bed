@@ -35,7 +35,7 @@ services:
       TB_CONFIG_YAML: /workspace/.devcontainer/tb.yaml
 
   wkvs:
-    image: ghga/well-known-value-service:0.1.2
+    image: ghga/well-known-value-service:1.0.1
     restart: unless-stopped
     env_file: wkvs.env
     environment:
@@ -135,7 +135,7 @@ services:
       EKSS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
 
   dcs:
-    image: ghga/download-controller-service:1.0.0
+    image: ghga/download-controller-service:1.1.0
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -144,34 +144,14 @@ services:
         condition: service_started
     env_file: dcs.env
     environment:
-      DCS_HOST: 0.0.0.0
-      DCS_DOWNLOAD_SERVED_EVENT_TOPIC: downloads
-      DCS_DOWNLOAD_SERVED_EVENT_TYPE: drs_object_served
-      DCS_FILE_REGISTERED_EVENT_TOPIC: downloads
-      DCS_FILE_REGISTERED_EVENT_TYPE: drs_object_registered
-      DCS_FILES_TO_REGISTER_TOPIC: internal_registrations
-      DCS_FILES_TO_REGISTER_TYPE: internal_file_registered
-      DCS_UNSTAGED_DOWNLOAD_EVENT_TOPIC: downloads
-      DCS_UNSTAGED_DOWNLOAD_EVENT_TYPE: unstaged_drs_object_requested
-      DCS_FILES_TO_DELETE_TOPIC: purges
-      DCS_FILES_TO_DELETE_TYPE: files_to_delete
-      DCS_FILE_DELETED_EVENT_TOPIC: downloads
-      DCS_FILE_DELETED_EVENT_TYPE: drs_object_deleted
       DCS_SERVICE_INSTANCE_ID: rest.1
-      DCS_KAFKA_SERVERS: '["kafka:9092"]'
-      DCS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      DCS_DB_NAME: dcs
-      DCS_OUTBOX_BUCKET: outbox
-      DCS_DRS_SERVER_URI: drs://localhost:8080/
-      DCS_S3_ENDPOINT_URL: http://localstack:4566
-      DCS_S3_ACCESS_KEY_ID: testbed-key
-      DCS_S3_SECRET_ACCESS_KEY: testbed-secret
-      DCS_EKSS_BASE_URL: http://ekss
       DCS_PRESIGNED_URL_EXPIRES_AFTER: 30
     command: "run-rest"
+    volumes:
+      - ./dcs.yaml:/home/appuser/.dcs.yaml:ro
 
   dcs-consumer:
-    image: ghga/download-controller-service:1.0.0
+    image: ghga/download-controller-service:1.1.0
     restart: unless-stopped
     depends_on:
       kafka:
@@ -180,34 +160,13 @@ services:
         condition: service_started
     env_file: dcs.env
     environment:
-      DCS_HOST: 0.0.0.0
-      DCS_DOWNLOAD_SERVED_EVENT_TOPIC: downloads
-      DCS_DOWNLOAD_SERVED_EVENT_TYPE: drs_object_served
-      DCS_FILE_REGISTERED_EVENT_TOPIC: downloads
-      DCS_FILE_REGISTERED_EVENT_TYPE: drs_object_registered
-      DCS_FILES_TO_REGISTER_TOPIC: internal_registrations
-      DCS_FILES_TO_REGISTER_TYPE: internal_file_registered
-      DCS_UNSTAGED_DOWNLOAD_EVENT_TOPIC: downloads
-      DCS_UNSTAGED_DOWNLOAD_EVENT_TYPE: unstaged_drs_object_requested
-      DCS_FILES_TO_DELETE_TOPIC: purges
-      DCS_FILES_TO_DELETE_TYPE: files_to_delete
-      DCS_FILE_DELETED_EVENT_TOPIC: downloads
-      DCS_FILE_DELETED_EVENT_TYPE: drs_object_deleted
       DCS_SERVICE_INSTANCE_ID: consumer.1
-      DCS_KAFKA_SERVERS: '["kafka:9092"]'
-      DCS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      DCS_DB_NAME: dcs
-      DCS_OUTBOX_BUCKET: outbox
-      DCS_DRS_SERVER_URI: drs://localhost:8080/
-      DCS_S3_ENDPOINT_URL: http://localstack:4566
-      DCS_S3_ACCESS_KEY_ID: testbed-key
-      DCS_S3_SECRET_ACCESS_KEY: testbed-secret
-      DCS_EKSS_BASE_URL: http://ekss
-      DCS_PRESIGNED_URL_EXPIRES_AFTER: 30
     command: "consume-events"
+    volumes:
+      - ./dcs.yaml:/home/appuser/.dcs.yaml:ro
 
   ifrs:
-    image: ghga/internal-file-registry-service:0.4.0
+    image: ghga/internal-file-registry-service:1.0.0
     restart: unless-stopped
     depends_on:
       kafka:
@@ -215,22 +174,6 @@ services:
       mongodb:
         condition: service_started
     environment:
-      IFRS_FILE_REGISTERED_EVENT_TOPIC: internal_registrations
-      IFRS_FILE_REGISTERED_EVENT_TYPE: internal_file_registered
-      IFRS_FILE_STAGED_EVENT_TOPIC: internal_registrations
-      IFRS_FILE_STAGED_EVENT_TYPE: internal_file_staged
-      IFRS_FILES_TO_REGISTER_TOPIC: interrogations
-      IFRS_FILES_TO_REGISTER_TYPE: validation_success
-      IFRS_FILES_TO_STAGE_TOPIC: downloads
-      IFRS_FILES_TO_STAGE_TYPE: unstaged_drs_object_requested
-      IFRS_FILE_DELETED_EVENT_TOPIC: internal_registrations
-      IFRS_FILE_DELETED_EVENT_TYPE: internal_file_deleted
-      IFRS_FILES_TO_DELETE_TOPIC: purges
-      IFRS_FILES_TO_DELETE_TYPE: files_to_delete
-      IFRS_OUTBOX_BUCKET: outbox
-      IFRS_INBOX_BUCKET: inbox
-      IFRS_STAGING_BUCKET: staging
-      IFRS_PERMANENT_BUCKET: permanent
       IFRS_SERVICE_INSTANCE_ID: consumer.1
       IFRS_KAFKA_SERVERS: '["kafka:9092"]'
       IFRS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
@@ -238,6 +181,8 @@ services:
       IFRS_S3_ENDPOINT_URL: http://localstack:4566
       IFRS_S3_ACCESS_KEY_ID: testbed-key
       IFRS_S3_SECRET_ACCESS_KEY: testbed-secret
+    volumes:
+      - ./ifrs.yaml:/home/appuser/.ifrs.yaml:ro
 
   ums:
     image: ghga/auth-service:1.0.0
@@ -376,7 +321,7 @@ services:
       ARS_DB_NAME: ars
 
   fis:
-    image: ghga/file-ingest-service:1.0.0
+    image: ghga/file-ingest-service:1.1.0
     restart: unless-stopped
     depends_on:
       kafka:
@@ -389,9 +334,11 @@ services:
       FIS_KAFKA_SERVERS: '["kafka:9092"]'
       FIS_PUBLISHER_TOPIC: interrogations
       FIS_PUBLISHER_TYPE: validation_success
+      FIS_SELECTED_STORAGE_ALIAS: staging
       FIS_SOURCE_BUCKET_ID: staging
       FIS_VAULT_URL: http://vault:8200
       FIS_VAULT_PATH: ekss
+      FIS_VAULT_KUBE_ROLE: ""
       FIS_VAULT_ROLE_ID: 9f03d595-c964-441c-a68e-2e1534f2bb56
       FIS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
 

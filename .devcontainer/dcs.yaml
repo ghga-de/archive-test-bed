@@ -1,0 +1,30 @@
+host: 0.0.0.0
+port: 8080
+download_served_event_topic: downloads
+download_served_event_type: drs_object_served
+file_deleted_event_topic: downloads
+file_deleted_event_type: drs_object_deleted
+file_registered_event_topic: downloads
+file_registered_event_type: drs_object_registered
+files_to_delete_topic: purges
+files_to_delete_type: files_to_delete
+files_to_register_topic: internal_registrations
+files_to_register_type: internal_file_registered
+unstaged_download_event_topic: downloads
+unstaged_download_event_type: unstaged_drs_object_requested
+db_connection_str: mongodb://testbed_user:testbed_key@mongodb
+db_name: dcs
+kafka_servers:
+  - kafka:9092
+service_instance_id: "1"
+object_storages:
+  test:
+    bucket: outbox
+    credentials:
+      s3_endpoint_url: http://localstack:4566
+      s3_access_key_id: testbed-key
+      s3_secret_access_key: testbed-secret
+drs_server_uri: drs://localhost:8080/
+ekss_base_url: http://ekss
+presigned_url_expires_after: 30
+log_level: debug

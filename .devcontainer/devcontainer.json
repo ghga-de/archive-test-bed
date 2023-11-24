@@ -19,13 +19,21 @@
 				"python.languageServer": "Pylance",
 				"python.analysis.typeCheckingMode": "basic",
 				"python.testing.pytestPath": "/usr/local/py-utils/bin/pytest",
+				"python.testing.pytestArgs": [
+					"--profile"
+				],
 				"python.testing.unittestEnabled": false,
 				"python.testing.pytestEnabled": true,
+				"editor.codeActionsOnSave": {
+					"source.organizeImports": true
+				},
 				"editor.formatOnSave": true,
 				"editor.renderWhitespace": "all",
 				"editor.rulers": [
 					88
 				],
+				"ruff.organizeImports": true,
+				"editor.defaultFormatter": "charliermarsh.ruff",
 				"licenser.license": "Custom",
 				"licenser.customHeaderFile": "/workspace/.devcontainer/license_header.txt"
 			},
@@ -33,9 +41,9 @@
 			"extensions": [
 				"mikestead.dotenv",
 				"ms-azuretools.vscode-docker",
-				"ms-python.black-formatter",
 				"ms-python.python",
 				"ms-python.vscode-pylance",
+				"ms-python.mypy-type-checker",
 				"vtenentes.bdd",
 				"njpwerner.autodocstring",
 				"charliermarsh.ruff",
@@ -47,8 +55,7 @@
 				"streetsidesoftware.code-spell-checker",
 				"yzhang.markdown-all-in-one",
 				"visualstudioexptteam.vscodeintellicode",
-				"ymotongpoo.licenser",
-				"editorconfig.editorconfig"
+				"ymotongpoo.licenser"
 			]
 		}
 	},
@@ -58,5 +65,10 @@
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "dev_install",
 	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-	"remoteUser": "vscode"
+	"remoteUser": "vscode",
+	"containerEnv": {
+		// for testcontainers to connect to the docker host:
+		"TC_HOST": "host.docker.internal",
+		"DOCKER_HOST": "unix:///var/run/docker.sock"
+	}
 }

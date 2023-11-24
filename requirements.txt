@@ -4,8 +4,8 @@ ghga-connector==1.1.0
 ghga-datasteward-kit==1.1.0
 
 ghga-event-schemas>=1.0
-ghga-service-commons[auth,crypt]>=1.1,<1.2
-hexkit[test-all]>=1.0
+ghga-service-commons[auth,crypt]>=1.1
+hexkit[all]>=1.0
 
 testcontainers>=3.7.1,<4
 
