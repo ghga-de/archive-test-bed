@@ -178,9 +178,6 @@ services:
       IFRS_KAFKA_SERVERS: '["kafka:9092"]'
       IFRS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
       IFRS_DB_NAME: ifrs
-      IFRS_S3_ENDPOINT_URL: http://localstack:4566
-      IFRS_S3_ACCESS_KEY_ID: testbed-key
-      IFRS_S3_SECRET_ACCESS_KEY: testbed-secret
     volumes:
       - ./ifrs.yaml:/home/appuser/.ifrs.yaml:ro
 
@@ -321,7 +318,7 @@ services:
       ARS_DB_NAME: ars
 
   fis:
-    image: ghga/file-ingest-service:1.1.0
+    image: ghga/file-ingest-service:1.1.1
     restart: unless-stopped
     depends_on:
       kafka:
@@ -459,6 +456,8 @@ services:
         volume:
           nocopy: true
       - ./init-scripts/localstack:/etc/localstack/init/ready.d:ro
+    ports:
+      - 4566:4566
 
   vault:
     image: hashicorp/vault:1.12

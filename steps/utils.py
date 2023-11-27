@@ -38,7 +38,7 @@ FILE_OVERVIEW_KEYS = {
 def ingest_config_as_file(config: IngestConfig):
     """Create upload config file for data steward kit files ingest-upload-metadata"""
     ingest_config = {
-        "file_ingest_url": config.file_ingest_url,
+        "file_ingest_baseurl": config.file_ingest_baseurl,
         "file_ingest_pubkey": config.file_ingest_pubkey,
         "submission_store_dir": str(config.submission_store_dir),
         "input_dir": str(config.input_dir),
