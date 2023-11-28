@@ -24,7 +24,7 @@ from fixtures.auth import TokenGenerator, auth_fixture
 from fixtures.config import Config
 from fixtures.connector import ConnectorFixture, connector_fixture
 from fixtures.dsk import DskFixture, dsk_fixture
-from fixtures.file import batch_file_fixture, file_fixture
+from fixtures.file import batch_file_fixture, file_fixture, unhappy_file_fixture
 from fixtures.http import HttpClient, Response, http_fixture
 from fixtures.kafka import KafkaFixture, kafka_fixture
 from fixtures.mongo import MongoFixture, mongo_fixture
@@ -41,6 +41,7 @@ __all__ = [
     "joint_fixture",
     "batch_file_fixture",
     "file_fixture",
+    "unhappy_file_fixture",
     "dsk_fixture",
     "connector_fixture",
     "state_fixture",

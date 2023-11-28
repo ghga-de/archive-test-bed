@@ -44,6 +44,7 @@ from fixtures import (  # noqa: RUF100
     mongo_fixture,
     s3_fixture,
     state_fixture,
+    unhappy_file_fixture,
 )
 from pytest_bdd import (  # noqa: RUF100
     given,
@@ -182,7 +183,8 @@ async def reset_state(fixtures: JointFixture):
         saved_data_steward = fetch_data_stewardship(fixtures)
         fixtures.mongo.empty_databases()  # empty service databases
         restore_data_stewardship(saved_data_steward, fixtures)
-    fixtures.dsk.reset_work_dir()  # reset local submission registry
+    fixtures.dsk.reset_submission_dir()  # reset local submission registry
+    fixtures.dsk.reset_unhappy_submission_dir()  # reset local unhappy submission registry
     empty_mail_server(fixtures)  # reset mail server
 
 
@@ -191,6 +193,12 @@ def assume_state_clause(name: str, state: StateStorage):
     value = state.get_state(name)
     assert value, f'The expected state "{name}" has not yet been set.'
     return value
+
+
+@given("we start on a clean unhappy submission registry", target_fixture="state")
+@async_step
+async def reset_unhappy_submission_dir(fixtures: JointFixture):
+    fixtures.dsk.reset_unhappy_submission_dir()  # reset local unhappy submission registry
 
 
 @then(parse('set the state to "{name}"'))
@@ -214,3 +222,23 @@ def check_hit_count(count: int, response: Response):
 def check_received_item_count(response: Response, item_count):
     results = response.json()
     assert len(results["hits"]) == item_count
+
+
+@given(
+    parse('we have the "{config_state}" config with "{model_state}" metadata model'),
+    target_fixture="metadata_config_path",
+)
+def metadata_config(config_state: str, model_state: str, fixtures: JointFixture):
+    config_path_lookup = {
+        "valid": fixtures.dsk.config.metadata_config_path,
+        "unhappy": fixtures.dsk.config.unhappy_metadata_config_path,
+    }
+    metadata_config_path = config_path_lookup[config_state]
+
+    if model_state == "unhappy":
+        metadata_config_path = fixtures.dsk.get_updated_config(
+            config_key="metadata_model_path", new_value="unhappy_metadata_model.yaml"
+        )
+
+    assert metadata_config_path.exists()
+    return metadata_config_path

@@ -132,7 +132,9 @@ async def staging_bucket_is_empty(fixtures: JointFixture):
 
 @given("no file metadata exists")
 def local_metadata_empty(fixtures: JointFixture):
-    file_metadata_dir = fixtures.dsk.config.file_metadata_dir
+    file_metadata_dir = (
+        fixtures.dsk.config.submission_registry / fixtures.dsk.config.file_metadata_dir
+    )
     if os.path.exists(file_metadata_dir):
         shutil.rmtree(file_metadata_dir)
 
@@ -144,7 +146,9 @@ def local_metadata_empty(fixtures: JointFixture):
 def upload_files_individually(
     fixtures: JointFixture, file_fixture: list[FileObject]
 ) -> list[FileObject]:
-    file_metadata_dir = fixtures.dsk.config.file_metadata_dir
+    file_metadata_dir = (
+        fixtures.dsk.config.submission_registry / fixtures.dsk.config.file_metadata_dir
+    )
     file_metadata_dir.mkdir(exist_ok=True)
 
     for file_object in file_fixture:
@@ -163,7 +167,9 @@ def upload_files_individually(
 def upload_files_as_batch(
     fixtures: JointFixture, batch_file_fixture: FileBatch
 ) -> list[FileObject]:
-    file_metadata_dir = fixtures.dsk.config.file_metadata_dir
+    file_metadata_dir = (
+        fixtures.dsk.config.submission_registry / fixtures.dsk.config.file_metadata_dir
+    )
     file_metadata_dir.mkdir(exist_ok=True)
 
     tsv_file = batch_file_fixture.tsv_file
@@ -183,7 +189,9 @@ def metadata_files_exist(
     fixtures: JointFixture, file_objects: list[FileObject]
 ) -> set[str]:
     """Check that the file metadata exists and return the UUIDs."""
-    file_metadata_dir = fixtures.dsk.config.file_metadata_dir
+    file_metadata_dir = (
+        fixtures.dsk.config.submission_registry / fixtures.dsk.config.file_metadata_dir
+    )
     file_uuids = set()
     for file_object in file_objects:
         metadata_file_path = file_metadata_dir / f"{file_object.object_id}.json"
@@ -211,11 +219,17 @@ async def check_uploaded_files_in_storage(
 
 @when("the file metadata is ingested", target_fixture="ingest_config")
 def ingest_file_metadata(fixtures: JointFixture) -> IngestConfig:
+    file_metadata_dir = (
+        fixtures.dsk.config.submission_registry / fixtures.dsk.config.file_metadata_dir
+    )
+    submission_store = (
+        fixtures.dsk.config.submission_registry / fixtures.dsk.config.submission_store
+    )
     ingest_config = IngestConfig(
         file_ingest_url=fixtures.config.fis_url + "/ingest",
         file_ingest_pubkey=fixtures.config.fis_pubkey,
-        input_dir=fixtures.dsk.config.file_metadata_dir,
-        submission_store_dir=fixtures.dsk.config.submission_store,
+        input_dir=file_metadata_dir,
+        submission_store_dir=submission_store,
         map_files_fields=fixtures.dsk.config.metadata_file_fields,
     )
 
@@ -238,7 +252,9 @@ def check_metadata_documents(
     fixtures: JointFixture, ingest_config: IngestConfig
 ) -> set[str]:
     accessions: set[str] = set()
-    file_metadata_dir = fixtures.dsk.config.file_metadata_dir
+    file_metadata_dir = (
+        fixtures.dsk.config.submission_registry / fixtures.dsk.config.file_metadata_dir
+    )
     for metadata_file_path in file_metadata_dir.iterdir():
         if metadata_file_path.suffix == ".json":
             alias = metadata_file_path.stem

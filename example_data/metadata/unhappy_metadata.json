@@ -1,0 +1,101 @@
+{
+  "analyses": [],
+  "analysis_process_output_files": [],
+  "analysis_processes": [],
+  "biospecimens": [],
+  "conditions": [],
+  "datasets": [
+    {
+      "alias": "DS_1",
+      "data_access_policy": "DAP_1",
+      "description": "An interesting dataset A",
+      "title": "The A dataset",
+      "types": [
+        "A Type",
+        "Another Type"
+      ]
+    },
+    {
+      "alias": "DS_2",
+      "data_access_policy": "DAP_1",
+      "description": "An interesting dataset B",
+      "title": "The B dataset",
+      "types": [
+        "And another Type"
+      ]
+    },
+    {
+      "alias": "DS_3",
+      "data_access_policy": "DAP_1",
+      "description": "An interesting dataset C",
+      "title": "The C dataset",
+      "types": [
+        "And yet another Type",
+        "A Type"
+      ]
+    },
+    {
+      "alias": "DS_4",
+      "data_access_policy": "DAP_2",
+      "description": "An interesting dataset D",
+      "title": "The D dataset",
+      "types": [
+        "A Type"
+      ]
+    }
+  ],
+  "individuals": [],
+  "library_preparation_protocols": [],
+  "publications": [],
+  "sample_files": [],
+  "samples": [],
+  "sequencing_experiments": [],
+  "sequencing_process_files": [],
+  "sequencing_processes": [],
+  "sequencing_protocols": [],
+  "studies": [
+    {
+      "affiliations": [
+        "Some Institute",
+        "Some other Institute"
+      ],
+      "alias": "STUDY_A",
+      "attributes": [
+        {
+          "key": "budget",
+          "value": "3.5M"
+        },
+        {
+          "key": "funding",
+          "value": "EU"
+        }
+      ],
+      "description": "A study that is the A study",
+      "title": "The A Study",
+      "type": "SYNTHETIC_GENOMICS"
+    },
+    {
+      "affiliations": [
+        "Some Institute"
+      ],
+      "alias": "STUDY_B",
+      "description": "A study that is the B study",
+      "title": "The B Study",
+      "type": "WHOLE_GENOME_SEQUENCING"
+    }
+  ],
+  "study_files": [
+    {
+      "alias": "UNHAPPY_FILE_1",
+      "checksum": "6d893451b8ed4159c9c31693894fdf6bb4e37c40705b977f315e00d75190d71e",
+      "checksum_type": "SHA256",
+      "dataset": "DS_1",
+      "format": "FASTQ",
+      "forward_or_reverse": "FORWARD",
+      "name": "UNHAPPY_SEQ_FILE_A_R1.fastq.gz",
+      "size": 1048599,
+      "study": "STUDY_A"
+    }
+  ],
+  "trios": []
+}

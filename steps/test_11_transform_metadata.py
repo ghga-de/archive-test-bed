@@ -64,4 +64,9 @@ def transform_metadata(fixtures: JointFixture):
 
 @then("the embedded_public event exists")
 def embedded_public_event_exists(fixtures: JointFixture):
-    assert fixtures.dsk.config.embedded_public_event.exists()
+    embedded_public_event = (
+        fixtures.dsk.config.submission_registry
+        / fixtures.dsk.config.event_store
+        / "artifact.embedded_public"
+    )
+    assert embedded_public_event.exists()

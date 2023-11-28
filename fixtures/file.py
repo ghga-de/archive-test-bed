@@ -31,7 +31,13 @@ from fixtures.config import Config
 from fixtures.dsk import DskFixture
 from fixtures.utils import calculate_checksum
 
-__all__ = ["FileBatch", "FileObject", "batch_file_fixture", "file_fixture"]
+__all__ = [
+    "FileBatch",
+    "FileObject",
+    "batch_file_fixture",
+    "file_fixture",
+    "unhappy_file_fixture",
+]
 
 
 class FileBatch(BaseModel):
@@ -123,8 +129,12 @@ def batch_file_fixture(
     temp_dir = Path(tempfile.gettempdir())
     metadata = json.loads(dsk.config.complete_metadata_path.read_text())
 
+    files_to_upload_tsv = (
+        dsk.config.submission_registry / dsk.config.files_to_upload_tsv
+    )
+
     created_files = []
-    with open(dsk.config.files_to_upload_tsv, "w", encoding="utf-8") as tsv_file:
+    with open(files_to_upload_tsv, "w", encoding="utf-8") as tsv_file:
         for file_field in dsk.config.metadata_file_fields:
             files = metadata[file_field]
             for file_ in files:
@@ -140,11 +150,40 @@ def batch_file_fixture(
                 created_files.append(file_object)
                 tsv_file.write(f"{file_object.file_path}\t{file_object.object_id}\n")
 
-    file_batch = FileBatch(
-        file_objects=created_files, tsv_file=dsk.config.files_to_upload_tsv
+    files_to_upload_tsv = (
+        dsk.config.submission_registry / dsk.config.files_to_upload_tsv
     )
+
+    file_batch = FileBatch(file_objects=created_files, tsv_file=files_to_upload_tsv)
 
     yield file_batch
 
     for file_object in file_batch.file_objects:
+        os.remove(file_object.file_path)
+
+
+@fixture(name="unhappy_file_fixture")
+def unhappy_file_fixture(
+    config: Config, dsk: DskFixture
+) -> Generator[list[FileObject], None, None]:
+    """File fixture that provides temporary files for the unhappy metadata."""
+    temp_dir = Path(tempfile.gettempdir())
+    metadata = json.loads(dsk.config.unhappy_metadata_path.read_text())
+
+    created_files = []
+    for file_field in dsk.config.metadata_file_fields:
+        files = metadata[file_field]
+        for file_ in files:
+            file_object = create_named_file(
+                target_dir=temp_dir,
+                config=config,
+                name=file_["name"],
+                alias=file_["alias"],
+            )
+
+            created_files.append(file_object)
+
+    yield created_files
+
+    for file_object in created_files:
         os.remove(file_object.file_path)

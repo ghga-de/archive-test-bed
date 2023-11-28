@@ -92,7 +92,9 @@ def submission_registry_exists(num: str, fixtures: JointFixture):
         num_expected = {"no": 0, "one": 1, "two": 2}[num]
     except KeyError:
         num_expected = int(num)
-    submission_store = fixtures.dsk.config.submission_store
+    submission_store = (
+        fixtures.dsk.config.submission_registry / fixtures.dsk.config.submission_store
+    )
     assert submission_store.exists()
 
     json_files = glob.glob(os.path.join(submission_store, "*.json"))
