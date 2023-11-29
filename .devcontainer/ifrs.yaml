@@ -20,20 +20,8 @@ kafka_ssl_certfile: ""
 kafka_ssl_keyfile: ""
 kafka_ssl_password: ""
 object_storages:
-  outbox:
-    bucket: outbox
-    credentials:
-      s3_endpoint_url: http://localstack:4566
-      s3_access_key_id: testbed-key
-      s3_secret_access_key: testbed-secret
-  permanent:
+  test:
     bucket: permanent
-    credentials:
-      s3_endpoint_url: http://localstack:4566
-      s3_access_key_id: testbed-key
-      s3_secret_access_key: testbed-secret
-  staging:
-    bucket: staging
     credentials:
       s3_endpoint_url: http://localstack:4566
       s3_access_key_id: testbed-key

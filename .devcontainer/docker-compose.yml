@@ -331,7 +331,7 @@ services:
       FIS_KAFKA_SERVERS: '["kafka:9092"]'
       FIS_PUBLISHER_TOPIC: interrogations
       FIS_PUBLISHER_TYPE: validation_success
-      FIS_SELECTED_STORAGE_ALIAS: staging
+      FIS_SELECTED_STORAGE_ALIAS: test
       FIS_SOURCE_BUCKET_ID: staging
       FIS_VAULT_URL: http://vault:8200
       FIS_VAULT_PATH: ekss
