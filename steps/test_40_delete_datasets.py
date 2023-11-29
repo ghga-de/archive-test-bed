@@ -49,7 +49,7 @@ def is_dataset_a_and_b(event_file: Path) -> bool:
 
 
 @when("the artifacts for the complete datasets are removed from the event store")
-def delete_submission(fixtures: JointFixture):
+def delete_artifacts_for_complete_datasets(fixtures: JointFixture):
     event_path = fixtures.dsk.config.event_store
     source_event = None
     for event_file in (event_path / "source_events").glob("*.json"):
