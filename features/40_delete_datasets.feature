@@ -1,7 +1,7 @@
 
 @metadata @deletion
 Feature: 40 Deletion of datasets
-  As a data steward, I can delete datastes from the system
+  As a data steward, I can delete datasets from the system
 
   Scenario: Re-uploading metadata after deletion of datasets
 
