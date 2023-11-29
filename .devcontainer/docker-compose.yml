@@ -166,7 +166,7 @@ services:
       - ./dcs.yaml:/home/appuser/.dcs.yaml:ro
 
   ifrs:
-    image: ghga/internal-file-registry-service:1.0.0
+    image: ghga/internal-file-registry-service:1.1.0
     restart: unless-stopped
     depends_on:
       kafka:
