@@ -83,15 +83,7 @@ services:
       mass-consumer:
         condition: service_started
     environment:
-      MASS_HOST: 0.0.0.0
-      MASS_PORT: 8080
       MASS_SERVICE_INSTANCE_ID: rest.1
-      MASS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      MASS_DB_NAME: mass
-      MASS_KAFKA_SERVERS: '["kafka:9092"]'
-      MASS_RESOURCE_CHANGE_EVENT_TOPIC: searchable_resources
-      MASS_RESOURCE_DELETION_EVENT_TYPE: searchable_resource_deleted
-      MASS_RESOURCE_UPSERTION_EVENT_TYPE: searchable_resource_upserted
     command: "run-rest"
     volumes:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
@@ -107,15 +99,7 @@ services:
       mongodb:
         condition: service_started
     environment:
-      MASS_HOST: 0.0.0.0
-      MASS_PORT: 8080
       MASS_SERVICE_INSTANCE_ID: consumer.1
-      MASS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      MASS_DB_NAME: mass
-      MASS_KAFKA_SERVERS: '["kafka:9092"]'
-      MASS_RESOURCE_CHANGE_EVENT_TOPIC: searchable_resources
-      MASS_RESOURCE_DELETION_EVENT_TYPE: searchable_resource_deleted
-      MASS_RESOURCE_UPSERTION_EVENT_TYPE: searchable_resource_upserted
     command: "consume-events"
     volumes:
       - ./mass.yaml:/home/appuser/.mass.yaml:ro
