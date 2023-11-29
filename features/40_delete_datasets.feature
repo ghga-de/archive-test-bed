@@ -23,6 +23,7 @@ Feature: 40 Deletion of datasets
     And we have the state "download token for all files"
 
     When I run the GHGA connector download command for all files
+    Then I get an error message that the token is not valid
 
   Scenario: Trying to create a new download token after removal of the datasets
 
