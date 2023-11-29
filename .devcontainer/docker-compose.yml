@@ -145,7 +145,6 @@ services:
     env_file: dcs.env
     environment:
       DCS_SERVICE_INSTANCE_ID: rest.1
-      DCS_PRESIGNED_URL_EXPIRES_AFTER: 30
     command: "run-rest"
     volumes:
       - ./dcs.yaml:/home/appuser/.dcs.yaml:ro
@@ -173,11 +172,6 @@ services:
         condition: service_healthy
       mongodb:
         condition: service_started
-    environment:
-      IFRS_SERVICE_INSTANCE_ID: consumer.1
-      IFRS_KAFKA_SERVERS: '["kafka:9092"]'
-      IFRS_DB_CONNECTION_STR: mongodb://testbed_user:testbed_key@mongodb
-      IFRS_DB_NAME: ifrs
     volumes:
       - ./ifrs.yaml:/home/appuser/.ifrs.yaml:ro
 

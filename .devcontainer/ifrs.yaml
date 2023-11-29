@@ -10,8 +10,8 @@ files_to_register_topic: interrogations
 files_to_register_type: validation_success
 files_to_stage_topic: downloads
 files_to_stage_type: unstaged_drs_object_requested
-db_connection_str: "**********"
-db_name: dev_db
+db_connection_str: mongodb://testbed_user:testbed_key@mongodb
+db_name: ifrs
 kafka_security_protocol: PLAINTEXT
 kafka_servers:
   - kafka:9092
