@@ -232,7 +232,7 @@ services:
       TOP_SERVICE_URL: http://op.test
 
   wps:
-    image: ghga/work-package-service:0.1.4
+    image: ghga/work-package-service:1.0.0
     restart: unless-stopped
     depends_on:
       kafka:
@@ -255,7 +255,7 @@ services:
     command: run-rest
 
   wps-consumer:
-    image: ghga/work-package-service:0.1.4
+    image: ghga/work-package-service:1.0.0
     restart: unless-stopped
     depends_on:
       kafka:
@@ -318,7 +318,7 @@ services:
       FIS_VAULT_SECRET_ID: a3e80b1d-86d3-4c23-85ee-589031ec2cba
 
   ns:
-    image: ghga/notification-service:0.1.2
+    image: ghga/notification-service:1.0.0
     restart: unless-stopped
     depends_on:
       kafka:
