@@ -46,7 +46,7 @@ services:
       WKVS_WPS_API_URL: http://wps:8080
 
   metldata:
-    image: ghga/metldata:1.0.0
+    image: ghga/metldata:1.1.0
     restart: unless-stopped
     depends_on:
       kafka:
