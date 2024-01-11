@@ -27,6 +27,7 @@ from fixtures.file import FileBatch, FileObject
 from fixtures.utils import temporary_file
 from ghga_datasteward_kit.file_ingest import IngestConfig, alias_to_accession
 from metldata.submission_registry.submission_store import SubmissionStore
+from pytest import fixture
 
 from steps.utils import ingest_config_as_file, upload_config_as_file
 
@@ -286,6 +287,25 @@ def check_metadata_documents(
     )
     assert documents
     return {document["object_id"] for document in documents}
+
+
+@fixture
+def secret_ids(fixtures: JointFixture, file_objects: list[FileObject]):
+    file_metadata_dir = fixtures.dsk.config.file_metadata_dir
+    secret_ids = set()
+    for file_object in file_objects:
+        metadata_file_path = file_metadata_dir / f"{file_object.object_id}.json"
+        secret_id = json.loads(metadata_file_path.read_text())[
+            "Symmetric file encryption secret ID"
+        ]
+        secret_ids.add(secret_id)
+    return secret_ids
+
+
+@then(parse("the secret is saved in the vault"))
+def check_secrets_in_vault(fixtures: JointFixture, secret_ids: set[str]):
+    for object_id in secret_ids:
+        assert bool(object_id in fixtures.vault.keys) == True
 
 
 @then(parse("the ingested files exist in the permanent bucket"))
