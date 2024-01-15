@@ -52,7 +52,8 @@ Located in the `features` directory, the **feature files** are numerically prefi
 ### Execution
 
 - Use `pytest -v` to run all tests.
-- For specific steps, such as step 24, use `pytest steps/test_24_*`.
+- For specific steps, such as step 24, e.g. `pytest steps/test_24_*`.
+- For specific group of tests, BDD tags (pytest markers) can also be used, e.g. `pytest -m browse and metadata"
 
 ### Modes of Operation
 
@@ -71,7 +72,7 @@ The Archive Test Bed can be configured through either **YAML file** or **environ
 
 ### Advanced Configuration
 
-Please ensure that names of databases, API URLs, and secrets match those in the Kubernetes cluster.
+When running the tests against a Kubernetes cluster, please ensure that names of databases, API URLs, and secrets match what is configured in the cluster.
 
 - Relevant settings include `auth_basic`, `upload_token`, and `fis_pubkey`. Bucket names (`*_bucket`) and URLs (`*_url`) must also be consistent.
 
