@@ -289,7 +289,7 @@ def check_metadata_documents(
     return {document["object_id"] for document in documents}
 
 
-@then(parse("the secret is saved in the vault"))
+@then(parse("the file encryption secret is saved in the vault"))
 def check_secrets_in_vault(fixtures: JointFixture, file_objects: list[FileObject]):
     secret_ids = get_secret_ids(fixtures.dsk.config.file_metadata_dir, file_objects)
     for secret_id in secret_ids:
