@@ -51,7 +51,7 @@ class VaultFixture:
 
 
 @fixture(name="vault", scope="session")
-def vault_fixture(config):
+def vault_fixture(config)  -> Generator[VaultFixture, None, None]:
     """Pytest fixture for tests using vault."""
     vault_config = VaultConfig(config)
     yield VaultFixture(vault_config)
