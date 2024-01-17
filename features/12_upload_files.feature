@@ -15,7 +15,7 @@ Feature: 12 Upload Files
 
     When the file metadata is ingested
     Then the file metadata is stored in the internal file registry
-    And the secret is saved in the vault
+    And the file encryption secret is saved in the vault
     And the ingested files exist in the permanent bucket
 
   Scenario: Batch uploading files
