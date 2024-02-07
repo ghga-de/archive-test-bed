@@ -62,3 +62,6 @@ mail_url: "http://mailhog:8025"
 
 # test OP
 op_url: "http://op.test"
+
+# data portal ui
+data_portal_ui_url: "http://data-portal-ui:8080"

@@ -161,6 +161,9 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     # dcs
     dcs_url: str = "http://dcs:8080"
 
+    # data portal ui
+    data_portal_ui_url: str = "http://data-portal-ui:8080"
+
     @model_validator(mode="after")
     def check_operation_modes(self):
         """Check that operation modes are not conflicting."""
