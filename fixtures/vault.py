@@ -17,6 +17,8 @@
 
 """Fixture for using HashiCorp vault"""
 
+from collections.abc import Generator
+
 import hvac
 from pydantic import BaseModel
 from pytest import fixture
@@ -24,13 +26,12 @@ from pytest import fixture
 from fixtures.config import Config
 
 
-class VaultConfig:
-    """Class with vault configuration"""
+class VaultConfig(BaseModel):
+    """Class model with vault configuration"""
 
-    def __init__(self, config: Config):
-        self.url = config.vault_url
-        self.token = config.vault_token
-        self.path = config.vault_path
+    url: str
+    token: str
+    path: str
 
 
 class VaultFixture:
@@ -51,7 +52,13 @@ class VaultFixture:
 
 
 @fixture(name="vault", scope="session")
-def vault_fixture(config)  -> Generator[VaultFixture, None, None]:
+def vault_fixture(config) -> Generator[VaultFixture, None, None]:
     """Pytest fixture for tests using vault."""
-    vault_config = VaultConfig(config)
+    vault_config = VaultConfig.model_validate(
+        {
+            "url": config.vault_url,
+            "token": config.vault_token,
+            "path": config.vault_path,
+        }
+    )
     yield VaultFixture(vault_config)
