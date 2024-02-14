@@ -164,6 +164,12 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     # data portal ui
     data_portal_ui_url: str = "http://data-portal-ui:8080"
 
+    # vault
+    vault_url: str = "http://vault:8200"
+    vault_token: str = "dev-token"
+    vault_path: str = "ekss"
+
+
     @model_validator(mode="after")
     def check_operation_modes(self):
         """Check that operation modes are not conflicting."""
