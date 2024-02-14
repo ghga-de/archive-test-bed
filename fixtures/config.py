@@ -169,7 +169,6 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     vault_token: str = "dev-token"
     vault_path: str = "ekss"
 
-
     @model_validator(mode="after")
     def check_operation_modes(self):
         """Check that operation modes are not conflicting."""
