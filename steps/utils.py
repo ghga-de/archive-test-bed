@@ -15,8 +15,9 @@
 
 """Utilities used in step functions"""
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 from urllib.parse import urljoin
 
 from fixtures import Config, JointFixture
@@ -38,13 +39,10 @@ FILE_OVERVIEW_KEYS = {
 
 def ingest_config_as_file(config: IngestConfig):
     """Create upload config file for data steward kit files ingest-upload-metadata"""
-    ingest_config = {
-        "file_ingest_url": config.file_ingest_url,
-        "file_ingest_pubkey": config.file_ingest_pubkey,
-        "submission_store_dir": str(config.submission_store_dir),
-        "input_dir": str(config.input_dir),
-        "map_files_fields": config.map_files_fields,
-    }
+    ingest_config: dict[str, Any] = {}
+    for field in config.model_fields.keys():
+        value = getattr(config, field)
+        ingest_config[field] = value if isinstance(value, list) else str(value)
 
     return write_data_to_yaml(data=ingest_config)
 
