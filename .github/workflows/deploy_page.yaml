@@ -1,0 +1,56 @@
+name: Build and deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pydantic gitpython pyyaml
+
+    - name: Create _site dir
+      run: mkdir _site
+
+    - name: Generate changes JSON
+      run: |
+        python ./scripts/enumerate_changes.py . .devcontainer/docker-compose.yml > _site/data.json
+
+    - name: Copy static content
+      run: |
+        cp gh-page-template/* _site/
+        ls -la _site
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: _site
+
+  deploy:
+    needs: build
+
+    permissions:
+      pages: write
+      id-token: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
