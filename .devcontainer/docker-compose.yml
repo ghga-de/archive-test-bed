@@ -337,6 +337,20 @@ services:
       NS_FROM_ADDRESS: "test@test.com"
       NS_USE_STARTTLS: "false"
 
+  data-portal-ui:
+    image: ghga/data-portal-ui:1.0.5
+    restart: unless-stopped
+    environment:
+      DATA_PORTAL_UI_HOST: 0.0.0.0
+      DATA_PORTAL_UI_PORT: 8080
+      DATA_PORTAL_UI_MASS_URL: "http://mass:8080"
+      DATA_PORTAL_UI_METLDATA_URL: "http://metldata:8080"
+      DATA_PORTAL_UI_ARS_URL: "http://ars:8080"
+      DATA_PORTAL_UI_USERS_URL: "http://auth:8080/users"
+      DATA_PORTAL_UI_WPS_URL: "http://wps:8080"
+    ports:
+      - 8080:8080
+
   mailhog:
     image: mailhog/mailhog:v1.0.1
     ports:
