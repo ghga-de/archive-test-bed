@@ -19,9 +19,9 @@
 import os
 import shutil
 import tempfile
-from typing import ClassVar
 from collections.abc import Generator
 from pathlib import Path
+from typing import ClassVar
 
 from pydantic_settings import BaseSettings
 from pytest import fixture
