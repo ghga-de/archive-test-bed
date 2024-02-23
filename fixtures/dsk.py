@@ -19,7 +19,7 @@
 import os
 import shutil
 import tempfile
-import typing
+from typing import ClassVar
 from collections.abc import Generator
 from pathlib import Path
 
@@ -46,7 +46,7 @@ class DskConfig(BaseSettings):
     complete_metadata_path: Path = metadata_dir / "complete_metadata.json"
 
     metadata_model_file: str = "metadata_model.yaml"
-    metadata_file_fields: typing.ClassVar[list] = [
+    metadata_file_fields: ClassVar[list] = [
         "analysis_process_output_files",
         "sample_files",
         "sequencing_process_files",
