@@ -48,7 +48,7 @@ def call_data_steward_kit_upload(
         [
             "ghga-datasteward-kit",
             "files",
-            "upload",
+            "legacy-upload",
             "--alias",
             file_object.object_id,
             "--input-path",
@@ -79,7 +79,7 @@ def call_data_steward_kit_batch_upload(
         [
             "ghga-datasteward-kit",
             "files",
-            "batch-upload",
+            "legacy-batch-upload",
             "--tsv",
             str(batch_files_tsv),
             "--config-path",
@@ -118,7 +118,7 @@ def call_data_steward_kit_ingest(ingest_config_path: str, dsk_token_path: Path, 
 
         assert (
             completed_ingest.stdout.strip()
-            == "Sucessfully sent all file upload metadata for ingest."
+            == "Successfully sent all file upload metadata for ingest."
         )
         assert not completed_ingest.stderr
 
@@ -212,8 +212,9 @@ async def check_uploaded_files_in_storage(
 @when("the file metadata is ingested", target_fixture="ingest_config")
 def ingest_file_metadata(fixtures: JointFixture) -> IngestConfig:
     ingest_config = IngestConfig(
-        file_ingest_url=fixtures.config.fis_url + "/ingest",
+        file_ingest_baseurl=fixtures.config.fis_url,
         file_ingest_pubkey=fixtures.config.fis_pubkey,
+        file_ingest_legacy_endpoint="/ingest",
         input_dir=fixtures.dsk.config.file_metadata_dir,
         submission_store_dir=fixtures.dsk.config.submission_store,
         map_files_fields=fixtures.dsk.config.metadata_file_fields,
