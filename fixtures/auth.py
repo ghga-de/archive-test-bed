@@ -16,11 +16,18 @@
 
 """Fixture for testing APIs that use an auth token."""
 
+import json
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import NamedTuple, Optional
 
+import pyotp
 from ghga_service_commons.utils.jwt_helpers import sign_and_serialize_token
+from ghga_service_commons.utils.utc_dates import DateTimeUTC
+from httpx import Response
 from jwcrypto import jwk
+from pydantic import BaseModel, EmailStr
+from pyparsing import Any
 from pytest import fixture
 
 from .config import Config
@@ -30,6 +37,19 @@ __all__ = ["auth_fixture"]
 
 DEFAULT_VALID_SECONDS = 60 * 60  # 10 mins
 DEFAULT_USER_STATUS = "active"
+
+
+class Session(BaseModel):
+    id: Optional[str] = None
+    session_id: str
+    csrf: str
+    ext_id: str
+    name: str
+    email: EmailStr
+    state: str
+    timeout: int
+    extends: int
+    role: Optional[str] = None
 
 
 class TokenGenerator:
@@ -81,42 +101,15 @@ class TokenGenerator:
         mail_id = name.lower().replace(" ", ".")
         return f"{mail_id}@{self.user_domain}"
 
-    def external_access_token_from_name(
-        self,
-        name: str,
-        email: Optional[str] = None,
-        sub: Optional[str] = None,
-        valid_seconds: Optional[int] = None,
-    ):
-        """Create an external access token for the given name and email address."""
-        if not valid_seconds:
-            valid_seconds = DEFAULT_VALID_SECONDS
-        login_info = {
-            "name": name,
-            "email": email,
-            "valid_seconds": DEFAULT_VALID_SECONDS,
-        }
-        if sub:
-            login_info["sub"] = sub
-        url = self.op_url + "/login"
-        response = self.http.post(url, json=login_info)
-        status_code = response.status_code
-        assert status_code == 201, status_code
-        token = response.text
-        assert token and token.count(".") == 2
-        return token
-
-    def internal_access_token_from_external_access_token(
-        self, token: str, for_registration: bool = False
+    def internal_access_token_from_session(
+        self, session_headers: dict, for_registration: bool = False
     ) -> str:
         """Get an internal from an external access token using the auth adapter."""
         url = self.auth_adapter_url + "/users"
         method = self.http.post if for_registration else self.http.get
-        headers = {"Authorization": f"Bearer {token}"}
-        response = method(url, headers=headers)  # type: ignore
+        response = method(url, headers=session_headers)  # type: ignore
         status_code = response.status_code
         assert status_code == 200, status_code
-        assert not response.json()
         authorization = response.headers.get("Authorization")
         assert authorization and authorization.startswith("Bearer ")
         token = authorization.split(None, 1)[-1]
@@ -153,42 +146,142 @@ class TokenGenerator:
             valid_seconds = DEFAULT_VALID_SECONDS
         return sign_and_serialize_token(claims, self.key, valid_seconds)
 
-    def generate_headers(
+    def headers_for_session(self, session: Session) -> dict[str, str]:
+        """Get proper headers for the given session."""
+        return {
+            "X-CSRF-Token": session.csrf,
+            "Cookie": f"session={session.session_id}",
+        }
+
+    def session_from_response(self, response: Response) -> Session:
+        """Get a session object from the response."""
+        session_id = response.cookies.get("session")
+        assert session_id
+        session_header = response.headers.get("X-Session")
+        assert session_header
+        session_dict = json.loads(session_header)
+        session = Session(session_id=session_id, **session_dict)
+        return session
+
+    def session(
         self,
         name: str,
         email: Optional[str] = None,
         title: Optional[str] = None,
         user_id: Optional[str] = None,
         valid_seconds: int = DEFAULT_VALID_SECONDS,
-    ) -> dict[str, str]:
-        """Generate headers with auth token with specified claims.
+    ):
+        """Login and return the session object
 
-        If the API gateway should used according to the configuration setting
-        `use_api_gateway`, then an external access token will be created.
-        Otherwise an internal access token will be generated, either directly or
-        via the auth adapter, again depending on the setting `use_auth_adapter`.
+        Login to OIDC provider then with the external access token
+        login to Auth Adapter in order to start a new session.
+
+        Authenticate with two-factor authentication if necessary.
         """
         if title is None:
             title, name = self.split_title(name)
-        sub = None if user_id else self.get_sub(name)
+        sub = user_id if user_id else self.get_sub(name)
+        external_token = self.oidc_login(
+            name=name, email=email, sub=sub, valid_seconds=valid_seconds
+        )
+        auth_headers = {"Authorization": f"Bearer {external_token}"}
+        response = self.auth_login(headers=auth_headers)
+        session = self.session_from_response(response)
+        return session
+
+    def headers(
+        self,
+        session: Session,
+    ):
         if self.use_api_gateway or self.use_auth_adapter:
-            token = self.external_access_token_from_name(
-                name=name, email=email, sub=sub, valid_seconds=valid_seconds
-            )
+            headers = self.headers_for_session(session=session)
             if not self.use_api_gateway:
-                token = self.internal_access_token_from_external_access_token(
-                    token, for_registration=not user_id
-                )
+                internal_token = self.internal_access_token_from_session(headers)
+                headers = {"Authorization": f"Bearer {internal_token}"}
         else:
-            token = self.internal_access_token_from_name(
-                name=name,
-                email=email,
-                title=title,
-                sub=sub,
-                user_id=user_id,
-                valid_seconds=valid_seconds,
-            )
-        return {"Authorization": f"Bearer {token}"}
+            # Is there any scenario where we don't have an Auth Adapter?
+            internal_token = None
+            headers = {"Authorization": f"Bearer {internal_token}"}
+        return headers
+
+    def oidc_login(
+        self,
+        name: str,
+        email: Optional[str] = None,
+        sub: Optional[str] = None,
+        valid_seconds: Optional[int] = None,
+    ):
+        """Login with OpenID Connect."""
+        if not valid_seconds:
+            valid_seconds = DEFAULT_VALID_SECONDS
+        login_info = {
+            "name": name,
+            "email": email,
+            "valid_seconds": DEFAULT_VALID_SECONDS,
+        }
+        if sub:
+            login_info["sub"] = sub
+        url = self.op_url + "/login"
+        response = self.http.post(url, json=login_info)
+        status_code = response.status_code
+        assert status_code == 201, status_code
+        token = response.text
+        assert token and token.count(".") == 2
+        return token
+
+    def auth_login(self, headers: dict[str, Any]):
+        """Get or create session."""
+        url = self.auth_adapter_url + "/rpc/login"
+        response = self.http.post(url, json={}, headers=headers)
+        status_code = response.status_code
+        assert status_code == 204, status_code
+        return response
+
+    def get_totp_token(
+        self, user_id: str, headers: dict[str, Any], force: bool = False
+    ) -> str:
+        """Request a valid TOTP token."""
+        # TODO: Use existing TOTP token from state instead of a new one each time
+        user_info = {"user_id": user_id, "force": force}
+        url = self.auth_adapter_url + "/totp-token"
+        response = self.http.post(url, json=user_info, headers=headers)
+        status_code = response.status_code
+        assert status_code == 200, status_code
+        token = response.text
+        return token
+
+    def generate_totp(
+        self, secret: str, when: Optional[datetime] = None, offset: int = 0
+    ) -> str:
+        """Generate a valid TOTP code for the given secret."""
+        if not when:
+            when = datetime.utcnow()
+        return pyotp.TOTP(secret).at(when, offset)
+
+    def verify_totp(self, user_id: str, totp: str, headers: dict[str, Any]) -> Response:
+        """Verify the TOTP code."""
+        user_info = {"user_id": user_id, "totp": totp}
+        url = self.auth_adapter_url + "/verify-totp"
+        return self.http.post(url, json=user_info, headers=headers)
+
+    def auth_logout(
+        self,
+        session: Session,
+    ):
+        """Logout and remove session."""
+        url = self.auth_adapter_url + "/rpc/logout"
+        session_headers = self.headers_for_session(session)
+        response = self.http.post(url, json={}, headers=session_headers)
+        status_code = response.status_code
+        assert status_code == 204, status_code
+
+    def authenticate(self, session: Session, user_id: Optional[str] = None) -> Response:
+        """Authenticate with two-factor authentication."""
+        user_id = user_id if user_id else session.ext_id
+        session_headers = self.headers_for_session(session)
+        totp_token = self.get_totp_token(user_id=user_id, headers=session_headers)
+        totp = self.generate_totp(totp_token)
+        return self.verify_totp(user_id, totp, session_headers)
 
     @property
     def key(self) -> jwk.JWK:

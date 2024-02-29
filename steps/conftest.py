@@ -47,6 +47,7 @@ from fixtures import (  # noqa: RUF100
     state_fixture,
     vault_fixture,
 )
+from fixtures.auth import Session
 from pytest_bdd import (  # noqa: RUF100
     given,
     parsers,
@@ -97,7 +98,7 @@ class LoginFixture(NamedTuple):
     """A fixture to hold a user and a corresponding access token."""
 
     user: UserData
-    headers: dict[str, str]
+    session: Session
 
 
 def get_user_data(name: str, fixtures: JointFixture) -> UserData:
@@ -118,9 +119,29 @@ def registered_as_user(name: str, fixtures: JointFixture) -> UserData:
 
 @given(parse('I am logged in as "{name}"'), target_fixture="login")
 def access_as_user(name: str, fixtures: JointFixture) -> LoginFixture:
-    user = get_user_data(name, fixtures)
-    headers = fixtures.auth.generate_headers(name=name, user_id=user.id)
-    return LoginFixture(user, headers)
+    title, name = fixtures.auth.split_title(name)
+    sub = fixtures.auth.get_sub(name)
+    email = fixtures.auth.get_email(name)
+    session = fixtures.auth.session(name=name, user_id=sub)
+    user_id = session.ext_id
+    user = UserData(user_id, sub, name, title, email)  # FIXME sub?
+    return LoginFixture(user, session)
+
+
+@then(parse("I am authenticated with 2FA"))
+def authenticate_user(fixtures: JointFixture, login: LoginFixture):
+    session = login.session
+    fixtures.auth.authenticate(session=session, user_id=session.ext_id)
+
+
+@given(parse('the user "{name}" is logged out'))
+def logout_as_user(name: str, fixtures: JointFixture):
+    """Log out the user
+
+    If a session is alive in the Auth Adapter, it needs to be removed.
+    """
+    session = fixtures.auth.session(name=name)
+    fixtures.auth.auth_logout(session)
 
 
 @then(parse('the response status code is "{code:d}"'))

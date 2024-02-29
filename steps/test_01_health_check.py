@@ -64,7 +64,8 @@ def check_user_management_apis_are_healthy(fixtures: JointFixture):
     sub = fixtures.auth.get_sub(name)
     ums_url = fixtures.config.ums_url
     endpoint = f"{ums_url}/users/{sub}"
-    headers = fixtures.auth.generate_headers(name)
+    session = fixtures.auth.session(name=name, user_id=sub)
+    headers = fixtures.auth.headers(session=session)
     response = fixtures.http.get(endpoint, headers=headers)
     status_code = response.status_code
     assert status_code == 200, f"Error {status_code} when requesting info for {name}"

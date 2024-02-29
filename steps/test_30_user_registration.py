@@ -19,7 +19,16 @@ from datetime import datetime, timedelta
 
 from ghga_service_commons.utils.utc_dates import now_as_utc
 
-from .conftest import JointFixture, Response, given, parse, scenarios, then, when
+from .conftest import (
+    JointFixture,
+    LoginFixture,
+    Response,
+    given,
+    parse,
+    scenarios,
+    then,
+    when,
+)
 
 scenarios("../features/30_user_registration.feature")
 
@@ -40,20 +49,31 @@ def user_not_yet_registered(full_name: str, fixtures: JointFixture):
     assert sub not in registered_users
 
 
+@then(
+    parse('a new session for the user "{full_name}" is created'),
+    target_fixture="login",
+)
+def check_session(full_name: str, fixtures: JointFixture, login: LoginFixture):
+    sub = fixtures.auth.get_sub(full_name)
+    assert sub == login.session.ext_id
+    return login
+
+
 @when(
-    parse('the user "{full_name}" retrieves the own user data'),
+    parse("I retrieve my own user data"),
     target_fixture="response",
 )
-def user_fetches_own_info(full_name: str, fixtures: JointFixture):
-    sub = fixtures.auth.get_sub(full_name)
+def user_fetches_own_info(fixtures: JointFixture, login: LoginFixture):
+    sub = login.user.ext_id
     url = f"{fixtures.config.ums_url}/users/{sub}"
-    headers = fixtures.auth.generate_headers(full_name)
+    session = login.session
+    headers = fixtures.auth.headers(session=session)
     return fixtures.http.get(url, headers=headers)
 
 
-@when(parse('the user "{full_name}" tries to register'), target_fixture="response")
-def user_registers(full_name: str, fixtures: JointFixture):
-    title, name = fixtures.auth.split_title(full_name)
+@when("I am registered", target_fixture="response")
+def user_registers(fixtures: JointFixture, login: LoginFixture):
+    title, name = fixtures.auth.split_title(login.user.name)
     email = fixtures.auth.get_email(name)
     sub = fixtures.auth.get_sub(name)
     user_data = {
@@ -63,7 +83,8 @@ def user_registers(full_name: str, fixtures: JointFixture):
         "ext_id": sub,
     }
     url = f"{fixtures.config.ums_url}/users"
-    headers = fixtures.auth.generate_headers(full_name)
+    session = login.session
+    headers = fixtures.auth.headers(session=session)
     return fixtures.http.post(url, json=user_data, headers=headers)
 
 

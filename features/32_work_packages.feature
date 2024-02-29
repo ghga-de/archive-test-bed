@@ -7,6 +7,7 @@ Feature: 32 Work Packages
     Given we have the state "John Doe is allowed to download the test dataset"
     And I am registered as "Dr. John Doe"
     And I am logged in as "Dr. John Doe"
+    And I am authenticated with 2FA
 
   Scenario: Starting work package creation
     Given no work packages have been created yet

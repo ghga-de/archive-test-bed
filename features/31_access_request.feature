@@ -8,8 +8,10 @@ Feature: 31 Access Request
     And the claims repository is empty
     And no access requests have been made yet
     And I am registered as "Dr. John Doe"
-    And I am logged in as "Dr. John Doe"
 
+    Given I am logged in as "Data Steward"
+    Then I am authenticated with 2FA
+    And the response status code is "204"
     When I request access to the test dataset "DS_A"
     Then the response status code is "201"
     And an email has been sent to "helpdesk@ghga.de"
@@ -18,7 +20,8 @@ Feature: 31 Access Request
   Scenario: Granting access to a dataset
 
     Given I am logged in as "Data Steward"
-
+    Then I am authenticated with 2FA
+    And the response status code is "204"
     When I fetch the list of access requests
     Then the response status code is "200"
     And there is one request for test dataset "DS_A" from "Dr. John Doe"
