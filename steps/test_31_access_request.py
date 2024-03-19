@@ -23,7 +23,6 @@ from ghga_service_commons.utils.utc_dates import now_as_utc
 from .conftest import (
     Config,
     JointFixture,
-    LoginFixture,
     Response,
     StateStorage,
     fetch_data_stewardship,
@@ -63,24 +62,27 @@ def claims_repository_is_empty(fixtures: JointFixture):
 
 
 @when(
-    parse('I request access to the test dataset "{alias}"'),
+    parse('"{full_name}" requests access to the test dataset "{alias}"'),
     target_fixture="response",
 )
-def request_access_for_dataset(alias: str, fixtures: JointFixture, login: LoginFixture):
+def request_access_for_dataset(full_name: str, alias: str, fixtures: JointFixture):
+    session = fixtures.auth.get_session(name=full_name, state_store=fixtures.state)
+    assert session
+    headers = fixtures.auth.headers(session=session) if session else {}
     datasets = fixtures.state.get_state("all available datasets")
     assert alias in datasets
     dataset_id = datasets[alias]["accession"]
     url = f"{fixtures.config.ars_url}/access-requests"
     date_now = now_as_utc()
-    user, headers = login
     data = {
-        "user_id": user.id,
+        "user_id": session.user_id,
         "dataset_id": dataset_id,
-        "email": user.email,
+        "email": session.email,
         "request_text": "Can I access the test dataset?",
         "access_starts": date_now.isoformat(),
         "access_ends": (date_now + timedelta(days=365)).isoformat(),
     }
+
     return fixtures.http.post(url, headers=headers, json=data)
 
 
@@ -110,10 +112,16 @@ def check_email_sent_to(
     assert False, f"An email notification was not received by {email}."
 
 
-@when("I fetch the list of access requests", target_fixture="response")
-def fetch_list_of_access_requests(fixtures: JointFixture, login: LoginFixture):
+@when(
+    parse('"{full_name}" fetches the list of access requests'),
+    target_fixture="response",
+)
+def fetch_list_of_access_requests(fixtures: JointFixture, full_name: str):
     url = f"{fixtures.config.ars_url}/access-requests"
-    return fixtures.http.get(url, headers=login.headers)
+    session = fixtures.auth.get_session(name=full_name, state_store=fixtures.state)
+    assert session
+    headers = fixtures.auth.headers(session=session) if session else {}
+    return fixtures.http.get(url, headers=headers)
 
 
 @then(parse('there is one request for test dataset "{alias}" from "{name}"'))
@@ -135,22 +143,30 @@ def there_is_one_request(
     assert len(requests) == 1
 
 
-@when(parse('I allow the pending request from "{name}"'), target_fixture="response")
+@when(
+    parse('"{approver_name}" allows the pending request from "{requester_name}"'),
+    target_fixture="response",
+)
 def allow_pending_request(
-    name: str, fixtures: JointFixture, login: LoginFixture, response: Response
+    approver_name: str, requester_name: str, fixtures: JointFixture, response: Response
 ):
+    session = fixtures.auth.get_session(name=approver_name, state_store=fixtures.state)
+    assert session
+    headers = fixtures.auth.headers(session=session) if session else {}
+
     requests = response.json()
     requests = [
         request
         for request in requests
-        if request["status"] == "pending" and request["full_user_name"] == name
+        if request["status"] == "pending"
+        and request["full_user_name"] == requester_name
     ]
     assert len(requests) == 1
     request = requests[0]
     request_id = request["id"]
     url = f"{fixtures.config.ars_url}/access-requests/{request_id}"
     data = {"status": "allowed"}
-    return fixtures.http.patch(url, headers=login.headers, json=data)
+    return fixtures.http.patch(url, headers=headers, json=data)
 
 
 @then(parse('the status of the request from "{name}" is "{status}"'))

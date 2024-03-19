@@ -19,16 +19,18 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import NamedTuple, Optional
+from typing import Optional
+from urllib.parse import parse_qs, urlparse
 
 import pyotp
 from ghga_service_commons.utils.jwt_helpers import sign_and_serialize_token
-from ghga_service_commons.utils.utc_dates import DateTimeUTC
 from httpx import Response
 from jwcrypto import jwk
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, model_validator
 from pyparsing import Any
 from pytest import fixture
+
+from fixtures.state import StateStorage
 
 from .config import Config
 from .http_client import HttpClient
@@ -40,7 +42,7 @@ DEFAULT_USER_STATUS = "active"
 
 
 class Session(BaseModel):
-    id: Optional[str] = None
+    user_id: Optional[str] = Field(None, alias="id")
     session_id: str
     csrf: str
     ext_id: str
@@ -50,6 +52,20 @@ class Session(BaseModel):
     timeout: int
     extends: int
     role: Optional[str] = None
+
+    @model_validator(mode="after")
+    def assign_ext_id_to_id(self):
+        """If ID is not provided, assign the ext_id value.
+
+        Internal ID is assigned when the user is registered,
+        until then external ID is used.
+        """
+        if self.user_id is None:
+            self.user_id = self.ext_id
+        return self
+
+    class Config:
+        populate_by_name = True
 
 
 class TokenGenerator:
@@ -101,12 +117,10 @@ class TokenGenerator:
         mail_id = name.lower().replace(" ", ".")
         return f"{mail_id}@{self.user_domain}"
 
-    def internal_access_token_from_session(
-        self, session_headers: dict, for_registration: bool = False
-    ) -> str:
+    def internal_access_token_from_session(self, session_headers: dict) -> str:
         """Get an internal from an external access token using the auth adapter."""
         url = self.auth_adapter_url + "/users"
-        method = self.http.post if for_registration else self.http.get
+        method = self.http.post
         response = method(url, headers=session_headers)  # type: ignore
         status_code = response.status_code
         assert status_code == 200, status_code
@@ -163,14 +177,22 @@ class TokenGenerator:
         session = Session(session_id=session_id, **session_dict)
         return session
 
-    def session(
+    def get_session(self, name: str, state_store: StateStorage) -> Optional[Session]:
+        sub = self.get_sub(name)
+        assert state_store, "No state store provided. Cannot query session."
+        session = state_store.get_state(f"session-{sub}") or None
+        if session:
+            return Session(**session)
+        return None
+
+    def create_session(
         self,
         name: str,
         email: Optional[str] = None,
         title: Optional[str] = None,
         user_id: Optional[str] = None,
         valid_seconds: int = DEFAULT_VALID_SECONDS,
-    ):
+    ) -> Session:
         """Login and return the session object
 
         Login to OIDC provider then with the external access token
@@ -186,8 +208,13 @@ class TokenGenerator:
         )
         auth_headers = {"Authorization": f"Bearer {external_token}"}
         response = self.auth_login(headers=auth_headers)
-        session = self.session_from_response(response)
-        return session
+        return self.session_from_response(response)
+
+    def save_session(self, name: str, session: Session, state_store: StateStorage):
+        sub = self.get_sub(name)
+        session_dict = session.model_dump()
+        assert state_store, "No state store provided. Cannot query session."
+        state_store.set_state(f"session-{sub}", session_dict)
 
     def headers(
         self,
@@ -237,18 +264,20 @@ class TokenGenerator:
         assert status_code == 204, status_code
         return response
 
-    def get_totp_token(
+    def get_totp_secret(
         self, user_id: str, headers: dict[str, Any], force: bool = False
     ) -> str:
         """Request a valid TOTP token."""
-        # TODO: Use existing TOTP token from state instead of a new one each time
         user_info = {"user_id": user_id, "force": force}
         url = self.auth_adapter_url + "/totp-token"
         response = self.http.post(url, json=user_info, headers=headers)
         status_code = response.status_code
-        assert status_code == 200, status_code
-        token = response.text
-        return token
+        assert status_code == 201, status_code
+        uri = response.json().get("uri")
+        assert uri
+        uri_params = parse_qs(urlparse(uri).query)
+        assert "secret" in uri_params
+        return uri_params["secret"][0]  # type: ignore
 
     def generate_totp(
         self, secret: str, when: Optional[datetime] = None, offset: int = 0
@@ -277,10 +306,11 @@ class TokenGenerator:
 
     def authenticate(self, session: Session, user_id: Optional[str] = None) -> Response:
         """Authenticate with two-factor authentication."""
-        user_id = user_id if user_id else session.ext_id
+        user_id = user_id if user_id else session.user_id
         session_headers = self.headers_for_session(session)
-        totp_token = self.get_totp_token(user_id=user_id, headers=session_headers)
-        totp = self.generate_totp(totp_token)
+        assert user_id, "No user ID provided for authentication or found in the session"
+        totp_secret = self.get_totp_secret(user_id=user_id, headers=session_headers)
+        totp = self.generate_totp(totp_secret)
         return self.verify_totp(user_id, totp, session_headers)
 
     @property

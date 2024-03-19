@@ -94,13 +94,6 @@ class UserData(NamedTuple):
     email: str
 
 
-class LoginFixture(NamedTuple):
-    """A fixture to hold a user and a corresponding access token."""
-
-    user: UserData
-    session: Session
-
-
 def get_user_data(name: str, fixtures: JointFixture) -> UserData:
     auth = fixtures.auth
     title, name = auth.split_title(name)
@@ -117,30 +110,32 @@ def registered_as_user(name: str, fixtures: JointFixture) -> UserData:
     return get_user_data(name, fixtures)
 
 
-@given(parse('I am logged in as "{name}"'), target_fixture="login")
-def access_as_user(name: str, fixtures: JointFixture) -> LoginFixture:
-    title, name = fixtures.auth.split_title(name)
+@given(parse('I am logged in as "{name}"'))
+def access_as_user(name: str, fixtures: JointFixture):
     sub = fixtures.auth.get_sub(name)
-    email = fixtures.auth.get_email(name)
-    session = fixtures.auth.session(name=name, user_id=sub)
-    user_id = session.ext_id
-    user = UserData(user_id, sub, name, title, email)  # FIXME sub?
-    return LoginFixture(user, session)
+    session = fixtures.auth.create_session(name=name, user_id=sub)
+    fixtures.auth.save_session(name=name, session=session, state_store=fixtures.state)
 
 
-@then(parse("I am authenticated with 2FA"))
-def authenticate_user(fixtures: JointFixture, login: LoginFixture):
-    session = login.session
-    fixtures.auth.authenticate(session=session, user_id=session.ext_id)
+@given(parse('I am authenticated as "{full_name}"'), target_fixture="response")
+def authenticate_user(full_name: str, fixtures: JointFixture):
+    session = fixtures.auth.get_session(name=full_name, state_store=fixtures.state)
+    assert session, f"No session found for {full_name}"
+    return fixtures.auth.authenticate(session=session, user_id=session.user_id)
 
 
 @given(parse('the user "{name}" is logged out'))
 def logout_as_user(name: str, fixtures: JointFixture):
-    """Log out the user
+    """Log out the user without knowing the login status on server.
 
-    If a session is alive in the Auth Adapter, it needs to be removed.
+    Sessions that are alive in the Auth Adapter need to be removed.
+    In order to achieve this, the session is retrieved via login and used to logout.
     """
-    session = fixtures.auth.session(name=name)
+    sub = fixtures.auth.get_sub(name)
+    session = fixtures.auth.get_session(name=name, state_store=fixtures.state)
+    if not session:
+        print("No session found, creating a new one.")
+        session = fixtures.auth.create_session(name=name, user_id=sub)
     fixtures.auth.auth_logout(session)
 
 
@@ -148,6 +143,12 @@ def logout_as_user(name: str, fixtures: JointFixture):
 def check_status_code(code: int, response: Response):
     status_code = response.status_code
     assert status_code == code, f"{status_code}: {response.text}"
+
+
+@given("the session store is empty")
+def empty_session_store(fixtures: JointFixture):
+    """Remove all states starting with "session" from the state storage"""
+    fixtures.state.unset_state("session")
 
 
 # Global test bed state memory
