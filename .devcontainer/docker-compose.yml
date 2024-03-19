@@ -160,7 +160,7 @@ services:
       - ./ifrs.yaml:/home/appuser/.ifrs.yaml:ro
 
   ums:
-    image: ghga/auth-service:2.0.0
+    image: ghga/auth-service:2.1.0
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -184,7 +184,7 @@ services:
       AUTH_SERVICE_KAFKA_SERVERS: '["kafka:9092"]'
 
   ums-consumer:
-    image: ghga/auth-service:2.0.0
+    image: ghga/auth-service:2.1.0
     restart: unless-stopped
     depends_on:
       mongodb:
@@ -203,7 +203,7 @@ services:
 
   # auth adapter
   auth:
-    image: ghga/auth-service:2.0.0
+    image: ghga/auth-service:2.1.0
     restart: unless-stopped
     depends_on:
       mongodb:
