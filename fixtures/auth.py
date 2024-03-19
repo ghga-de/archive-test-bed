@@ -31,7 +31,7 @@ from pyparsing import Any
 from pytest import fixture
 
 from .config import Config
-from .http_req import HttpClient
+from .http_client import HttpClient
 
 __all__ = ["auth_fixture"]
 
