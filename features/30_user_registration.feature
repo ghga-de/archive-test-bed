@@ -4,7 +4,9 @@ Feature: 30 User Registration
 
   Background:
     Given the user "Dr. John Doe" is logged out
+    And the user "Data Steward" is logged out
     And the session store is empty
+    And the TOTP token store is empty
 
   Scenario: Attempt to access user data before registration
     Given the user "Dr. John Doe" is not yet registered
@@ -28,7 +30,7 @@ Feature: 30 User Registration
     Given I am logged in as "Dr. John Doe"
     And I am registered as "Dr. John Doe"
     And I am authenticated as "Dr. John Doe"
-    Then the response status code is "200"
+    Then the response status code is "204"
 
     When "Dr. John Doe" retrieves their user data
     Then the user data of "Dr. John Doe" is returned
@@ -37,7 +39,7 @@ Feature: 30 User Registration
 
     Given I am logged in as "Data Steward"
     And I am authenticated as "Data Steward"
-    Then the response status code is "200"
+    Then the response status code is "204"
 
     When "Data Steward" retrieves their user data
     Then the response status code is "200"

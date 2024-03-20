@@ -16,8 +16,10 @@
 
 """Fixture for testing APIs that use an auth token."""
 
+import hashlib
 import json
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Optional
 from urllib.parse import parse_qs, urlparse
@@ -68,6 +70,14 @@ class Session(BaseModel):
         populate_by_name = True
 
 
+class TOTPAlgorithm(str, Enum):
+    """Hash algorithm used for TOTP code generation"""
+
+    SHA1 = "sha1"
+    SHA256 = "sha256"
+    SHA512 = "sha512"
+
+
 class TokenGenerator:
     """Generator for auth tokens"""
 
@@ -88,6 +98,14 @@ class TokenGenerator:
         self.op_issuer = config.op_issuer
         self.auth_adapter_url = config.auth_adapter_url
         self.http = http
+        if config.totp_algorithm == TOTPAlgorithm.SHA1:
+            self.digest = hashlib.sha1
+        elif config.totp_algorithm == TOTPAlgorithm.SHA256:
+            self.digest = hashlib.sha256
+        elif config.totp_algorithm == TOTPAlgorithm.SHA512:
+            self.digest = hashlib.sha512
+        self.digit = config.totp_digit
+        self.interval = config.totp_interval
 
     @classmethod
     def split_title(cls, full_name: str) -> tuple[Optional[str], str]:
@@ -264,10 +282,21 @@ class TokenGenerator:
         assert status_code == 204, status_code
         return response
 
-    def get_totp_secret(
-        self, user_id: str, headers: dict[str, Any], force: bool = False
+    def get_totp_token(
+        self,
+        name: str,
+        user_id: str,
+        headers: dict[str, Any],
+        state_store: StateStorage,
+        force: bool = False,
     ) -> str:
         """Request a valid TOTP token."""
+        sub = self.get_sub(name)
+        if not force:
+            assert state_store, "No state store provided. Cannot query TOTP token."
+            token = state_store.get_state(f"totp-token-{sub}") or None
+            if token:
+                return token
         user_info = {"user_id": user_id, "force": force}
         url = self.auth_adapter_url + "/totp-token"
         response = self.http.post(url, json=user_info, headers=headers)
@@ -277,20 +306,24 @@ class TokenGenerator:
         assert uri
         uri_params = parse_qs(urlparse(uri).query)
         assert "secret" in uri_params
-        return uri_params["secret"][0]  # type: ignore
+        token = uri_params["secret"][0]
+        state_store.set_state(f"totp-token-{sub}", token)
+        return token
 
     def generate_totp(
-        self, secret: str, when: Optional[datetime] = None, offset: int = 0
+        self, token: str, when: Optional[datetime] = None, offset: int = 0
     ) -> str:
-        """Generate a valid TOTP code for the given secret."""
+        """Generate a valid TOTP code for the given token."""
         if not when:
             when = datetime.utcnow()
-        return pyotp.TOTP(secret).at(when, offset)
+        return pyotp.TOTP(
+            token, digest=self.digest, digits=self.digit, interval=self.interval
+        ).at(when, offset)
 
     def verify_totp(self, user_id: str, totp: str, headers: dict[str, Any]) -> Response:
         """Verify the TOTP code."""
         user_info = {"user_id": user_id, "totp": totp}
-        url = self.auth_adapter_url + "/verify-totp"
+        url = self.auth_adapter_url + "/rpc/verify-totp"
         return self.http.post(url, json=user_info, headers=headers)
 
     def auth_logout(
@@ -304,13 +337,25 @@ class TokenGenerator:
         status_code = response.status_code
         assert status_code == 204, status_code
 
-    def authenticate(self, session: Session, user_id: Optional[str] = None) -> Response:
+    def authenticate(
+        self,
+        session: Session,
+        state_store: StateStorage,
+        user_id: Optional[str] = None,
+        force: bool = False,
+    ) -> Response:
         """Authenticate with two-factor authentication."""
         user_id = user_id if user_id else session.user_id
         session_headers = self.headers_for_session(session)
         assert user_id, "No user ID provided for authentication or found in the session"
-        totp_secret = self.get_totp_secret(user_id=user_id, headers=session_headers)
-        totp = self.generate_totp(totp_secret)
+        totp_token = self.get_totp_token(
+            name=session.name,
+            user_id=user_id,
+            headers=session_headers,
+            state_store=state_store,
+            force=force,
+        )
+        totp = self.generate_totp(totp_token)
         return self.verify_totp(user_id, totp, session_headers)
 
     @property

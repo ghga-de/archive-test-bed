@@ -15,7 +15,7 @@ Feature: 31 Access Request
 
     Given I am logged in as "Dr. John Doe"
     And I am authenticated as "Dr. John Doe"
-    And the response status code is "200"
+    And the response status code is "204"
 
     When "Dr. John Doe" requests access to the test dataset "DS_A"
     Then the response status code is "201"
@@ -26,7 +26,7 @@ Feature: 31 Access Request
 
     Given I am logged in as "Data Steward"
     And I am authenticated as "Data Steward"
-    Then the response status code is "200"
+    Then the response status code is "204"
 
     When "Data Steward" fetches the list of access requests
     Then the response status code is "200"
