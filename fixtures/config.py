@@ -108,6 +108,9 @@ class Config(KafkaConfig, MongoDbConfig, S3Config):
     auth_adapter_url: str = "http://auth:8080"
     auth_basic: str = ""  # for Basic Authentication
     upload_token: str = ""  # simple token for uploading metadata
+    totp_digit: int = 6
+    totp_algorithm: str = "sha1"
+    totp_interval: int = 30
 
     # wkvs
     wkvs_url: str = "http://wkvs"

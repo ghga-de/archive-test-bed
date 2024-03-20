@@ -17,9 +17,18 @@
 
 from datetime import datetime, timedelta
 
+from fixtures.auth import Session
 from ghga_service_commons.utils.utc_dates import now_as_utc
 
-from .conftest import JointFixture, Response, given, parse, scenarios, then, when
+from .conftest import (
+    JointFixture,
+    Response,
+    given,
+    parse,
+    scenarios,
+    then,
+    when,
+)
 
 scenarios("../features/30_user_registration.feature")
 
@@ -41,17 +50,23 @@ def user_not_yet_registered(full_name: str, fixtures: JointFixture):
 
 
 @when(
-    parse('the user "{full_name}" retrieves the own user data'),
+    parse('"{full_name}" retrieves their user data'),
     target_fixture="response",
 )
 def user_fetches_own_info(full_name: str, fixtures: JointFixture):
+    """Fetches the user data for the given user from the UMS.
+
+    Use session authentication if exist otherwise no authentication.
+    """
     sub = fixtures.auth.get_sub(full_name)
-    url = f"{fixtures.config.ums_url}/users/{sub}"
-    headers = fixtures.auth.generate_headers(full_name)
+    session = fixtures.auth.get_session(name=full_name, state_store=fixtures.state)
+    headers = fixtures.auth.headers(session=session) if session else {}
+    user_id = session.user_id if session else sub
+    url = f"{fixtures.config.ums_url}/users/{user_id}"
     return fixtures.http.get(url, headers=headers)
 
 
-@when(parse('the user "{full_name}" tries to register'), target_fixture="response")
+@when(parse('"{full_name}" registers as a new user'), target_fixture="response")
 def user_registers(full_name: str, fixtures: JointFixture):
     title, name = fixtures.auth.split_title(full_name)
     email = fixtures.auth.get_email(name)
@@ -63,7 +78,8 @@ def user_registers(full_name: str, fixtures: JointFixture):
         "ext_id": sub,
     }
     url = f"{fixtures.config.ums_url}/users"
-    headers = fixtures.auth.generate_headers(full_name)
+    session = fixtures.auth.get_session(name=full_name, state_store=fixtures.state)
+    headers = fixtures.auth.headers(session=session) if session else {}
     return fixtures.http.post(url, json=user_data, headers=headers)
 
 
@@ -77,7 +93,7 @@ def user_gets_id(full_name: str, fixtures: JointFixture, response: Response):
     user_id = user["id"]
     assert user_id and "-" in user_id and len(user_id) > 6 and "@" not in user_id
     assert user["name"] == name
-    assert user["title"] == title
+    assert user["title"] == title  # FIXME: title is None, but should be "Dr."
     assert user["email"] == email
     assert user["ext_id"] == sub
     assert user["status"] == "active"

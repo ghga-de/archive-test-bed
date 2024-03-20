@@ -18,7 +18,6 @@
 from .conftest import (
     Config,
     JointFixture,
-    LoginFixture,
     MongoFixture,
     Response,
     StateStorage,
@@ -60,11 +59,14 @@ def announce_dataset(config: Config, mongo: MongoFixture):
     assert titles == {"A", "B", "C", "D", "complete-A", "complete-B"}
 
 
-@when("the list of datasets is queried", target_fixture="response")
-def query_datasets_with_wps(fixtures: JointFixture, login: LoginFixture):
-    user_id = login.user.id
+@when(parse('"{full_name}" lists the datasets'), target_fixture="response")
+def query_datasets_with_wps(fixtures: JointFixture, full_name: str):
+    session = fixtures.auth.get_session(name=full_name, state_store=fixtures.state)
+    assert session
+    headers = fixtures.auth.headers(session=session) if session else {}
+    user_id = session.user_id
     url = f"{fixtures.config.wps_url}/users/{user_id}/datasets"
-    return fixtures.http.get(url, headers=login.headers)
+    return fixtures.http.get(url, headers=headers)
 
 
 @then(parse('only the test dataset "{dataset_char}" is returned'))
@@ -83,11 +85,13 @@ def check_dataset_in_list(
 
 
 @when(
-    parse('a work package for "{file_scope}" files in test dataset is created'),
+    parse(
+        '"{full_name}" creates a work package for "{file_scope}" files in test dataset'
+    ),
     target_fixture="response",
 )
 def create_work_package(
-    login: LoginFixture, fixtures: JointFixture, response: Response, file_scope: str
+    full_name: str, fixtures: JointFixture, response: Response, file_scope: str
 ):
     data = response.json()
     assert isinstance(data, list) and len(data) == 1
@@ -116,7 +120,11 @@ def create_work_package(
         "user_public_crypt4gh_key": fixtures.config.user_public_crypt4gh_key,
     }
     url = f"{fixtures.config.wps_url}/work-packages"
-    return fixtures.http.post(url, headers=login.headers, json=data)
+
+    session = fixtures.auth.get_session(name=full_name, state_store=fixtures.state)
+    assert session
+    headers = fixtures.auth.headers(session=session) if session else {}
+    return fixtures.http.post(url, headers=headers, json=data)
 
 
 @then(parse('the response contains a download token for "{file_scope}" files'))
