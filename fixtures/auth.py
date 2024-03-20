@@ -139,7 +139,7 @@ class TokenGenerator:
         """Get an internal from an external access token using the auth adapter."""
         url = self.auth_adapter_url + "/users"
         method = self.http.post
-        response = method(url, headers=session_headers)  # type: ignore
+        response = method(url, headers=session_headers)
         status_code = response.status_code
         assert status_code == 200, status_code
         authorization = response.headers.get("Authorization")
